@@ -65,8 +65,16 @@ function add_function() {
   local name="$2"
   local return_type="$3"
   local is_async="$4"
-  shift 4
+  local body="$5"
+  shift 5
   local props=("$@")
+
+  # If we have props and return type is JSX.Element, create a Props type
+  if [ "${#props[@]}" -gt 0 ] && [ "$return_type" = "JSX.Element" ]; then
+    add_type "$file" "${name}Props" "${props[@]}"
+    # Clear props array as we'll use the type instead
+    props=("props: ${name}Props")
+  fi
 
   # Build the function definition with 2-space indentation
   local fn_def="export ${is_async}function $name("
@@ -82,7 +90,16 @@ function add_function() {
     fn_def+="$prop_name: ${prop_type:-any}"
   done
   fn_def+="): ${return_type:-void} {\n"
-  fn_def+="  // TODO: implement $name\n"
+  
+  if [ -n "$body" ]; then
+    fn_def+="  $body\n"
+  elif [ "$return_type" = "JSX.Element" ]; then
+    local parsed_emmet
+    parsed_emmet=$(parse_emmet "$emmet" "$name")
+    fn_def+="  return ($parsed_emmet);\n"
+  else
+    fn_def+="  // TODO: implement $name\n"
+  fi
   fn_def+="}"
 
   # Add function at the end of the file
@@ -105,4 +122,427 @@ function format_component_name() {
   name=$(echo "$name" | awk '{$1=$1}1' | sed 's/\<./\U&/g' | tr -d ' ')
   
   echo "$name"
-} 
+}
+
+function parse_emmet() {
+  local emmet="$1"
+  local name="$2"
+  
+  if [ -z "$emmet" ]; then
+    echo "<>TODO ${name}</>"
+    return
+  fi
+
+  # Basic emmet parsing - can be expanded for more complex patterns
+  # Replace . with className=
+  emmet="${emmet//./ className=\"}"
+  # Add closing quotes for className
+  emmet="${emmet// /\"}"
+  # Replace # with id=
+  emmet="${emmet//#/ id=\"}"
+  # Handle basic nesting with >
+  emmet="${emmet//>/></}"
+  # Add closing tags
+  emmet="<${emmet}></${emmet%%[.#]*}>"
+  
+  echo "$emmet"
+}
+
+function process_page_template() {
+  local name="$1"
+  local file="$2"
+  
+  # Add required imports
+  add_import "$file" "next/navigation" "useRouter usePathname useSearchParams"
+  add_import "$file" "react" "Suspense"
+  add_import "$file" "react-error-boundary" "ErrorBoundary"
+  add_import "$file" "./loading" "Loading"
+  add_import "$file" "./error" "Error"
+  
+  # Add base component with error boundary and suspense
+  add_function "$file" "$name" "JSX.Element" "" "return (
+    <ErrorBoundary FallbackComponent={Error}>
+      <Suspense fallback={<Loading />}>
+        <div>
+          <h1>${name}</h1>
+          {/* Add your page content here */}
+        </div>
+      </Suspense>
+    </ErrorBoundary>
+  )"
+}
+
+function process_layout_template() {
+  local name="$1"
+  local file="$2"
+  
+  # Add required imports
+  add_import "$file" "next/metadata" "Metadata"
+  add_import "$file" "next/headers" "headers"
+  add_import "$file" "./metadata" "getMetadata"
+  
+  # Add metadata export
+  echo -e "\nexport const metadata: Metadata = getMetadata()" >> "$file"
+  
+  # Add layout component
+  add_function "$file" "$name" "JSX.Element" "" "return (
+    <div className=\"layout-container\">
+      {/* Add your layout structure here */}
+      {props.children}
+    </div>
+  )" "children: React.ReactNode"
+}
+
+function process_form_template() {
+  local name="$1"
+  local file="$2"
+  
+  # Add required imports
+  add_import "$file" "react-hook-form" "useForm"
+  add_import "$file" "@hookform/resolvers/zod" "zodResolver"
+  add_import "$file" "./schema" "formSchema FormData"
+  
+  # Add form component
+  add_function "$file" "$name" "JSX.Element" "" "const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {},
+  });
+
+  const onSubmit = async (data: FormData) => {
+    // Add your form submission logic here
+    console.log(data);
+  };
+
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)} className=\"space-y-4\">
+      {/* Add your form fields here */}
+      <button type=\"submit\" className=\"btn-primary\">
+        Submit
+      </button>
+    </form>
+  )"
+}
+
+function process_table_template() {
+  local name="$1"
+  local file="$2"
+  
+  # Add required imports
+  add_import "$file" "@tanstack/react-table" "useReactTable getCoreRowModel getPaginationRowModel flexRender"
+  add_import "$file" "./columns" "columns"
+  add_import "$file" "./types" "TableData"
+  
+  # Add table component
+  add_function "$file" "$name" "JSX.Element" "" "const [data, setData] = React.useState<TableData[]>([]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
+  return (
+    <div className=\"overflow-x-auto\">
+      <table className=\"min-w-full table-auto\">
+        <thead>
+          {table.getHeaderGroups().map(headerGroup => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map(header => (
+                <th key={header.id}>
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map(row => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map(cell => (
+                <td key={cell.id}>
+                  {flexRender(
+                    cell.column.columnDef.cell,
+                    cell.getContext()
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className=\"flex items-center justify-end space-x-2 py-4\">
+        <button
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+          className=\"btn-secondary\"
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+          className=\"btn-secondary\"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  )"
+}
+
+function generate_api_route() {
+  local name="$1"
+  local file="$2"
+  local methods=("$3")
+  
+  # Add required imports
+  add_import "$file" "next/server" "NextRequest NextResponse"
+  
+  # Add API route handlers for each method
+  for method in "${methods[@]}"; do
+    local method_lower=$(echo "$method" | tr '[:upper:]' '[:lower:]')
+    add_function "$file" "$method_lower" "Promise<NextResponse>" "async" "const req = await request.json();
+    
+    try {
+      // Add your $method_lower logic here
+      return NextResponse.json({ message: 'Success' });
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Unknown error' },
+        { status: 500 }
+      );
+    }" "request: NextRequest"
+  done
+}
+
+function generate_trpc_procedure() {
+  local name="$1"
+  local file="$2"
+  local procedure_type="$3"
+  local input_schema="$4"
+  
+  # Add required imports
+  add_import "$file" "@trpc/server" "router procedure"
+  add_import "$file" "zod" "z"
+  
+  # Add input schema if provided
+  if [ -n "$input_schema" ]; then
+    echo -e "\nexport const ${name}Schema = z.object($input_schema);" >> "$file"
+  fi
+  
+  # Add procedure based on type
+  case "$procedure_type" in
+    "query")
+      echo -e "\nexport const ${name} = procedure
+        ${input_schema:+.input(${name}Schema)}
+        .query(async ({ input, ctx }) => {
+          // Add your query logic here
+          return {};
+        });" >> "$file"
+      ;;
+    "mutation")
+      echo -e "\nexport const ${name} = procedure
+        ${input_schema:+.input(${name}Schema)}
+        .mutation(async ({ input, ctx }) => {
+          // Add your mutation logic here
+          return {};
+        });" >> "$file"
+      ;;
+    "infinite")
+      echo -e "\nexport const ${name} = procedure
+        ${input_schema:+.input(${name}Schema)}
+        .query(async ({ input, ctx }) => {
+          const limit = 10;
+          const items = [];
+          const nextCursor = null;
+          
+          return {
+            items,
+            nextCursor,
+          };
+        });" >> "$file"
+      ;;
+  esac
+}
+
+function add_query_loader() {
+  local name="$1"
+  local file="$2"
+  local router_name="$3"
+  
+  # Add required imports
+  add_import "$file" "@/server/api/routers/${router_name}" "${name}"
+  add_import "$file" "@/utils/api" "api"
+  
+  # Add query hook
+  echo -e "\nexport function use${name}Query(${name}Input?: z.infer<typeof ${name}Schema>) {
+    return api.${router_name}.${name}.useQuery(${name}Input);
+  }" >> "$file"
+}
+
+function add_mutation_loader() {
+  local name="$1"
+  local file="$2"
+  local router_name="$3"
+  
+  # Add required imports
+  add_import "$file" "@/server/api/routers/${router_name}" "${name}"
+  add_import "$file" "@/utils/api" "api"
+  
+  # Add mutation hook
+  echo -e "\nexport function use${name}Mutation() {
+    return api.${router_name}.${name}.useMutation();
+  }" >> "$file"
+}
+
+function add_infinite_loader() {
+  local name="$1"
+  local file="$2"
+  local router_name="$3"
+  
+  # Add required imports
+  add_import "$file" "@/server/api/routers/${router_name}" "${name}"
+  add_import "$file" "@/utils/api" "api"
+  
+  # Add infinite query hook
+  echo -e "\nexport function use${name}InfiniteQuery(${name}Input?: z.infer<typeof ${name}Schema>) {
+    return api.${router_name}.${name}.useInfiniteQuery(${name}Input);
+  }" >> "$file"
+}
+
+function generate_props_schema() {
+  local name="$1"
+  local file="$2"
+  local props=("$3")
+  
+  # Add required imports
+  add_import "$file" "zod" "z"
+  
+  # Build schema
+  local schema="export const ${name}Schema = z.object({\n"
+  for prop in "${props[@]}"; do
+    local prop_name="${prop%%:*}"
+    local prop_type="${prop#*:}"
+    schema+="  $prop_name: z.${prop_type},\n"
+  done
+  schema+="});\n\nexport type ${name} = z.infer<typeof ${name}Schema>;"
+  
+  echo -e "\n$schema" >> "$file"
+}
+
+function generate_form_schema() {
+  local name="$1"
+  local file="$2"
+  local fields=("$3")
+  
+  # Add required imports
+  add_import "$file" "zod" "z"
+  
+  # Build schema
+  local schema="export const ${name}Schema = z.object({\n"
+  for field in "${fields[@]}"; do
+    local field_name="${field%%:*}"
+    local field_type="${field#*:}"
+    local validation="${field##*|}"
+    schema+="  $field_name: z.${field_type}"
+    if [ "$validation" != "$field_type" ]; then
+      schema+=".$validation"
+    fi
+    schema+=",\n"
+  done
+  schema+="});\n\nexport type ${name}FormData = z.infer<typeof ${name}Schema>;"
+  
+  echo -e "\n$schema" >> "$file"
+}
+
+function generate_api_schema() {
+  local name="$1"
+  local file="$2"
+  local input_fields=("$3")
+  local output_fields=("$4")
+  
+  # Add required imports
+  add_import "$file" "zod" "z"
+  
+  # Build input schema
+  local input_schema="export const ${name}InputSchema = z.object({\n"
+  for field in "${input_fields[@]}"; do
+    local field_name="${field%%:*}"
+    local field_type="${field#*:}"
+    input_schema+="  $field_name: z.${field_type},\n"
+  done
+  input_schema+="});\n"
+  
+  # Build output schema
+  local output_schema="export const ${name}OutputSchema = z.object({\n"
+  for field in "${output_fields[@]}"; do
+    local field_name="${field%%:*}"
+    local field_type="${field#*:}"
+    output_schema+="  $field_name: z.${field_type},\n"
+  done
+  output_schema+="});\n\n"
+  
+  # Add type exports
+  local types="export type ${name}Input = z.infer<typeof ${name}InputSchema>;
+export type ${name}Output = z.infer<typeof ${name}OutputSchema>;"
+  
+  echo -e "\n$input_schema\n$output_schema$types" >> "$file"
+}
+
+function generate_unit_test() {
+  local name="$1"
+  local file="$2"
+  local test_type="$3"
+  
+  # Add required imports
+  add_import "$file" "@testing-library/react" "render screen"
+  add_import "$file" "@testing-library/jest-dom" ""
+  add_import "$file" "@/components/${test_type}" "${name}"
+  
+  # Build test suite
+  local test_suite="describe('${name}', () => {
+  it('renders without crashing', () => {
+    render(<${name} />);
+    expect(screen.getByRole('${test_type}')).toBeInTheDocument();
+  });
+
+  it('matches snapshot', () => {
+    const { container } = render(<${name} />);
+    expect(container).toMatchSnapshot();
+  });
+
+  // Add more test cases here
+});"
+  
+  echo -e "\n$test_suite" >> "$file"
+}
+
+function generate_e2e_test() {
+  local name="$1"
+  local file="$2"
+  local test_type="$3"
+  
+  # Add required imports
+  add_import "$file" "@playwright/test" "test expect"
+  
+  # Build test suite
+  local test_suite="test.describe('${name}', () => {
+  test('should render correctly', async ({ page }) => {
+    await page.goto('/${test_type}/${name}');
+    await expect(page.getByRole('${test_type}')).toBeVisible();
+  });
+
+  test('should handle interactions', async ({ page }) => {
+    await page.goto('/${test_type}/${name}');
+    // Add interaction tests here
+  });
+
+  // Add more test cases here
+});"
+  
+  echo -e "\n$test_suite" >> "$file"
+}

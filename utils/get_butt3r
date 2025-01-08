@@ -1,6 +1,6 @@
 #!/bin/bash
 # @parseArger-begin
-# @parseArger-help "Get bcT3 installer" --option "help" --short-option "h"
+# @parseArger-help "Get butt3r installer" --option "help" --short-option "h"
 # @parseArger-verbose --option "verbose" --level "0" --quiet-option "quiet"
 _has_colors=0
 if [ -t 1 ]; then # Check if stdout is a terminal
@@ -70,7 +70,7 @@ print_help()
 
 	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
 		_helpHasBeenPrinted=0;
-		echo -e "Get bcT3 installer:"
+		echo -e "Get butt3r installer:"
 	echo -e "	-b, --branch|--tag|--install-version <branch>: version to install"
 	echo -e "	--install-directory <install-directory>: where to install"
 	echo -e "	--install-file <install-file>: rc files to install to, forces install, repeatable"
@@ -288,9 +288,9 @@ if [ "$_arg_zip" != "on" ] && [ "$(command -v git)" ]; then
 	ecmd+=(git clone);
 
 	if [ "$_arg_ssh" == "on" ]; then
-		ecmd+=("git@github.com:DimitriGilbert/bcT3.git");
+		ecmd+=("git@github.com:DimitriGilbert/ButT3r.git");
 	else
-		ecmd+=("https://github.com/DimitriGilbert/bcT3.git");
+		ecmd+=("https://github.com/DimitriGilbert/ButT3r.git");
 	fi
 
 	if [ "$_arg_branch" != "" ]; then
@@ -299,9 +299,9 @@ if [ "$_arg_zip" != "on" ] && [ "$(command -v git)" ]; then
 
 	if [ "$_arg_install_directory" != "" ]; then
 		ecmd+=("$_arg_install_directory");
-		mcmd+=("$_arg_install_directory/bcT3" "$_arg_install_directory/utils" "$_arg_install_directory/bin");
+		mcmd+=("$_arg_install_directory/butt3r" "$_arg_install_directory/utils" "$_arg_install_directory/bin");
 	else
-		mcmd+=("bcT3/bcT3" "bcT3/utils" "bcT3/bin");
+		mcmd+=("butt3r/butt3r" "butt3r/utils" "butt3r/bin");
 	fi
 else
 	if [ "$_arg_branch" == "" ]; then
@@ -309,19 +309,19 @@ else
 	fi
 	_arg_zip="on";
 	log "Install using zip, it is not recommended" -1;
-	ecmd+=(curl "https://github.com/DimitriGilbert/bcT3/archive/refs/heads/${_arg_branch}.zip/${_arg_branch}.zip" -LJO);
+	ecmd+=(curl "https://github.com/DimitriGilbert/ButT3r/archive/refs/heads/${_arg_branch}.zip/${_arg_branch}.zip" -LJO);
 	zcmd=(unzip -qq);
 	zcmd2=(mv);
 
 	if [ "$_arg_install_directory" != "" ]; then
 		zcmd+=(-d "/tmp");
-		mcmd+=("$_arg_install_directory/bcT3" "$_arg_install_directory/utils" "$_arg_install_directory/bin");
-		zcmd2+=("/tmp/bcT3-${_arg_branch}" "$_arg_install_directory");
+		mcmd+=("$_arg_install_directory/butt3r" "$_arg_install_directory/utils" "$_arg_install_directory/bin");
+		zcmd2+=("/tmp/butt3r-${_arg_branch}" "$_arg_install_directory");
 	else
-		mcmd+=("bcT3/bcT3" "bcT3/utils" "bcT3/bin");
-		zcmd2+=("bcT3-${_arg_branch}" "bcT3");
+		mcmd+=("butt3r/butt3r" "butt3r/utils" "butt3r/bin");
+		zcmd2+=("butt3r-${_arg_branch}" "butt3r");
 	fi
-	zcmd+=( "bcT3-${_arg_branch}.zip" );
+	zcmd+=( "butt3r-${_arg_branch}.zip" );
 fi
 
 log "${ecmd[*]}" 1;
@@ -332,7 +332,7 @@ if [ "$_arg_zip" == "on" ]; then
 	"${zcmd[@]}";
 	log "${zcmd2[*]}" 1;
 	"${zcmd2[@]}";
-	rm "bcT3-${_arg_branch}.zip";
+	rm "butt3r-${_arg_branch}.zip";
 fi
 
 log "${mcmd[*]}" 1;
@@ -350,7 +350,7 @@ if [ "$_arg_install" == "on" ] || [ "${#_arg_install_file[@]}" -gt 0 ]; then
 	if [ "$_arg_install_directory" != "" ]; then
 		cd "${_arg_install_directory}";
 	else
-		cd bcT3;
+		cd ButT3r;
 	fi
 	"${icmd[@]}";
 	cd -;

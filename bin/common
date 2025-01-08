@@ -453,3 +453,98 @@ function run_db_command() {
 
   "${_cmd[@]}";
 }
+
+function write_props_interface() {
+  local target_file="$1"
+  local component_name="$2"
+  shift 2
+  local props=("$@")
+
+  if [ "${#props[@]}" -gt 0 ]; then
+    echo -e "\nexport interface ${component_name}Props {" >> "$target_file"
+    for prop in "${props[@]}"; do
+      local prop_name="${prop%%:*}"
+      local prop_type="${prop#*:}"
+      echo "  $prop_name: ${prop_type:-any};" >> "$target_file"
+    done
+    echo "}" >> "$target_file"
+  fi
+}
+
+function prepare_component_body() {
+  local component_name="$1"
+  local emmet="$2"
+
+  local parsed_emmet
+  parsed_emmet=$(parse_emmet "$emmet" "$component_name")
+  echo "return ($parsed_emmet);"
+}
+
+function write_component_function() {
+  local target_file="$1"
+  local component_name="$2"
+  local body="$3"
+  shift 3
+  local props=("$@")
+
+  if [ "${#props[@]}" -gt 0 ]; then
+    # Extract prop names for destructuring
+    local props_list=""
+    for prop in "${props[@]}"; do
+      local prop_name="${prop%%:*}"
+      if [ -z "$props_list" ]; then
+        props_list="$prop_name"
+      else
+        props_list="$props_list, $prop_name"
+      fi
+    done
+    add_function "$target_file" "$component_name" "JSX.Element" "" "{ $props_list }: ${component_name}Props" "$body"
+  else
+    add_function "$target_file" "$component_name" "JSX.Element" "" "()" "$body"
+  fi
+}
+
+function create_component() {
+  local target_file="$1"
+  local component_name="$2"
+  local emmet="${3:-}"
+  shift 3
+  local props=("$@")
+
+  # Write Props interface if needed
+  write_props_interface "$target_file" "$component_name" "${props[@]}"
+
+  # Prepare and write component
+  local body
+  body=$(prepare_component_body "$component_name" "$emmet")
+  write_component_function "$target_file" "$component_name" "$body" "${props[@]}"
+}
+
+function update_component() {
+  local target_file="$1"
+  local temp_file="$2"
+  local component_name="$3"
+  local client_mode="$4"
+  local emmet="${5:-}"
+  shift 5
+  local props=("$@")
+
+  # Create temporary file if not exists
+  if [ ! -f "$temp_file" ]; then
+    # Preserve existing imports and directives
+    if [ "$client_mode" = "on" ] && ! grep -q "'use client';" "$target_file"; then
+      echo "'use client';" > "$temp_file"
+      echo "" >> "$temp_file"
+      cat "$target_file" >> "$temp_file"
+    else
+      cp "$target_file" "$temp_file"
+    fi
+  fi
+
+  # Remove existing component definition
+  sed -i "/^export.*function.*${component_name}/,/^}/d" "$temp_file"
+  sed -i "/^export.*interface.*${component_name}Props/,/^}/d" "$temp_file"
+
+  # Create updated component
+  create_component "$temp_file" "$component_name" "$emmet" "${props[@]}"
+}

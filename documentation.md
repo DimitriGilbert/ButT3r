@@ -1,9 +1,268 @@
 # Usage
 
-## bcT3
+## butt3r
 
 ```
 my go to project creator:
 Usage :
-	bcT3
+	butt3r
+```
+# Usage
+
+## butt3r
+
+```
+And, you thought T3 was opinionated:
+	target: what to do [one of 'create' 'component' 'db' 'down' 'layout' 'page' 'start' 'stop' 'up' 'create' 'ts-edit']
+Usage :
+	butt3r <target>
+```
+
+## butt3r create
+
+```
+my go to project creator:
+	name: project name
+	--db-provider <db-provider>: db provider [default: ' postgres ']
+	--db-orm <db-orm>: orm to use [default: ' drizzle ']
+	--shadcn-component <shadcn-component>: shadcn component to install, repeatable
+	--install <install>: package to install, repeatable
+	--package-manager <package-manager>: package manager [default: ' bun ']
+	--app-ports <app-ports>: ports entry for the app, repeatable
+	--app-env <app-env>: app env vars, repeatable
+	--db-ports <db-ports>: db ports entry, repeatable
+	--db-env <db-env>: db env vars, repeatable
+	--db-user <db-user>: db user
+	--db-name <db-name>: db name
+	--app-port <app-port>: ports to use for the app
+	--app-network <app-network>: network for the app
+	--db|--no-db: project use a DB, on by default (use --no-db to turn it off)
+	--app-router|--no-app-router: use app router, on by default (use --no-app-router to turn it off)
+	--auth|--no-auth: use nextauth, on by default (use --no-auth to turn it off)
+	--trpc|--no-trpc: use trpc, on by default (use --no-trpc to turn it off)
+	--tailwind|--no-tailwind: use tailwind, on by default (use --no-tailwind to turn it off)
+	--shadcn|--no-shadcn: project use shadcn, on by default (use --no-shadcn to turn it off)
+	--mdx|--no-mdx: project use markdown content
+	--mdx-remote|--no-mdx-remote: add next remote mdx and gray-matter, on by default (use --no-mdx-remote to turn it off)
+	--docker|--no-docker: create a docker compose stack, on by default (use --no-docker to turn it off)
+Usage :
+	butt3r create <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--app-ports <value>] [--app-env <value>] [--db-ports <value>] [--db-env <value>] [--db-user <value>] [--db-name <value>] [--app-port <value>] [--app-network <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote] [--[no-]docker]
+```
+
+## butt3r component
+
+```
+create/update a component:
+	path: path to the component
+	--directory <directory>: subdirectory in src/components
+	--component-name <component-name>: component name
+	--props <props>: property definition (name:type), repeatable
+	--import <import>: import statement (from:what), repeatable
+	--server|--no-server: is server component, on by default (use --no-server to turn it off)
+	--client|--no-client: is client component
+Usage :
+	butt3r component <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--[no-]server] [--[no-]client]
+```
+
+## butt3r db
+
+```
+manage your butt3r db:
+	target: what to do [one of 'export' 'import' 'query' 'export']
+Usage :
+	butt3r db <target>
+```
+
+## butt3r down
+
+```
+terminate and clean the stack:
+	--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']
+	--dev|--no-dev: running in dev mode, on by default (use --no-dev to turn it off)
+	--all|--no-all: remove everything (cache, dependencies, etc...)
+Usage :
+	butt3r down [--containerd <value>] [--[no-]dev] [--[no-]all]
+```
+
+## butt3r layout
+
+```
+create/update a layout:
+	path: path to the layout
+	--directory <directory>: subdirectory in src/app
+	--component-name <component-name>: component name
+	--props <props>: property definition (name:type), repeatable
+	--import <import>: import statement (from:what), repeatable
+	--server|--no-server: is server component, on by default (use --no-server to turn it off)
+	--client|--no-client: is client component
+	--root|--no-root: is root layout
+Usage :
+	butt3r layout <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--[no-]server] [--[no-]client] [--[no-]root]
+```
+
+## butt3r page
+
+```
+create/update a page:
+	path: path to the page
+	--directory <directory>: subdirectory in src/app
+	--component-name <component-name>: component name
+	--props <props>: property definition (name:type), repeatable
+	--import <import>: import statement (from:what), repeatable
+	--server|--no-server: is server component, on by default (use --no-server to turn it off)
+	--client|--no-client: is client component
+Usage :
+	butt3r page <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--[no-]server] [--[no-]client]
+```
+
+## butt3r start
+
+```
+I send an SOS to the world:
+	--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']
+	--runner <runner>: what js runtime is used [default: ' bun '] [one of 'bun' 'npm' 'yarn']
+	--dev|--no-dev: start in dev mode
+Usage :
+	butt3r start [--containerd <value>] [--runner <value>] [--[no-]dev]
+```
+
+## butt3r stop
+
+```
+stop the stack:
+	--containerd <containerd>: container runtime
+	--dev|--no-dev: running in dev
+Usage :
+	butt3r stop [--containerd <value>] [--[no-]dev]
+```
+
+## butt3r up
+
+```
+initialize the stack for the first time:
+	--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']
+	--runner <runner>: what js runtime is used [default: ' bun '] [one of 'bun' 'npm' 'yarn']
+	--dev|--no-dev: initialize in dev mode
+Usage :
+	butt3r up [--containerd <value>] [--runner <value>] [--[no-]dev]
+```
+
+## butt3r ts-edit
+
+```
+'edit' typescript file:
+	target: what to do [one of 'export-function' 'export-type' 'import' 'export-function']
+Usage :
+	butt3r ts-edit <target>
+```
+
+## butt3r db export
+
+```
+export database to a file:
+	output: output file
+	--format <format>: output format [default: ' sql '] [one of 'sql' 'json' 'yaml' 'csv' 'xml']
+	--table <table>: table to export (all if not specified)
+	--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']
+	--pretty|--no-pretty: pretty print output (when possible)
+Usage :
+	butt3r db export <output> [--format <value>] [--table <value>] [--containerd <value>] [--[no-]pretty]
+```
+
+## butt3r db import
+
+```
+import database from a file:
+	input: input file
+	--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']
+	--force|--no-force: force import (drop existing data)
+Usage :
+	butt3r db import <input> [--containerd <value>] [--[no-]force]
+```
+
+## butt3r db query
+
+```
+run a query on the database:
+	query: SQL query to execute
+	--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']
+	--output <output>: output file (prints to stdout if not specified)
+	--format <format>: output format (when saving to file) [default: ' table '] [one of 'table' 'json' 'yaml' 'csv' 'xml']
+	--pretty|--no-pretty: pretty print output (when possible)
+Usage :
+	butt3r db query <query> [--containerd <value>] [--output <value>] [--format <value>] [--[no-]pretty]
+```
+
+## butt3r ts-edit export-function
+
+```
+export a function:
+	name: function name
+	--props <props>: function props (name:type), repeatable
+	--return-type <return-type>: function return type [default: ' void ']
+	--async|--no-async: is async function
+Usage :
+	butt3r ts-edit export-function <name> [--props <value>] [--return-type <value>] [--[no-]async]
+```
+
+## butt3r ts-edit export-type
+
+```
+export a type:
+	name: type name
+	--property <property>: property definition (name:type), repeatable
+Usage :
+	butt3r ts-edit export-type <name> [--property <value>]
+```
+
+## butt3r ts-edit import
+
+```
+add import statement:
+	from: module to import from
+	what: what to import
+Usage :
+	butt3r ts-edit import <from> <what>
+```
+
+## butt3r create docker
+
+```
+I send an SOS to the world:
+	--app-name <app-name>: app name
+	--app-ports <app-ports>: ports entry for the app, repeatable
+	--app-env <app-env>: app env vars, repeatable
+	--db-ports <db-ports>: db ports entry, repeatable
+	--db-env <db-env>: db env vars, repeatable
+	--db-user <db-user>: db user
+	--db-name <db-name>: db name
+	--app-port <app-port>: ports to use for the app
+	--network <network>: main network name
+	--db-networks <db-networks>: more entworks for the db, repeatable
+	--app-networks <app-networks>: more net for the app, repeatable
+	--db-type <db-type>: db-type [default: ' postgres ']
+Usage :
+	butt3r create docker [--app-name <value>] [--app-ports <value>] [--app-env <value>] [--db-ports <value>] [--db-env <value>] [--db-user <value>] [--db-name <value>] [--app-port <value>] [--network <value>] [--db-networks <value>] [--app-networks <value>] [--db-type <value>]
+```
+
+## butt3r create t3
+
+```
+my go to project creator:
+	name: project name
+	--db-provider <db-provider>: db provider [default: ' sqlite ']
+	--db-orm <db-orm>: orm to use [default: ' drizzle ']
+	--shadcn-component <shadcn-component>: shadcn component to install, repeatable
+	--install <install>: package to install, repeatable
+	--package-manager <package-manager>: package manager [default: ' bun ']
+	--db|--no-db: project use a DB, on by default (use --no-db to turn it off)
+	--app-router|--no-app-router: use app router, on by default (use --no-app-router to turn it off)
+	--auth|--no-auth: use nextauth, on by default (use --no-auth to turn it off)
+	--trpc|--no-trpc: use trpc, on by default (use --no-trpc to turn it off)
+	--tailwind|--no-tailwind: use tailwind, on by default (use --no-tailwind to turn it off)
+	--shadcn|--no-shadcn: project use shadcn, on by default (use --no-shadcn to turn it off)
+	--mdx|--no-mdx: project use markdown content
+	--mdx-remote|--no-mdx-remote: add next remote mdx and gray-matter, on by default (use --no-mdx-remote to turn it off)
+Usage :
+	butt3r create t3 <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote]
 ```
