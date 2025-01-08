@@ -1,0 +1,342 @@
+#!/bin/bash
+# @parseArger-begin
+# @parseArger-help "export database to a file" --option "help" --short-option "h"
+# @parseArger-version "0.0.1" --option "version" --short-option "v"
+# @parseArger-verbose --option "verbose" --level "0" --quiet-option "quiet"
+_has_colors=0
+if [ -t 1 ]; then # Check if stdout is a terminal
+	ncolors=$(tput colors 2>/dev/null)
+	if [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+		_has_colors=1
+	fi
+fi
+# @parseArger-declarations
+# @parseArger pos output "output file"
+# @parseArger opt format "output format" --default-value "sql" --one-of "sql" --one-of "json" --one-of "yaml" --one-of "csv" --one-of "xml"
+# @parseArger opt table "table to export (all if not specified)"
+# @parseArger opt containerd "what container are you using" --default-value "docker" --one-of "docker" --one-of "podman"
+# @parseArger flag pretty "pretty print output (when possible)"
+# @parseArger-declarations-end
+
+# @parseArger-utils
+_helpHasBeenPrinted=1;
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)";
+# @parseArger-utils-end
+
+# @parseArger-parsing
+
+__cli_arg_count=$#;
+
+die()
+{
+	local _ret=1
+    if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
+   	_ret="$2"
+    fi
+	test "${_PRINT_HELP:-no}" = yes && print_help >&2
+	log "$1" -3 >&2
+	exit "${_ret}"
+}
+
+
+begins_with_short_option()
+{
+	local first_option all_short_options=''
+	first_option="${1:0:1}"
+	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
+}
+
+# POSITIONALS ARGUMENTS
+_positionals=();
+_optional_positionals=();
+_arg_output="";
+# OPTIONALS ARGUMENTS
+_arg_format="sql"
+_one_of_arg_format=("sql" "json" "yaml" "csv" "xml" );
+_arg_table=
+_arg_containerd="docker"
+_one_of_arg_containerd=("docker" "podman" );
+# FLAGS
+_arg_pretty="off"
+# NESTED
+_verbose_level="0";
+
+
+
+print_help()
+{
+	_triggerSCHelp=1;
+
+	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
+		_helpHasBeenPrinted=0;
+		echo -e "export database to a file:"
+	echo -e "	output: output file"
+	echo -e "	--format <format>: output format [default: ' sql '] [one of 'sql' 'json' 'yaml' 'csv' 'xml']"
+	echo -e "	--table <table>: table to export (all if not specified)"
+	echo -e "	--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']"
+	echo -e "	--pretty|--no-pretty: pretty print output (when possible)"
+	echo -e "Usage :
+	$0 <output> [--format <value>] [--table <value>] [--containerd <value>] [--[no-]pretty]";
+	fi
+
+}
+
+log() {
+	local _arg_msg="${1}";
+	local _arg_level="${2:-0}";
+	if [ "${_arg_level}" -le "${_verbose_level}" ]; then
+		case "$_arg_level" in
+			-3)
+				_arg_COLOR="\033[0;31m";
+				;;
+			-2)
+				_arg_COLOR="\033[0;33m";
+				;;
+			-1)
+				_arg_COLOR="\033[1;33m";
+				;;
+			1)
+				_arg_COLOR="\033[0;32m";
+				;;
+			2)
+				_arg_COLOR="\033[1;36m";
+				;;
+			3)
+				_arg_COLOR="\033[0;36m";
+				;;
+			*)
+				_arg_COLOR="\033[0m";
+				;;
+		esac
+		if [ "${_has_colors}" == "1" ]; then
+			echo -e "${_arg_COLOR}${_arg_msg}\033[0m";
+		else
+			echo "${_arg_msg}";
+		fi
+	fi
+}
+
+parse_commandline()
+{
+	_positionals_count=0
+	while test $# -gt 0
+	do
+		_key="$1"
+		case "$_key" in
+			--format)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_format="$2"
+				if [[ "${#_one_of_arg_format[@]}" -gt 0 ]];then [[ "${_one_of_arg_format[*]}" =~ (^|[[:space:]])"$_arg_format"($|[[:space:]]) ]] || die "format must be one of: sql json yaml csv xml";fi
+				shift
+				;;
+			--format=*)
+				_arg_format="${_key##--format=}"
+				if [[ "${#_one_of_arg_format[@]}" -gt 0 ]];then [[ "${_one_of_arg_format[*]}" =~ (^|[[:space:]])"$_arg_format"($|[[:space:]]) ]] || die "format must be one of: sql json yaml csv xml";fi
+				;;
+			
+			--table)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_table="$2"
+				shift
+				;;
+			--table=*)
+				_arg_table="${_key##--table=}"
+				;;
+			
+			--containerd)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_containerd="$2"
+				if [[ "${#_one_of_arg_containerd[@]}" -gt 0 ]];then [[ "${_one_of_arg_containerd[*]}" =~ (^|[[:space:]])"$_arg_containerd"($|[[:space:]]) ]] || die "containerd must be one of: docker podman";fi
+				shift
+				;;
+			--containerd=*)
+				_arg_containerd="${_key##--containerd=}"
+				if [[ "${#_one_of_arg_containerd[@]}" -gt 0 ]];then [[ "${_one_of_arg_containerd[*]}" =~ (^|[[:space:]])"$_arg_containerd"($|[[:space:]]) ]] || die "containerd must be one of: docker podman";fi
+				;;
+			
+			--pretty)
+				_arg_pretty="on"
+				;;
+			--no-pretty)
+				_arg_pretty="off"
+				;;
+			-h|--help)
+				print_help;
+				exit 0;
+				;;
+			-h*)
+				print_help;
+				exit 0;
+				;;
+			-v|--version)
+				print_version;
+				exit 0;
+				;;
+			-v*)
+				print_version;
+				exit 0;
+				;;
+			--verbose)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level + 1))";
+					else
+						_verbose_level="$2";
+						shift;
+					fi
+					;;
+				--quiet)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level - 1))";
+					else
+						_verbose_level="-$2";
+						shift;
+					fi
+					;;
+				
+				*)
+				_last_positional="$1"
+				_positionals+=("$_last_positional")
+				_positionals_count=$((_positionals_count + 1))
+				;;
+		esac
+		shift
+	done
+}
+
+
+handle_passed_args_count()
+{
+	local _required_args_string="output"
+	if [ "${_positionals_count}" -gt 1 ] && [ "$_helpHasBeenPrinted" == "1" ];then
+		_PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect at most 1 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}').\n\t${_positionals[*]}" 1
+	fi
+	if [ "${_positionals_count}" -lt 1 ] && [ "$_helpHasBeenPrinted" == "1" ];then
+		_PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require at least 1 (namely: $_required_args_string), but got only ${_positionals_count}.
+	${_positionals[*]}" 1;
+	fi
+}
+
+
+assign_positional_args()
+{
+	local _positional_name _shift_for=$1;
+	_positional_names="_arg_output ";
+	shift "$_shift_for"
+	for _positional_name in ${_positional_names};do
+		test $# -gt 0 || break;
+		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1;
+		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1;
+		shift;
+	done
+}
+
+print_debug()
+{
+	print_help
+	# shellcheck disable=SC2145
+	echo "DEBUG: $0 $@";
+	
+	echo -e "	output: ${_arg_output}";
+	echo -e "	format: ${_arg_format}";
+	echo -e "	table: ${_arg_table}";
+	echo -e "	containerd: ${_arg_containerd}";
+	echo -e "	pretty: ${_arg_pretty}";
+
+}
+
+
+print_version()
+{
+	echo "0.0.1";
+}
+
+
+on_interrupt() {
+	die Process aborted! 130;
+}
+
+
+parse_commandline "$@";
+handle_passed_args_count;
+assign_positional_args 1 "${_positionals[@]}";
+trap on_interrupt INT;
+
+
+
+# @parseArger-parsing-end
+# print_debug "$@"
+# @parseArger-end
+
+source "${_SCRIPT_DIR}/../common"
+
+if [ "$(is_butT3r_project)" = "1" ]; then
+    die "${PWD} is not a ButT3r project" -2
+fi
+
+# Detect database type
+_db_type=$(get_db_type)
+if [ "$_db_type" = "unknown" ]; then
+    die "Could not detect database type" -2
+fi
+
+# Check if we're using docker or local database
+_use_docker=0
+if [ "$(is_using_docker)" = "0" ]; then
+    if [ "$(check_runtime "$_arg_containerd")" = "0" ]; then
+        _use_docker=1
+    fi
+fi
+
+# Check if database is available
+if [ "$(check_db_available "$_db_type" "$_use_docker" "$_arg_containerd")" != "0" ]; then
+    die "Database ($_db_type) is not available" -2
+fi
+
+# Prepare the export query based on format and table
+case "$_arg_format" in
+    sql)
+        # For SQL format, use native dump tools
+        case "$_db_type" in
+            postgres)
+                _cmd=("pg_dump" "-U" "postgres")
+                [ -n "$_arg_table" ] && _cmd+=("-t" "$_arg_table")
+                ;;
+            mysql)
+                _cmd=("mysqldump" "-u" "root")
+                [ -n "$_arg_table" ] && _cmd+=("$_arg_table")
+                ;;
+            sqlite)
+                _cmd=("sqlite3" "$db")
+                if [ -n "$_arg_table" ]; then
+                    _cmd+=(".dump $_arg_table")
+                else
+                    _cmd+=(".dump")
+                fi
+                ;;
+        esac
+        if [ "$_use_docker" = "1" ]; then
+            "$_arg_containerd" compose exec db "${_cmd[@]}" > "$_arg_output"
+        else
+            "${_cmd[@]}" > "$_arg_output"
+        fi
+        ;;
+    *)
+        # For other formats, use SQL query and format conversion
+        if [ -n "$_arg_table" ]; then
+            _query="SELECT * FROM $_arg_table"
+        else
+            case "$_db_type" in
+                postgres)
+                    _query="SELECT table_name, json_agg(data) as rows FROM (SELECT table_name, (SELECT row_to_json(t) FROM (SELECT * FROM information_schema.tables WHERE table_schema='public') t) as data FROM information_schema.tables WHERE table_schema='public') tables GROUP BY table_name"
+                    ;;
+                mysql)
+                    _query="SELECT TABLE_NAME as table_name, JSON_ARRAYAGG(COLUMN_NAME) as columns FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() GROUP BY TABLE_NAME"
+                    ;;
+                sqlite)
+                    _query="SELECT name as table_name, sql FROM sqlite_master WHERE type='table'"
+                    ;;
+            esac
+        fi
+        run_db_command "$_db_type" "$_use_docker" "$_arg_containerd" "$_query" "$_arg_format" "$_arg_pretty" > "$_arg_output"
+        ;;
+esac

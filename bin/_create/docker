@@ -1,0 +1,455 @@
+#!/bin/bash
+# @parseArger-begin
+# @parseArger-help "I send an SOS to the world" --option "help" --short-option "h"
+# @parseArger-version "0.0.1" --option "version" --short-option "v"
+# @parseArger-verbose --option "verbose" --level "0" --quiet-option "quiet"
+_has_colors=0
+if [ -t 1 ]; then # Check if stdout is a terminal
+	ncolors=$(tput colors 2>/dev/null)
+	if [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+		_has_colors=1
+	fi
+fi
+# @parseArger-declarations
+# @parseArger opt app-name "app name"
+# @parseArger opt app-ports "ports entry for the app" --repeat
+# @parseArger opt app-env "app env vars" --repeat
+# @parseArger opt db-ports "db ports entry" --repeat
+# @parseArger opt db-env "db env vars" --repeat
+# @parseArger opt db-user "db user"
+# @parseArger opt db-name "db name"
+# @parseArger opt app-port "ports to use for the app"
+# @parseArger opt network "main network name"
+# @parseArger opt db-networks "more entworks for the db" --repeat
+# @parseArger opt app-networks "more net for the app" --repeat
+# @parseArger opt db-type "db-type" --default-value "postgres"
+# @parseArger-declarations-end
+
+# @parseArger-utils
+_helpHasBeenPrinted=1;
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)";
+# @parseArger-utils-end
+
+# @parseArger-parsing
+
+__cli_arg_count=$#;
+
+die()
+{
+	local _ret=1
+    if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
+   	_ret="$2"
+    fi
+	test "${_PRINT_HELP:-no}" = yes && print_help >&2
+	log "$1" -3 >&2
+	exit "${_ret}"
+}
+
+
+begins_with_short_option()
+{
+	local first_option all_short_options=''
+	first_option="${1:0:1}"
+	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
+}
+
+# POSITIONALS ARGUMENTS
+_positionals=();
+_optional_positionals=();
+# OPTIONALS ARGUMENTS
+_arg_app_name=
+_arg_app_ports=()
+_arg_app_env=()
+_arg_db_ports=()
+_arg_db_env=()
+_arg_db_user=
+_arg_db_name=
+_arg_app_port=
+_arg_network=
+_arg_db_networks=()
+_arg_app_networks=()
+_arg_db_type="postgres"
+# FLAGS
+# NESTED
+_verbose_level="0";
+
+
+
+print_help()
+{
+	_triggerSCHelp=1;
+
+	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
+		_helpHasBeenPrinted=0;
+		echo -e "I send an SOS to the world:"
+	echo -e "	--app-name <app-name>: app name"
+	echo -e "	--app-ports <app-ports>: ports entry for the app, repeatable"
+	echo -e "	--app-env <app-env>: app env vars, repeatable"
+	echo -e "	--db-ports <db-ports>: db ports entry, repeatable"
+	echo -e "	--db-env <db-env>: db env vars, repeatable"
+	echo -e "	--db-user <db-user>: db user"
+	echo -e "	--db-name <db-name>: db name"
+	echo -e "	--app-port <app-port>: ports to use for the app"
+	echo -e "	--network <network>: main network name"
+	echo -e "	--db-networks <db-networks>: more entworks for the db, repeatable"
+	echo -e "	--app-networks <app-networks>: more net for the app, repeatable"
+	echo -e "	--db-type <db-type>: db-type [default: ' postgres ']"
+	echo -e "Usage :
+	$0 [--app-name <value>] [--app-ports <value>] [--app-env <value>] [--db-ports <value>] [--db-env <value>] [--db-user <value>] [--db-name <value>] [--app-port <value>] [--network <value>] [--db-networks <value>] [--app-networks <value>] [--db-type <value>]";
+	fi
+
+}
+
+log() {
+	local _arg_msg="${1}";
+	local _arg_level="${2:-0}";
+	if [ "${_arg_level}" -le "${_verbose_level}" ]; then
+		case "$_arg_level" in
+			-3)
+				_arg_COLOR="\033[0;31m";
+				;;
+			-2)
+				_arg_COLOR="\033[0;33m";
+				;;
+			-1)
+				_arg_COLOR="\033[1;33m";
+				;;
+			1)
+				_arg_COLOR="\033[0;32m";
+				;;
+			2)
+				_arg_COLOR="\033[1;36m";
+				;;
+			3)
+				_arg_COLOR="\033[0;36m";
+				;;
+			*)
+				_arg_COLOR="\033[0m";
+				;;
+		esac
+		if [ "${_has_colors}" == "1" ]; then
+			echo -e "${_arg_COLOR}${_arg_msg}\033[0m";
+		else
+			echo "${_arg_msg}";
+		fi
+	fi
+}
+
+parse_commandline()
+{
+	_positionals_count=0
+	while test $# -gt 0
+	do
+		_key="$1"
+		case "$_key" in
+			--app-name)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_app_name="$2"
+				shift
+				;;
+			--app-name=*)
+				_arg_app_name="${_key##--app-name=}"
+				;;
+			
+			--app-ports)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_app_ports+=("$2")
+				shift
+				;;
+			--app-ports=*)
+				_arg_app_ports+=("${_key##--app-ports=}")
+				;;
+			
+			--app-env)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_app_env+=("$2")
+				shift
+				;;
+			--app-env=*)
+				_arg_app_env+=("${_key##--app-env=}")
+				;;
+			
+			--db-ports)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_ports+=("$2")
+				shift
+				;;
+			--db-ports=*)
+				_arg_db_ports+=("${_key##--db-ports=}")
+				;;
+			
+			--db-env)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_env+=("$2")
+				shift
+				;;
+			--db-env=*)
+				_arg_db_env+=("${_key##--db-env=}")
+				;;
+			
+			--db-user)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_user="$2"
+				shift
+				;;
+			--db-user=*)
+				_arg_db_user="${_key##--db-user=}"
+				;;
+			
+			--db-name)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_name="$2"
+				shift
+				;;
+			--db-name=*)
+				_arg_db_name="${_key##--db-name=}"
+				;;
+			
+			--app-port)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_app_port="$2"
+				shift
+				;;
+			--app-port=*)
+				_arg_app_port="${_key##--app-port=}"
+				;;
+			
+			--network)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_network="$2"
+				shift
+				;;
+			--network=*)
+				_arg_network="${_key##--network=}"
+				;;
+			
+			--db-networks)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_networks+=("$2")
+				shift
+				;;
+			--db-networks=*)
+				_arg_db_networks+=("${_key##--db-networks=}")
+				;;
+			
+			--app-networks)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_app_networks+=("$2")
+				shift
+				;;
+			--app-networks=*)
+				_arg_app_networks+=("${_key##--app-networks=}")
+				;;
+			
+			--db-type)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_type="$2"
+				shift
+				;;
+			--db-type=*)
+				_arg_db_type="${_key##--db-type=}"
+				;;
+			
+			-h|--help)
+				print_help;
+				exit 0;
+				;;
+			-h*)
+				print_help;
+				exit 0;
+				;;
+			-v|--version)
+				print_version;
+				exit 0;
+				;;
+			-v*)
+				print_version;
+				exit 0;
+				;;
+			--verbose)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level + 1))";
+					else
+						_verbose_level="$2";
+						shift;
+					fi
+					;;
+				--quiet)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level - 1))";
+					else
+						_verbose_level="-$2";
+						shift;
+					fi
+					;;
+				
+				*)
+				_last_positional="$1"
+				_positionals+=("$_last_positional")
+				_positionals_count=$((_positionals_count + 1))
+				;;
+		esac
+		shift
+	done
+}
+
+
+handle_passed_args_count()
+{
+	local _required_args_string=""
+	if [ "${_positionals_count}" -gt 0 ] && [ "$_helpHasBeenPrinted" == "1" ];then
+		_PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect at most 0 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}').\n\t${_positionals[*]}" 1
+	fi
+	if [ "${_positionals_count}" -lt 0 ] && [ "$_helpHasBeenPrinted" == "1" ];then
+		_PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require at least 0 (namely: $_required_args_string), but got only ${_positionals_count}.
+	${_positionals[*]}" 1;
+	fi
+}
+
+
+assign_positional_args()
+{
+	local _positional_name _shift_for=$1;
+	_positional_names="";
+	shift "$_shift_for"
+	for _positional_name in ${_positional_names};do
+		test $# -gt 0 || break;
+		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1;
+		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1;
+		shift;
+	done
+}
+
+print_debug()
+{
+	print_help
+	# shellcheck disable=SC2145
+	echo "DEBUG: $0 $@";
+	
+	echo -e "	app-name: ${_arg_app_name}";
+	echo -e "	app-ports: ${_arg_app_ports[*]}";
+	echo -e "	app-env: ${_arg_app_env[*]}";
+	echo -e "	db-ports: ${_arg_db_ports[*]}";
+	echo -e "	db-env: ${_arg_db_env[*]}";
+	echo -e "	db-user: ${_arg_db_user}";
+	echo -e "	db-name: ${_arg_db_name}";
+	echo -e "	app-port: ${_arg_app_port}";
+	echo -e "	network: ${_arg_network}";
+	echo -e "	db-networks: ${_arg_db_networks[*]}";
+	echo -e "	app-networks: ${_arg_app_networks[*]}";
+	echo -e "	db-type: ${_arg_db_type}";
+
+}
+
+
+print_version()
+{
+	echo "0.0.1";
+}
+
+
+on_interrupt() {
+	die Process aborted! 130;
+}
+
+
+parse_commandline "$@";
+handle_passed_args_count;
+assign_positional_args 1 "${_positionals[@]}";
+trap on_interrupt INT;
+
+
+
+# @parseArger-parsing-end
+# print_debug "$@"
+# @parseArger-end
+
+# Initialize command array
+yq_commands=()
+
+_ARG_DB_TYPE=$(echo "$_arg_db_type" | tr '[:lower:]' '[:upper:]')
+
+# App service changes
+[[ "$_arg_app_name" != "" ]] && yq_commands+=("-y" "(.services.app.container_name) = \"${_arg_app_name}\"")
+
+# App port and related environment
+if [[ "$_arg_app_port" != "" ]]; then
+    yq_commands+=("-y" "(.services.app.ports[0]) = \"${_arg_app_port}:${_arg_app_port}\"")
+    yq_commands+=("-y" "(.services.app.environment[] | select(. == \"PORT=3000\")) = \"PORT=${_arg_app_port}\"")
+fi
+
+# Database URL in app environment
+if [[ "$_arg_db_user" != "" || "$_arg_db_name" != "" || "$_arg_db_port" != "" ]]; then
+    case "$_arg_db_type" in
+        "postgres")
+            yq_commands+=("-y" "(.services.app.environment[] | select(. == \"DATABASE_URL=postgres://postgres:postgres@postgres:5432/db\")) = \"DATABASE_URL=postgres://${_arg_db_user:-postgres}:${_arg_db_user:-postgres}@postgres:${_arg_db_port:-5432}/${_arg_db_name:-db}\"")
+            ;;
+        "mysql")
+            yq_commands+=("-y" "(.services.app.environment[] | select(. == \"DATABASE_URL=mysql://mysql:mysql@mysql:3306/db\")) = \"DATABASE_URL=mysql://${_arg_db_user:-mysql}:${_arg_db_user:-mysql}@mysql:${_arg_db_port:-3306}/${_arg_db_name:-db}\"")
+            ;;
+        "sqlite")
+            yq_commands+=("-y" "(.services.app.environment[] | select(. == \"DATABASE_URL=sqlite:///db\")) = \"DATABASE_URL=sqlite://${_arg_db_name:-db}\"")
+            ;;
+    esac
+fi
+
+# App environment variables
+if [[ ${#_arg_app_env[@]} -gt 0 ]]; then
+    for env in "${_arg_app_env[@]}"; do
+        yq_commands+=("-y" "(.services.app.environment += [\"${env}\"])")
+    done
+fi
+
+# Database configuration
+[[ "$_arg_db_user" != "" ]] && yq_commands+=("-y" "(.services.${_arg_db_type}.environment.${_ARG_DB_TYPE}_USER) = \"${_arg_db_user}\"")
+[[ "$_arg_db_name" != "" ]] && yq_commands+=("-y" "(.services.${_arg_db_type}.environment.${_ARG_DB_TYPE}_DB) = \"${_arg_db_name}\"")
+[[ "$_arg_db_port" != "" ]] && yq_commands+=("-y" "(.services.${_arg_db_type}.ports[0]) = \"${_arg_db_port}:${_arg_db_port}\"")
+
+# Database additional ports
+if [[ ${#_arg_db_ports[@]} -gt 0 ]]; then
+    for port in "${_arg_db_ports[@]}"; do
+        yq_commands+=("-y" "(.services.${_arg_db_type}.ports += [\"${port}\"])")
+    done
+fi
+
+# Database environment variables
+if [[ ${#_arg_db_env[@]} -gt 0 ]]; then
+    for env in "${_arg_db_env[@]}"; do
+        yq_commands+=("-y" "(.services.${_arg_db_type}.environment += [\"${env}\"])")
+    done
+fi
+
+# Network configuration
+if [[ "$_arg_network" != "" ]]; then
+    # Update service networks
+    yq_commands+=("-y" "(.services.app.networks[0]) = \"${_arg_network}\"")
+    
+    if [[ "$_arg_db_type" != "" ]]; then
+        # Update global networks
+        yq_commands+=("-y" "(.networks += {\"${_arg_network}\": {}})")
+        yq_commands+=("-y" "(.networks.${_arg_network} = .networks.default)")
+        yq_commands+=("-y" "del(.networks.default)")
+    fi
+fi
+
+# Additional networks
+for net in "${_arg_app_networks[@]}"; do
+    yq_commands+=("-y" "(.services.app.networks += [\"${net}\"])")
+done
+
+for net in "${_arg_db_networks[@]}"; do
+    yq_commands+=("-y" "(.services.${_arg_db_type}.networks += [\"${net}\"])")
+done
+
+# creating depends_on if needed
+if [[ "$_arg_db_type" != "" ]]; then
+	yq_commands+=("-y" "(.services.app.depends_on.${_arg_db_type}) = \"true\"")
+fi
+
+# Execute all modifications if we have any
+_ex_cmd=(yq)
+if [[ ${#yq_commands[@]} -gt 0 ]]; then
+	_ex_cmd+=("${yq_commands[@]}")
+fi
+_ex_cmd+=("template/docker-compose.yml")
+"${_ex_cmd[@]}"

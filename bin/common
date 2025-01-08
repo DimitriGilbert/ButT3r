@@ -1,0 +1,455 @@
+#!/bin/bash
+
+function is_butT3r_project() {
+  if [[ ! -f "package.json" ]]; then
+    echo "This is not a butT3r project missing package.json" >&2
+    echo 1
+  fi
+  # check if use next and typescript
+  if [[ ! -f "next.config.mjs" ]]; then
+    echo "This is not a butT3r project missing next.config.mjs" >&2
+    echo 1
+  fi
+  if [[ ! -f "tsconfig.json" ]]; then
+    echo "This is not a butT3r project missing tsconfig.json" >&2
+    echo 1
+  fi
+  echo 0
+}
+
+function is_using_tailwind() {
+  if [[ ! -f "tailwind.config.ts" ]]; then
+    echo 1
+  fi
+  echo 0
+}
+
+function is_using_shadcn() {
+  if [[ ! -f "components.json" ]]; then
+    echo 1
+  fi
+  echo 0
+}
+
+function is_using_docker() {
+  if [[ ! -f "docker-compose.yml" ]]; then
+    echo 1
+  fi
+  echo 0
+}
+
+check_runtime() {
+  if command -v "$1" >/dev/null 2>&1; then
+    if "$1" info >/dev/null 2>&1; then
+      echo 0
+    fi
+  fi
+  echo 1
+}
+
+check_compose_running() {
+  local _cmpCmd=("$1" compose);
+  local _chkCmd=(ps);
+  local _gpCmd=(grep -q);
+  if [ "$1" = "docker" ]; then
+    _chkCmd+=(--format json);
+    _gpCmd+=("running");
+  elif [ "$1" = "podman" ]; then
+    _cmpCmd=("podman-compose");
+    _gpCmd+=("Up");
+  fi
+  _chkCmd=("${_cmpCmd[@]}" "${_chkCmd[@]}");
+  if "${_chkCmd[@]}" | "${_gpCmd[@]}"; then
+    echo 0
+  fi
+  echo 1
+}
+
+start_compose() {
+  local dev_mode="$1"
+  local compose_file="docker-compose.yml"
+  local _startCmd=("$2")
+
+  if [ "$2" = "docker" ]; then
+    _startCmd+=(compose);
+  elif [ "$2" = "podman" ]; then
+    _startCmd[0]="podman-compose";
+  fi
+
+  if [ "$dev_mode" = "on" ] && [ -f "docker-compose.dev.yml" ]; then
+    _compose_file="docker-compose.dev.yml";
+  fi
+
+  _startCmd+=(-f "$compose_file" up -d);
+
+  "${_startCmd[@]}";
+}
+
+check_native_running() {
+  local dev_mode="$1"
+  local process_name
+
+  if [ "$dev_mode" = "on" ]; then
+    process_name="run dev";
+  else
+    process_name="run start";
+  fi
+
+  if pgrep -f "$process_name" >/dev/null; then
+    echo 0;
+  fi
+  echo 1;
+}
+
+start_native() {
+  local dev_mode="$1"
+  local runner="$2"
+  local script="start"
+
+  if [ "$dev_mode" = "on" ]; then
+    script="dev";
+  fi
+
+  if [ "$runner" = "bun" ]; then
+    bun run "$script" &
+    echo $!;
+  elif [ "$runner" = "npm" ]; then
+    npm run "$script" &
+    echo $!;
+  elif [ "$runner" = "yarn" ]; then
+    yarn "$script" &
+    echo $!;
+  fi
+}
+
+stop_compose() {
+  local _stopCmd=("$1");
+
+  echo "Stopping services with $1 compose...";
+
+  if [ "$1" = "docker" ]; then
+    _stopCmd+=(compose);
+  elif [ "$1" = "podman" ]; then
+    _stopCmd[0]="podman-compose";
+  fi
+
+  _stopCmd+=(stop);
+
+  "${_stopCmd[@]}";
+}
+
+stop_native() {
+  if [ -f .stackpid ]; then
+    local pid
+    pid=$(cat .stackpid);
+    if ps -p "$pid" >/dev/null 2>&1; then
+      kill "$pid";
+      rm .stackpid;
+    else
+      echo "Process $pid no longer exists" >&2;
+      rm .stackpid;
+    fi
+  else
+    echo "No .stackpid file found, cannot safely stop the service" >&2;
+    echo "Please use 'start' to create a new managed instance" >&2;
+  fi
+}
+
+function clean_docker() {
+  local runtime="$1"
+  local dev_mode="$2"
+  local clean_all="$3"
+  local _downCmd=("$runtime")
+
+  if [ "$runtime" = "docker" ]; then
+    _downCmd+=(compose);
+  elif [ "$runtime" = "podman" ]; then
+    _downCmd[0]="podman-compose";
+  fi
+
+  _downCmd+=(-f "docker-compose.yml");
+
+  if [ "$dev_mode" = "on" ] && [ -f "docker-compose.dev.yml" ]; then
+    log "Using development compose configuration" 1;
+    _downCmd+=(-f "docker-compose.dev.yml");
+  fi
+
+  _downCmd+=(down);
+
+  if [ "$clean_all" = "on" ]; then
+    _downCmd+=(--rmi all --volumes --remove-orphans);
+  fi
+
+  "${_downCmd[@]}";
+}
+
+function clean_native() {
+  local clean_all="$1"
+  # Stop any running processes first
+  stop_native;
+
+  if [ "$clean_all" = "on" ]; then
+    log "Removing all dependencies and build artifacts..." 1;
+
+    # Remove dependencies
+    rm -rf node_modules;
+
+    # Remove build artifacts
+    rm -rf .next;
+    rm -rf dist;
+    rm -rf build;
+
+    # Remove cache
+    rm -rf .cache;
+
+    # Remove environment files if they exist
+    rm -f .env.local;
+    rm -f .env.development.local;
+    rm -f .env.test.local;
+    rm -f .env.production.local;
+  fi
+}
+
+function check_local_postgres() {
+  if command -v psql >/dev/null 2>&1; then
+    if psql -V >/dev/null 2>&1; then
+      echo 0;
+      return;
+    fi
+  fi
+  echo 1;
+}
+
+function get_db_type() {
+  # First check for Prisma
+  if [ -f "prisma/schema.prisma" ]; then
+    if grep -q "provider = \"postgresql\"" prisma/schema.prisma; then
+      echo "postgres";
+      return;
+    elif grep -q "provider = \"mysql\"" prisma/schema.prisma; then
+      echo "mysql";
+      return
+    elif grep -q "provider = \"sqlite\"" prisma/schema.prisma; then
+      echo "sqlite";
+      return
+    fi
+  fi
+
+  # Then check for Drizzle
+  if [ -f "drizzle.config.ts" ] || [ -f "drizzle.config.js" ]; then
+    local config_file
+    if [ -f "drizzle.config.ts" ]; then
+      config_file="drizzle.config.ts";
+    else
+      config_file="drizzle.config.js";
+    fi
+
+    if grep -q "postgres\|pg:" "$config_file"; then
+      echo "postgres";
+      return
+    elif grep -q "mysql:" "$config_file"; then
+      echo "mysql";
+      return
+    elif grep -q "sqlite:" "$config_file"; then
+      echo "sqlite";
+      return
+    fi
+  fi
+
+  # Then check docker-compose if using docker
+  if [ "$(is_using_docker)" = "0" ]; then
+    if grep -q "postgres:" docker-compose.yml 2>/dev/null; then
+      echo "postgres";
+      return
+    elif grep -q "mysql:" docker-compose.yml 2>/dev/null; then
+      echo "mysql";
+      return
+    fi
+  fi
+
+  # Then check for local installations
+  if command -v psql >/dev/null 2>&1; then
+    echo "postgres";
+    return
+  elif command -v mysql >/dev/null 2>&1; then
+    echo "mysql";
+    return
+  elif command -v sqlite3 >/dev/null 2>&1; then
+    echo "sqlite";
+    return
+  fi
+
+  # Finally check package.json for hints
+  if [ -f "package.json" ]; then
+    if grep -q '"@prisma/client"\|"prisma":' package.json; then
+      # Prisma is used but schema not found, ask user to run prisma generate
+      die "Prisma is used but schema not found. Please run 'prisma generate' first" -2;
+    elif grep -q '"drizzle-orm"\|"@drizzle":' package.json; then
+      # Drizzle is used but config not found
+      die "Drizzle is used but config not found. Please check your drizzle configuration" -2;
+    fi
+  fi
+
+  echo "unknown"
+}
+
+function check_db_available() {
+  local db_type="$1"
+  local use_docker="$2"
+  local containerd="$3"
+
+  if [ "$use_docker" = "1" ]; then
+    if [ "$(check_runtime "$containerd")" = "0" ]; then
+      echo 0
+      return
+    fi
+  else
+    case "$db_type" in
+    postgres)
+      if command -v psql >/dev/null 2>&1; then
+        echo 0
+        return
+      fi
+      ;;
+    mysql)
+      if command -v mysql >/dev/null 2>&1; then
+        echo 0
+        return
+      fi
+      ;;
+    sqlite)
+      if command -v sqlite3 >/dev/null 2>&1; then
+        echo 0
+        return
+      fi
+      ;;
+    esac
+  fi
+  echo 1
+}
+
+function get_db_credentials() {
+  local db_type="$1"
+  local use_docker="$2"
+
+  # Default credentials
+  local user="postgres"
+  local pass=""
+  local host="localhost"
+  local port=""
+  local db="postgres"
+
+  # Try to get from environment
+  if [ -f ".env" ]; then
+    source ".env";
+    case "$db_type" in
+    postgres)
+      [ -n "$POSTGRES_USER" ] && user="$POSTGRES_USER";
+      [ -n "$POSTGRES_PASSWORD" ] && pass="$POSTGRES_PASSWORD";
+      [ -n "$POSTGRES_DB" ] && db="$POSTGRES_DB";
+      [ -n "$POSTGRES_PORT" ] && port="$POSTGRES_PORT";
+      ;;
+    mysql)
+      [ -n "$MYSQL_USER" ] && user="$MYSQL_USER";
+      [ -n "$MYSQL_PASSWORD" ] && pass="$MYSQL_PASSWORD";
+      [ -n "$MYSQL_DATABASE" ] && db="$MYSQL_DATABASE";
+      [ -n "$MYSQL_PORT" ] && port="$MYSQL_PORT";
+      ;;
+    sqlite)
+      [ -n "$SQLITE_DB" ] && db="$SQLITE_DB";
+      ;;
+    esac;
+  fi;
+
+  # For docker, use container name as host
+  if [ "$use_docker" = "1" ]; then
+    case "$db_type" in
+    postgres)
+      host="db"; # Common postgres container name
+      ;;
+    mysql)
+      host="db"; # Common mysql container name
+      ;;
+    esac
+  fi
+
+  echo "$user:$pass:$host:$port:$db";
+}
+
+function run_db_command() {
+  local db_type="$1"
+  local use_docker="$2"
+  local containerd="$3"
+  local command="$4"
+  local format="${5:-}"
+  local pretty="${6:-off}"
+
+  local creds
+  creds=$(get_db_credentials "$db_type" "$use_docker");
+  local user port db;
+  IFS=':' read -r user pass host port db <<<"$creds";
+
+  local _cmd=()
+  if [ "$use_docker" = "1" ]; then
+    _cmd+=("$containerd" compose exec db);
+  fi
+
+  case "$db_type" in
+  postgres)
+    case "$format" in
+    json)
+      command="SELECT json_agg(t) FROM ($command) t";
+      [ "$pretty" = "on" ] && _cmd+=("|" "python3" "-m" "json.tool");
+      ;;
+    yaml)
+      command="SELECT json_agg(t) FROM ($command) t";
+      _cmd+=("|" "python3" "-c" "'import sys, yaml, json; yaml.dump(json.load(sys.stdin), sys.stdout, default_flow_style=False)'");
+      ;;
+    xml)
+      command="SELECT query_to_xml('$command', true, false, '')";
+      [ "$pretty" = "on" ] && _cmd+=("|" "xmllint" "--format" "-");
+      ;;
+    esac
+    _cmd+=(psql -U "$user" ${pass:+-W "$pass"} ${host:+-h "$host"} ${port:+-p "$port"} -d "$db" -c "$command");
+    ;;
+  mysql)
+    case "$format" in
+    json)
+      command="SELECT JSON_ARRAYAGG(JSON_OBJECT(*)) FROM ($command) t";
+      [ "$pretty" = "on" ] && _cmd+=("|" "python3" "-m" "json.tool");
+      ;;
+    yaml)
+      command="SELECT JSON_ARRAYAGG(JSON_OBJECT(*)) FROM ($command) t";
+      _cmd+=("|" "python3" "-c" "'import sys, yaml, json; yaml.dump(json.load(sys.stdin), sys.stdout, default_flow_style=False)'");
+      ;;
+    xml)
+      # MySQL has no direct XML function, convert through JSON
+      command="SELECT JSON_ARRAYAGG(JSON_OBJECT(*)) FROM ($command) t";
+      _cmd+=("|" "python3" "-c" "'import sys, json, dicttoxml; xml = dicttoxml.dicttoxml(json.load(sys.stdin), attr_type=False); print(xml.decode())'");
+      [ "$pretty" = "on" ] && _cmd+=("|" "xmllint" "--format" "-");
+      ;;
+    esac
+    _cmd+=(mysql -u "$user" ${pass:+-p"$pass"} ${host:+-h "$host"} ${port:+-P "$port"} ${db:+-D "$db"} -e "$command");
+    ;;
+  sqlite)
+    case "$format" in
+    json)
+      command="SELECT json_group_array(json_object(*)) FROM ($command)";
+      [ "$pretty" = "on" ] && _cmd+=("|" "python3" "-m" "json.tool");
+      ;;
+    yaml)
+      command="SELECT json_group_array(json_object(*)) FROM ($command)";
+      _cmd+=("|" "python3" "-c" "'import sys, yaml, json; yaml.dump(json.load(sys.stdin), sys.stdout, default_flow_style=False)'");
+      ;;
+    xml)
+      command="SELECT json_group_array(json_object(*)) FROM ($command)";
+      _cmd+=("|" "python3" "-c" "'import sys, json, dicttoxml; xml = dicttoxml.dicttoxml(json.load(sys.stdin), attr_type=False); print(xml.decode())'")
+      [ "$pretty" = "on" ] && _cmd+=("|" "xmllint" "--format" "-");
+      ;;
+    esac
+    _cmd+=(sqlite3 -json "$db" "$command");
+    ;;
+  esac
+
+  "${_cmd[@]}";
+}

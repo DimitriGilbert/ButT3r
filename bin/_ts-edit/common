@@ -1,0 +1,108 @@
+#!/bin/bash
+
+function find_target_file() {
+  local current_file
+  if [ -f "index.ts" ]; then
+    current_file="index.ts"
+  elif [ -f "index.tsx" ]; then
+    current_file="index.tsx"
+  else
+    # Find the most recently modified .ts or .tsx file
+    current_file=$(find . -maxdepth 1 -type f \( -name "*.ts" -o -name "*.tsx" \) -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" " | sed 's/^\.\///')
+  fi
+  echo "$current_file"
+}
+
+function add_import() {
+  local file="$1"
+  local from="$2"
+  local what="$3"
+  shift 3
+  local extras=("$@")
+
+  # Check if import already exists
+  if grep -q "^import.*from[[:space:]]*['\"]${from}['\"]" "${file}"; then
+    # Import from this module exists, append to it
+    local extra_imports=""
+    [ "${#extras[@]}" -gt 0 ] && extra_imports=", ${extras[*]}"
+    sed -i "/^import.*from[[:space:]]*['\"]${from}['\"]/ s/import \(.*\) from/import \1, ${what}${extra_imports} from/" "${file}"
+  else
+    # Add new import at the top, after other imports
+    local last_import
+    last_import=$(grep -n "^import .* from .*" "${file}" | tail -1 | cut -d: -f1)
+    local extra_imports=""
+    [ "${#extras[@]}" -gt 0 ] && extra_imports=", ${extras[*]}"
+    if [ -n "$last_import" ]; then
+      sed -i "${last_import}a\\import { ${what}${extra_imports} } from '${from}'" "${file}"
+    else
+      # No imports yet, add at the top
+      sed -i "1i\\import { ${what}${extra_imports} } from '${from}'" "${file}"
+    fi
+  fi
+}
+
+function add_type() {
+  local file="$1"
+  local name="$2"
+  shift 2
+  local properties=("$@")
+
+  # Build the type definition with 2-space indentation
+  local type_def="export type $name = {\n"
+  for prop in "${properties[@]}"; do
+    local prop_name="${prop%%:*}"
+    local prop_type="${prop#*:}"
+    type_def+="  $prop_name: ${prop_type:-any};\n"
+  done
+  type_def+="}"
+
+  # Add type at the end of the file
+  echo -e "\n$type_def" >> "$file"
+}
+
+function add_function() {
+  local file="$1"
+  local name="$2"
+  local return_type="$3"
+  local is_async="$4"
+  shift 4
+  local props=("$@")
+
+  # Build the function definition with 2-space indentation
+  local fn_def="export ${is_async}function $name("
+  local first=true
+  for prop in "${props[@]}"; do
+    if [ "$first" = true ]; then
+      first=false
+    else
+      fn_def+=", "
+    fi
+    local prop_name="${prop%%:*}"
+    local prop_type="${prop#*:}"
+    fn_def+="$prop_name: ${prop_type:-any}"
+  done
+  fn_def+="): ${return_type:-void} {\n"
+  fn_def+="  // TODO: implement $name\n"
+  fn_def+="}"
+
+  # Add function at the end of the file
+  echo -e "\n$fn_def" >> "$file"
+}
+
+function format_component_name() {
+  if [ "$1" = "" ]; then
+    die "Component name is required" 1;
+  fi
+  local name="$1"
+  # If empty, return a sensible default based on the context
+  # First, replace all non-alphanumeric characters with spaces
+  name=$(echo "$name" | sed 's/[^[:alnum:]]/ /g')
+  # Convert accented characters to their basic form
+  name=$(echo "$name" | iconv -f utf8 -t ascii//TRANSLIT)
+  # Remove any remaining non-alphanumeric characters
+  name=$(echo "$name" | tr -cd '[:alnum:] ')
+  # Convert to PascalCase: trim spaces, capitalize first letter of each word, remove spaces
+  name=$(echo "$name" | awk '{$1=$1}1' | sed 's/\<./\U&/g' | tr -d ' ')
+  
+  echo "$name"
+} 
