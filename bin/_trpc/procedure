@@ -1,0 +1,332 @@
+#!/bin/bash
+# @parseArger-begin
+# @parseArger-help "add procedure to router" --option "help" --short-option "h"
+# @parseArger-verbose --option "verbose" --level "0" --quiet-option "quiet"
+_has_colors=0
+if [ -t 1 ]; then # Check if stdout is a terminal
+	ncolors=$(tput colors 2>/dev/null)
+	if [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+		_has_colors=1
+	fi
+fi
+# @parseArger-declarations
+# @parseArger pos router "target router"
+# @parseArger pos name "procedure name"
+# @parseArger pos type "query|mutation|infinite" --one-of "query" --one-of "mutation" --one-of "infinite"
+# @parseArger opt schema "input/output validation"
+# @parseArger opt loader "generate loader hook"
+# @parseArger-declarations-end
+
+# @parseArger-utils
+_helpHasBeenPrinted=1;
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)";
+# @parseArger-utils-end
+
+# @parseArger-parsing
+
+__cli_arg_count=$#;
+
+die()
+{
+	local _ret=1
+    if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
+   	_ret="$2"
+    fi
+	test "${_PRINT_HELP:-no}" = yes && print_help >&2
+	log "$1" -3 >&2
+	exit "${_ret}"
+}
+
+
+begins_with_short_option()
+{
+	local first_option all_short_options=''
+	first_option="${1:0:1}"
+	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
+}
+
+# POSITIONALS ARGUMENTS
+_positionals=();
+_optional_positionals=();
+_arg_router="";
+_arg_name="";
+_arg_type="";
+_one_of_arg_type=("query" "mutation" "infinite" );
+# OPTIONALS ARGUMENTS
+_arg_schema=
+_arg_loader=
+# FLAGS
+# NESTED
+_verbose_level="0";
+
+
+
+print_help()
+{
+	_triggerSCHelp=1;
+
+	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
+		_helpHasBeenPrinted=0;
+		echo -e "add procedure to router:"
+	echo -e "	router: target router"
+	echo -e "	name: procedure name"
+	echo -e "	type: query|mutation|infinite [one of 'query' 'mutation' 'infinite']"
+	echo -e "	--schema <schema>: input/output validation"
+	echo -e "	--loader <loader>: generate loader hook"
+	echo -e "Usage :
+	$0 <router> <name> <type> [--schema <value>] [--loader <value>]";
+	fi
+
+}
+
+log() {
+	local _arg_msg="${1}";
+	local _arg_level="${2:-0}";
+	if [ "${_arg_level}" -le "${_verbose_level}" ]; then
+		case "$_arg_level" in
+			-3)
+				_arg_COLOR="[0;31m";
+				;;
+			-2)
+				_arg_COLOR="[0;33m";
+				;;
+			-1)
+				_arg_COLOR="[1;33m";
+				;;
+			1)
+				_arg_COLOR="[0;32m";
+				;;
+			2)
+				_arg_COLOR="[1;36m";
+				;;
+			3)
+				_arg_COLOR="[0;36m";
+				;;
+			*)
+				_arg_COLOR="[0m";
+				;;
+		esac
+		if [ "${_has_colors}" == "1" ]; then
+			echo -e "${_arg_COLOR}${_arg_msg}[0m";
+		else
+			echo "${_arg_msg}";
+		fi
+	fi
+}
+
+parse_commandline()
+{
+	_positionals_count=0
+	while test $# -gt 0
+	do
+		_key="$1"
+		case "$_key" in
+			--schema)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_schema="$2"
+				shift
+				;;
+			--schema=*)
+				_arg_schema="${_key##--schema=}"
+				;;
+			
+			--loader)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_loader="$2"
+				shift
+				;;
+			--loader=*)
+				_arg_loader="${_key##--loader=}"
+				;;
+			
+			-h|--help)
+				print_help;
+				exit 0;
+				;;
+			-h*)
+				print_help;
+				exit 0;
+				;;
+			--verbose)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level + 1))";
+					else
+						_verbose_level="$2";
+						shift;
+					fi
+					;;
+				--quiet)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level - 1))";
+					else
+						_verbose_level="-$2";
+						shift;
+					fi
+					;;
+				
+				*)
+				_last_positional="$1"
+				_positionals+=("$_last_positional")
+				_positionals_count=$((_positionals_count + 1))
+				;;
+		esac
+		shift
+	done
+}
+
+
+handle_passed_args_count()
+{
+	local _required_args_string="router name type"
+	if [ "${_positionals_count}" -gt 3 ] && [ "$_helpHasBeenPrinted" == "1" ];then
+		_PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect at most 3 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}').
+	${_positionals[*]}" 1
+	fi
+	if [ "${_positionals_count}" -lt 3 ] && [ "$_helpHasBeenPrinted" == "1" ];then
+		_PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require at least 3 (namely: $_required_args_string), but got only ${_positionals_count}.
+	${_positionals[*]}" 1;
+	fi
+}
+
+
+assign_positional_args()
+{
+	local _positional_name _shift_for=$1;
+	_positional_names="_arg_router _arg_name _arg_type ";
+	shift "$_shift_for"
+	for _positional_name in ${_positional_names};do
+		test $# -gt 0 || break;
+		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1;
+		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1;
+		shift;
+	done
+}
+
+print_debug()
+{
+	print_help
+	# shellcheck disable=SC2145
+	echo "DEBUG: $0 $@";
+	
+	echo -e "	router: ${_arg_router}";
+	echo -e "	name: ${_arg_name}";
+	echo -e "	type: ${_arg_type}";
+	echo -e "	schema: ${_arg_schema}";
+	echo -e "	loader: ${_arg_loader}";
+
+}
+
+
+on_interrupt() {
+	die Process aborted! 130;
+}
+
+
+parse_commandline "$@";
+handle_passed_args_count;
+assign_positional_args 1 "${_positionals[@]}";
+trap on_interrupt INT;
+
+
+
+# @parseArger-parsing-end
+# print_debug "$@"
+# @parseArger-end
+
+source "${_SCRIPT_DIR}/common"
+
+if [ "$(is_butT3r_project)" = "1" ]; then
+  die "${PWD} is not a ButT3r project" -2
+fi
+
+# Find router file
+router_file="src/server/api/routers/${_arg_router}.ts"
+if [ ! -f "$router_file" ]; then
+  die "Router not found at $router_file" -2
+fi
+
+# Generate procedure code
+procedure_code=""
+if [ -n "$_arg_schema" ]; then
+  procedure_code+="  // Input validation schema\n"
+  procedure_code+="  const input = z.object({\n"
+  procedure_code+="    // TODO: Add your schema validation here\n"
+  procedure_code+="  })\n\n"
+fi
+
+case "$_arg_type" in
+  "query")
+    procedure_code+="  ${_arg_name}: publicProcedure\n"
+    if [ -n "$_arg_schema" ]; then
+      procedure_code+="    .input(input)\n"
+    fi
+    procedure_code+="    .query(async ({ ctx, input }) => {\n"
+    procedure_code+="      // TODO: Implement query logic\n"
+    procedure_code+="      return {\n"
+    procedure_code+="        // TODO: Add response data\n"
+    procedure_code+="      }\n"
+    procedure_code+="    })"
+    ;;
+  "mutation")
+    procedure_code+="  ${_arg_name}: publicProcedure\n"
+    if [ -n "$_arg_schema" ]; then
+      procedure_code+="    .input(input)\n"
+    fi
+    procedure_code+="    .mutation(async ({ ctx, input }) => {\n"
+    procedure_code+="      // TODO: Implement mutation logic\n"
+    procedure_code+="      return {\n"
+    procedure_code+="        // TODO: Add response data\n"
+    procedure_code+="      }\n"
+    procedure_code+="    })"
+    ;;
+  "infinite")
+    procedure_code+="  ${_arg_name}: publicProcedure\n"
+    if [ -n "$_arg_schema" ]; then
+      procedure_code+="    .input(input)\n"
+    fi
+    procedure_code+="    .query(async ({ ctx, input }) => {\n"
+    procedure_code+="      // TODO: Implement infinite query logic\n"
+    procedure_code+="      return {\n"
+    procedure_code+="        items: [],\n"
+    procedure_code+="        nextCursor: null\n"
+    procedure_code+="      }\n"
+    procedure_code+="    })"
+    ;;
+esac
+
+# Add imports if needed
+if ! grep -q "publicProcedure" "$router_file"; then
+  sed -i '1i import { publicProcedure } from "../trpc"' "$router_file"
+fi
+
+# Add procedure to router
+sed -i "/createTRPCRouter({/a\\$procedure_code," "$router_file"
+
+if [ -n "$_arg_loader" ]; then
+  # Create loader hook
+  hooks_dir="src/utils/api/hooks/${_arg_router}"
+  mkdir -p "$hooks_dir"
+  
+  loader_file="$hooks_dir/${_arg_name}.ts"
+  {
+    echo "import { api } from '../api'"
+    echo
+    echo "export const use${_arg_name^} = () => {"
+    case "$_arg_type" in
+      "query")
+        echo "  return api.${_arg_router}.${_arg_name}.useQuery()"
+        ;;
+      "mutation")
+        echo "  return api.${_arg_router}.${_arg_name}.useMutation()"
+        ;;
+      "infinite")
+        echo "  return api.${_arg_router}.${_arg_name}.useInfiniteQuery()"
+        ;;
+    esac
+    echo "}"
+  } > "$loader_file"
+  
+  log "Created loader hook at $loader_file" 1
+fi
+
+log "Added procedure ${_arg_name} to router ${_arg_router}" 1

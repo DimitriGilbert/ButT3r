@@ -266,3 +266,161 @@ my go to project creator:
 Usage :
 	butt3r create t3 <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote]
 ```
+
+## Component Generator Enhancement
+
+### Common Scripts
+
+ButT3r uses two main common script files for its functionality:
+
+#### `bin/common`
+
+The base script containing core utilities for:
+- Project validation
+- Runtime checks
+- Docker/Podman compose management
+- Database checks
+- Process management
+- Environment setup
+
+#### `bin/_ts-edit/common`
+
+TypeScript-specific utilities for component generation and code manipulation:
+
+##### Core Utilities
+- `find_target_file()`: Locates the target TypeScript/React file
+- `add_import()`: Intelligently adds or merges import statements
+- `add_type()`: Adds TypeScript type definitions
+- `add_function()`: Generates function/component definitions
+- `format_component_name()`: Formats names to PascalCase
+- `parse_emmet()`: Basic Emmet-like syntax parsing
+
+##### Component Templates
+
+Four main component types are supported:
+
+1. **Page Components**
+   ```typescript
+   process_page_template(name, file)
+   ```
+   - Next.js page with error boundaries
+   - Suspense for loading states
+   - Navigation utilities
+
+2. **Layout Components**
+   ```typescript
+   process_layout_template(name, file)
+   ```
+   - Metadata support
+   - Header management
+   - Children prop handling
+
+3. **Form Components**
+   ```typescript
+   process_form_template(name, file)
+   ```
+   - React Hook Form integration
+   - Zod schema validation
+   - Type-safe form handling
+
+4. **Table Components**
+   ```typescript
+   process_table_template(name, file)
+   ```
+   - TanStack Table integration
+   - Pagination support
+   - Flexible column definitions
+
+##### API Integration
+
+1. **Next.js API Routes**
+   ```typescript
+   generate_api_route(name, file, methods)
+   ```
+   - Route handler generation
+   - Method-specific handlers
+   - Error handling
+
+2. **tRPC Procedures**
+   ```typescript
+   generate_trpc_procedure(name, file, type, schema)
+   ```
+   - Query/Mutation/Infinite query support
+   - Input validation
+   - Type-safe procedures
+
+3. **Data Loaders**
+   ```typescript
+   add_query_loader(name, file, router)
+   add_mutation_loader(name, file, router)
+   add_infinite_loader(name, file, router)
+   ```
+   - Type-safe hooks
+   - Automatic router integration
+   - Loading state handling
+
+##### Schema Validation
+
+1. **Props Schema**
+   ```typescript
+   generate_props_schema(name, file, props)
+   ```
+   - Component prop validation
+   - TypeScript type generation
+   - Runtime checks
+
+2. **Form Schema**
+   ```typescript
+   generate_form_schema(name, file, fields)
+   ```
+   - Form field validation
+   - Custom validation rules
+   - Type inference
+
+3. **API Schema**
+   ```typescript
+   generate_api_schema(name, file, input, output)
+   ```
+   - Request/response validation
+   - Type-safe API contracts
+   - Error handling
+
+##### Testing
+
+1. **Unit Tests**
+   ```typescript
+   generate_unit_test(name, file, type)
+   ```
+   - React Testing Library setup
+   - Snapshot testing
+   - Component role testing
+
+2. **E2E Tests**
+   ```typescript
+   generate_e2e_test(name, file, type)
+   ```
+   - Playwright integration
+   - Page navigation
+   - Interaction testing
+
+### Usage Examples
+
+#### Creating a New Page Component
+```bash
+butt3r component create MyPage --template page
+```
+
+#### Adding an API Route
+```bash
+butt3r component create userApi --api-route "GET,POST,PUT"
+```
+
+#### Creating a Form with Validation
+```bash
+butt3r component create LoginForm --template form --schema form
+```
+
+#### Setting Up a Data Table
+```bash
+butt3r component create UserTable --template table --api
+```

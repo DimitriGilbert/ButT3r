@@ -143,3 +143,58 @@ butt3r ts-edit export-function <name> [options]
 --return-type: Return type (default: void)
 --async: Mark as async function
 ```
+
+### Component Generator
+
+The component generator supports advanced templates and features:
+
+#### Template Types
+```bash
+# Create a page component with error boundaries and suspense
+butt3r component create MyPage --template page
+
+# Create a layout with metadata support
+butt3r component create MainLayout --template layout
+
+# Create a form with validation
+butt3r component create LoginForm --template form --schema form
+
+# Create a data table with pagination
+butt3r component create UserTable --template table
+```
+
+#### API Integration
+```bash
+# Generate REST API route
+butt3r component create userApi --api-route "GET,POST,PUT"
+
+# Create tRPC procedure
+butt3r component create users --trpc-router "users" --trpc-procedure "getUsers" --loader "query"
+
+# Add data loader
+butt3r component create posts --loader "infinite"
+```
+
+#### Schema Validation
+```bash
+# Add props validation
+butt3r component create Button --schema "props" --props "variant:string" --props "size:string"
+
+# Add form validation
+butt3r component create SignupForm --schema "form" --fields "email:string|email()" --fields "password:string|min(8)"
+
+# Add API validation
+butt3r component create auth --schema "api" --input "username:string" --input "password:string"
+```
+
+#### Testing
+```bash
+# Generate unit tests
+butt3r component create Header --test "unit"
+
+# Generate E2E tests
+butt3r component create LoginFlow --test "e2e"
+```
+
+For detailed documentation of all features and functions, see [documentation.md](documentation.md).
+

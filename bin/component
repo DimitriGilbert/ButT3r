@@ -17,24 +17,9 @@ fi
 # @parseArger opt props "property definition (name:type)" --repeat
 # @parseArger opt import "import statement (from:what)" --repeat
 # @parseArger opt emmet "emmet pattern for the component" --repeat
-# @parseArger opt trpc-router "create tRPC route"
-# @parseArger opt trpc-procedure "create tRPC procedure" --repeat
-# @parseArger opt loader "loader type (query|mutation|infinite)" --one-of "query" --one-of "mutation" --one-of "infinite"
-# @parseArger opt api-router "create API router"
-# @parseArger opt api-route "create API route" --repeat
-# @parseArger opt test "type of tests to generate" --repeat --one-of "unit" --one-of "e2e"
-# @parseArger opt schema "generate Zod schema for the component" --repeat --one-of "props" --one-of "form" --one-of "api"
 # @parseArger opt template "template to use (page|layout|form|table)" --one-of "page" --one-of "layout" --one-of "form" --one-of "table"
-# @parseArger opt trpc-router "create tRPC route"
-# @parseArger opt trpc-procedure "create tRPC procedure" --repeat
-# @parseArger opt loader "loader type (query|mutation|infinite)" --one-of "query" --one-of "mutation" --one-of "infinite"
-# @parseArger opt api-router "create API router"
-# @parseArger opt api-route "create API route" --repeat
-# @parseArger opt test "type of tests to generate" --repeat --one-of "unit" --one-of "e2e"
-# @parseArger opt schema "generate Zod schema for the component" --repeat --one-of "props" --one-of "form" --one-of "api"
 # @parseArger flag server "is server component" --on
 # @parseArger flag client "is client component"
-# @parseArger flag api "generate matching API route"
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -75,32 +60,11 @@ _arg_component_name=
 _arg_props=()
 _arg_import=()
 _arg_emmet=()
-_arg_trpc_router=
-_arg_trpc_procedure=()
-_arg_loader=
-_one_of_arg_loader=("query" "mutation" "infinite" );
-_arg_api_router=
-_arg_api_route=()
-_arg_test=()
-_one_of_arg_test=("unit" "e2e" );
-_arg_schema=()
-_one_of_arg_schema=("props" "form" "api" );
 _arg_template=
 _one_of_arg_template=("page" "layout" "form" "table" );
-_arg_trpc_router=
-_arg_trpc_procedure=()
-_arg_loader=
-_one_of_arg_loader=("query" "mutation" "infinite" );
-_arg_api_router=
-_arg_api_route=()
-_arg_test=()
-_one_of_arg_test=("unit" "e2e" );
-_arg_schema=()
-_one_of_arg_schema=("props" "form" "api" );
 # FLAGS
 _arg_server="on"
 _arg_client="off"
-_arg_api="off"
 # NESTED
 _verbose_level="0";
 
@@ -119,26 +83,11 @@ print_help()
 	echo -e "	--props <props>: property definition (name:type), repeatable"
 	echo -e "	--import <import>: import statement (from:what), repeatable"
 	echo -e "	--emmet <emmet>: emmet pattern for the component, repeatable"
-	echo -e "	--trpc-router <trpc-router>: create tRPC route"
-	echo -e "	--trpc-procedure <trpc-procedure>: create tRPC procedure, repeatable"
-	echo -e "	--loader <loader>: loader type (query|mutation|infinite) [one of 'query' 'mutation' 'infinite']"
-	echo -e "	--api-router <api-router>: create API router"
-	echo -e "	--api-route <api-route>: create API route, repeatable"
-	echo -e "	--test <test>: type of tests to generate, repeatable [one of 'unit' 'e2e']"
-	echo -e "	--schema <schema>: generate Zod schema for the component, repeatable [one of 'props' 'form' 'api']"
 	echo -e "	--template <template>: template to use (page|layout|form|table) [one of 'page' 'layout' 'form' 'table']"
-	echo -e "	--trpc-router <trpc-router>: create tRPC route"
-	echo -e "	--trpc-procedure <trpc-procedure>: create tRPC procedure, repeatable"
-	echo -e "	--loader <loader>: loader type (query|mutation|infinite) [one of 'query' 'mutation' 'infinite']"
-	echo -e "	--api-router <api-router>: create API router"
-	echo -e "	--api-route <api-route>: create API route, repeatable"
-	echo -e "	--test <test>: type of tests to generate, repeatable [one of 'unit' 'e2e']"
-	echo -e "	--schema <schema>: generate Zod schema for the component, repeatable [one of 'props' 'form' 'api']"
 	echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
 	echo -e "	--client|--no-client: is client component"
-	echo -e "	--api|--no-api: generate matching API route"
 	echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--trpc-router <value>] [--trpc-procedure <value>] [--loader <value>] [--api-router <value>] [--api-route <value>] [--test <value>] [--schema <value>] [--template <value>] [--trpc-router <value>] [--trpc-procedure <value>] [--loader <value>] [--api-router <value>] [--api-route <value>] [--test <value>] [--schema <value>] [--[no-]server] [--[no-]client] [--[no-]api]";
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]client]";
 	fi
 
 }
@@ -230,75 +179,6 @@ parse_commandline()
 				_arg_emmet+=("${_key##--emmet=}")
 				;;
 			
-			--trpc-router)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_trpc_router="$2"
-				shift
-				;;
-			--trpc-router=*)
-				_arg_trpc_router="${_key##--trpc-router=}"
-				;;
-			
-			--trpc-procedure)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_trpc_procedure+=("$2")
-				shift
-				;;
-			--trpc-procedure=*)
-				_arg_trpc_procedure+=("${_key##--trpc-procedure=}")
-				;;
-			
-			--loader)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_loader="$2"
-				if [[ "${#_one_of_arg_loader[@]}" -gt 0 ]];then [[ "${_one_of_arg_loader[*]}" =~ (^|[[:space:]])"$_arg_loader"($|[[:space:]]) ]] || die "loader must be one of: query mutation infinite";fi
-				shift
-				;;
-			--loader=*)
-				_arg_loader="${_key##--loader=}"
-				if [[ "${#_one_of_arg_loader[@]}" -gt 0 ]];then [[ "${_one_of_arg_loader[*]}" =~ (^|[[:space:]])"$_arg_loader"($|[[:space:]]) ]] || die "loader must be one of: query mutation infinite";fi
-				;;
-			
-			--api-router)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_api_router="$2"
-				shift
-				;;
-			--api-router=*)
-				_arg_api_router="${_key##--api-router=}"
-				;;
-			
-			--api-route)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_api_route+=("$2")
-				shift
-				;;
-			--api-route=*)
-				_arg_api_route+=("${_key##--api-route=}")
-				;;
-			
-			--test)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_test+=("$2")
-				if [[ "${#_one_of_arg_test[@]}" -gt 0 ]];then [[ "${_one_of_arg_test[*]}" =~ (^|[[:space:]])"$_arg_test"($|[[:space:]]) ]] || die "test must be one of: unit e2e";fi
-				shift
-				;;
-			--test=*)
-				_arg_test+=("${_key##--test=}")
-				if [[ "${#_one_of_arg_test[@]}" -gt 0 ]];then [[ "${_one_of_arg_test[*]}" =~ (^|[[:space:]])"$_arg_test"($|[[:space:]]) ]] || die "test must be one of: unit e2e";fi
-				;;
-			
-			--schema)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_schema+=("$2")
-				if [[ "${#_one_of_arg_schema[@]}" -gt 0 ]];then [[ "${_one_of_arg_schema[*]}" =~ (^|[[:space:]])"$_arg_schema"($|[[:space:]]) ]] || die "schema must be one of: props form api";fi
-				shift
-				;;
-			--schema=*)
-				_arg_schema+=("${_key##--schema=}")
-				if [[ "${#_one_of_arg_schema[@]}" -gt 0 ]];then [[ "${_one_of_arg_schema[*]}" =~ (^|[[:space:]])"$_arg_schema"($|[[:space:]]) ]] || die "schema must be one of: props form api";fi
-				;;
-			
 			--template)
 				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
 				_arg_template="$2"
@@ -308,75 +188,6 @@ parse_commandline()
 			--template=*)
 				_arg_template="${_key##--template=}"
 				if [[ "${#_one_of_arg_template[@]}" -gt 0 ]];then [[ "${_one_of_arg_template[*]}" =~ (^|[[:space:]])"$_arg_template"($|[[:space:]]) ]] || die "template must be one of: page layout form table";fi
-				;;
-			
-			--trpc-router)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_trpc_router="$2"
-				shift
-				;;
-			--trpc-router=*)
-				_arg_trpc_router="${_key##--trpc-router=}"
-				;;
-			
-			--trpc-procedure)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_trpc_procedure+=("$2")
-				shift
-				;;
-			--trpc-procedure=*)
-				_arg_trpc_procedure+=("${_key##--trpc-procedure=}")
-				;;
-			
-			--loader)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_loader="$2"
-				if [[ "${#_one_of_arg_loader[@]}" -gt 0 ]];then [[ "${_one_of_arg_loader[*]}" =~ (^|[[:space:]])"$_arg_loader"($|[[:space:]]) ]] || die "loader must be one of: query mutation infinite";fi
-				shift
-				;;
-			--loader=*)
-				_arg_loader="${_key##--loader=}"
-				if [[ "${#_one_of_arg_loader[@]}" -gt 0 ]];then [[ "${_one_of_arg_loader[*]}" =~ (^|[[:space:]])"$_arg_loader"($|[[:space:]]) ]] || die "loader must be one of: query mutation infinite";fi
-				;;
-			
-			--api-router)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_api_router="$2"
-				shift
-				;;
-			--api-router=*)
-				_arg_api_router="${_key##--api-router=}"
-				;;
-			
-			--api-route)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_api_route+=("$2")
-				shift
-				;;
-			--api-route=*)
-				_arg_api_route+=("${_key##--api-route=}")
-				;;
-			
-			--test)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_test+=("$2")
-				if [[ "${#_one_of_arg_test[@]}" -gt 0 ]];then [[ "${_one_of_arg_test[*]}" =~ (^|[[:space:]])"$_arg_test"($|[[:space:]]) ]] || die "test must be one of: unit e2e";fi
-				shift
-				;;
-			--test=*)
-				_arg_test+=("${_key##--test=}")
-				if [[ "${#_one_of_arg_test[@]}" -gt 0 ]];then [[ "${_one_of_arg_test[*]}" =~ (^|[[:space:]])"$_arg_test"($|[[:space:]]) ]] || die "test must be one of: unit e2e";fi
-				;;
-			
-			--schema)
-				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-				_arg_schema+=("$2")
-				if [[ "${#_one_of_arg_schema[@]}" -gt 0 ]];then [[ "${_one_of_arg_schema[*]}" =~ (^|[[:space:]])"$_arg_schema"($|[[:space:]]) ]] || die "schema must be one of: props form api";fi
-				shift
-				;;
-			--schema=*)
-				_arg_schema+=("${_key##--schema=}")
-				if [[ "${#_one_of_arg_schema[@]}" -gt 0 ]];then [[ "${_one_of_arg_schema[*]}" =~ (^|[[:space:]])"$_arg_schema"($|[[:space:]]) ]] || die "schema must be one of: props form api";fi
 				;;
 			
 			--server)
@@ -390,12 +201,6 @@ parse_commandline()
 				;;
 			--no-client)
 				_arg_client="off"
-				;;
-			--api)
-				_arg_api="on"
-				;;
-			--no-api)
-				_arg_api="off"
 				;;
 			-h|--help)
 				print_help;
@@ -479,24 +284,9 @@ print_debug()
 	echo -e "	props: ${_arg_props[*]}";
 	echo -e "	import: ${_arg_import[*]}";
 	echo -e "	emmet: ${_arg_emmet[*]}";
-	echo -e "	trpc-router: ${_arg_trpc_router}";
-	echo -e "	trpc-procedure: ${_arg_trpc_procedure[*]}";
-	echo -e "	loader: ${_arg_loader}";
-	echo -e "	api-router: ${_arg_api_router}";
-	echo -e "	api-route: ${_arg_api_route[*]}";
-	echo -e "	test: ${_arg_test[*]}";
-	echo -e "	schema: ${_arg_schema[*]}";
 	echo -e "	template: ${_arg_template}";
-	echo -e "	trpc-router: ${_arg_trpc_router}";
-	echo -e "	trpc-procedure: ${_arg_trpc_procedure[*]}";
-	echo -e "	loader: ${_arg_loader}";
-	echo -e "	api-router: ${_arg_api_router}";
-	echo -e "	api-route: ${_arg_api_route[*]}";
-	echo -e "	test: ${_arg_test[*]}";
-	echo -e "	schema: ${_arg_schema[*]}";
 	echo -e "	server: ${_arg_server}";
 	echo -e "	client: ${_arg_client}";
-	echo -e "	api: ${_arg_api}";
 
 }
 
