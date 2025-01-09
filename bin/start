@@ -1,6 +1,6 @@
 #!/bin/bash
 # @parseArger-begin
-# @parseArger-help "I send an SOS to the world" --option "help" --short-option "h"
+# @parseArger-help "start your stack" --option "help" --short-option "h"
 # @parseArger-version "0.0.1" --option "version" --short-option "v"
 # @parseArger-verbose --option "verbose" --level "0" --quiet-option "quiet"
 _has_colors=0
@@ -65,7 +65,7 @@ print_help()
 
 	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
 		_helpHasBeenPrinted=0;
-		echo -e "I send an SOS to the world:"
+		echo -e "start your stack:"
 	echo -e "	--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']"
 	echo -e "	--runner <runner>: what js runtime is used [default: ' bun '] [one of 'bun' 'npm' 'yarn']"
 	echo -e "	--dev|--no-dev: start in dev mode"

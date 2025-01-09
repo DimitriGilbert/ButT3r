@@ -1,6 +1,6 @@
 #!/bin/bash
 # @parseArger-begin
-# @parseArger-help "I send an SOS to the world" --option "help" --short-option "h"
+# @parseArger-help "create the dockerfile and docker-compose.yml" --option "help" --short-option "h"
 # @parseArger-version "0.0.1" --option "version" --short-option "v"
 # @parseArger-verbose --option "verbose" --level "0" --quiet-option "quiet"
 _has_colors=0
@@ -81,7 +81,7 @@ print_help()
 
 	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
 		_helpHasBeenPrinted=0;
-		echo -e "I send an SOS to the world:"
+		echo -e "create the dockerfile and docker-compose.yml:"
 	echo -e "	--app-name <app-name>: app name"
 	echo -e "	--app-ports <app-ports>: ports entry for the app, repeatable"
 	echo -e "	--app-env <app-env>: app env vars, repeatable"

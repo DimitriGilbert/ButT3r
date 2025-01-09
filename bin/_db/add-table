@@ -1,0 +1,374 @@
+#!/bin/bash
+# @parseArger-begin
+# @parseArger-help "add a database table to a schema file" --option "help" --short-option "h"
+# @parseArger-verbose --option "verbose" --level "0" --quiet-option "quiet"
+_has_colors=0
+if [ -t 1 ]; then # Check if stdout is a terminal
+	ncolors=$(tput colors 2>/dev/null)
+	if [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+		_has_colors=1
+	fi
+fi
+# @parseArger-declarations
+# @parseArger pos table-name "Name of the table to create"
+# @parseArger opt column "Column declaration (e.g., id serial primary key, user_id integer references users.id)" --short c --repeat --complete-custom "echo "serial primary key text varchar integer timestamp boolean notNull unique references defaultNow""
+# @parseArger opt output-file "Name of the schema file in src/db" --short o --default-value "schema.ts"
+# @parseArger flag dry-run "Simulate the script without modifying files" --short d
+# @parseArger-declarations-end
+
+# @parseArger-utils
+_helpHasBeenPrinted=1;
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)";
+# @parseArger-utils-end
+
+# @parseArger-parsing
+
+__cli_arg_count=$#;
+
+die()
+{
+	local _ret=1
+    if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
+   	_ret="$2"
+    fi
+	test "${_PRINT_HELP:-no}" = yes && print_help >&2
+	log "$1" -3 >&2
+	exit "${_ret}"
+}
+
+
+begins_with_short_option()
+{
+	local first_option all_short_options=''
+	first_option="${1:0:1}"
+	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
+}
+
+# POSITIONALS ARGUMENTS
+_positionals=();
+_optional_positionals=();
+_arg_table_name="";
+# OPTIONALS ARGUMENTS
+_arg_column=()
+_arg_output_file="schema.ts"
+# FLAGS
+_arg_dry_run="off"
+# NESTED
+_verbose_level="0";
+
+
+
+print_help()
+{
+	_triggerSCHelp=1;
+
+	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
+		_helpHasBeenPrinted=0;
+		echo -e "add a database table to a schema file:"
+	echo -e "	table-name: Name of the table to create"
+	echo -e "	-c, --column <column>: Column declaration (e.g., id serial primary key, user_id integer references users.id), repeatable"
+	echo -e "	-o, --output-file <output-file>: Name of the schema file in src/db [default: ' schema.ts ']"
+	echo -e "	-d|--dry-run|--no-dry-run: Simulate the script without modifying files"
+	echo -e "Usage :
+	$0 <table-name> [--column <value>] [--output-file <value>] [--[no-]dry-run]";
+	fi
+
+}
+
+log() {
+	local _arg_msg="${1}";
+	local _arg_level="${2:-0}";
+	if [ "${_arg_level}" -le "${_verbose_level}" ]; then
+		case "$_arg_level" in
+			-3)
+				_arg_COLOR="\033[0;31m";
+				;;
+			-2)
+				_arg_COLOR="\033[0;33m";
+				;;
+			-1)
+				_arg_COLOR="\033[1;33m";
+				;;
+			1)
+				_arg_COLOR="\033[0;32m";
+				;;
+			2)
+				_arg_COLOR="\033[1;36m";
+				;;
+			3)
+				_arg_COLOR="\033[0;36m";
+				;;
+			*)
+				_arg_COLOR="\033[0m";
+				;;
+		esac
+		if [ "${_has_colors}" == "1" ]; then
+			echo -e "${_arg_COLOR}${_arg_msg}\033[0m";
+		else
+			echo "${_arg_msg}";
+		fi
+	fi
+}
+
+parse_commandline()
+{
+	_positionals_count=0
+	while test $# -gt 0
+	do
+		_key="$1"
+		case "$_key" in
+			-c|--column)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_column+=("$2")
+				shift
+				;;
+			--column=*)
+				_arg_column+=("${_key##--column=}")
+				;;
+			-c*)
+				_arg_column+=("${_key##-c}")
+				;;
+			
+			-o|--output-file)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_output_file="$2"
+				shift
+				;;
+			--output-file=*)
+				_arg_output_file="${_key##--output-file=}"
+				;;
+			-o*)
+				_arg_output_file="${_key##-o}"
+				;;
+			
+			-d|--dry-run)
+				_arg_dry_run="on"
+				;;
+			--no-dry-run)
+				_arg_dry_run="off"
+				;;
+			-h|--help)
+				print_help;
+				exit 0;
+				;;
+			-h*)
+				print_help;
+				exit 0;
+				;;
+			--verbose)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level + 1))";
+					else
+						_verbose_level="$2";
+						shift;
+					fi
+					;;
+				--quiet)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level - 1))";
+					else
+						_verbose_level="-$2";
+						shift;
+					fi
+					;;
+				
+				*)
+				_last_positional="$1"
+				_positionals+=("$_last_positional")
+				_positionals_count=$((_positionals_count + 1))
+				;;
+		esac
+		shift
+	done
+}
+
+
+handle_passed_args_count()
+{
+	local _required_args_string="table-name"
+	if [ "${_positionals_count}" -gt 1 ] && [ "$_helpHasBeenPrinted" == "1" ];then
+		_PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect at most 1 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}').\n\t${_positionals[*]}" 1
+	fi
+	if [ "${_positionals_count}" -lt 1 ] && [ "$_helpHasBeenPrinted" == "1" ];then
+		_PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require at least 1 (namely: $_required_args_string), but got only ${_positionals_count}.
+	${_positionals[*]}" 1;
+	fi
+}
+
+
+assign_positional_args()
+{
+	local _positional_name _shift_for=$1;
+	_positional_names="_arg_table_name ";
+	shift "$_shift_for"
+	for _positional_name in ${_positional_names};do
+		test $# -gt 0 || break;
+		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1;
+		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1;
+		shift;
+	done
+}
+
+print_debug()
+{
+	print_help
+	# shellcheck disable=SC2145
+	echo "DEBUG: $0 $@";
+	
+	echo -e "	table-name: ${_arg_table_name}";
+	echo -e "	column: ${_arg_column[*]}";
+	echo -e "	output-file: ${_arg_output_file}";
+	echo -e "	dry-run: ${_arg_dry_run}";
+
+}
+
+
+on_interrupt() {
+	die Process aborted! 130;
+}
+
+
+parse_commandline "$@";
+handle_passed_args_count;
+assign_positional_args 1 "${_positionals[@]}";
+trap on_interrupt INT;
+
+
+
+# @parseArger-parsing-end
+# print_debug "$@"
+# @parseArger-end
+
+# Get parent directory and source common functions
+
+source "$_SCRIPT_DIR/../common"
+
+# Check if this is a butT3r project
+if [ "$(is_butT3r_project)" = "1" ]; then
+  die "$PWD is not a butT3r project" 1
+fi
+
+# Create src/db directory if it doesn't exist
+if [ ! -d "src/db" ]; then
+  mkdir -p "src/db"
+fi
+
+# Initialize schema file if it doesn't exist
+if [ ! -f "src/db/$_arg_output_file" ]; then
+  if [ "$_arg_dry_run" = "off" ]; then
+    echo 'import { pgTable as table, serial, text, varchar, integer, timestamp, boolean, uniqueIndex } from "drizzle-orm/pg-core";' >"src/db/$_arg_output_file"
+    echo 'import type { AnyPgColumn } from "drizzle-orm/pg-core";' >>"src/db/$_arg_output_file"
+    echo '' >>"src/db/$_arg_output_file"
+  fi
+  log "Created schema file: src/db/$_arg_output_file" 2
+fi
+
+# Function to parse column type and constraints
+parse_column() {
+  local col="$1"
+  local name type rest reference=""
+
+  # First get name and type
+  read -r name type rest <<<"$col"
+
+  # Start building the column definition
+  case "$type" in
+  serial)
+    echo -n "$name: t.serial()"
+    ;;
+  text)
+    echo -n "$name: t.text()"
+    ;;
+  varchar)
+    echo -n "$name: t.varchar()"
+    ;;
+  integer)
+    echo -n "$name: t.integer()"
+    ;;
+  timestamp)
+    echo -n "$name: t.timestamp()"
+    ;;
+  boolean)
+    echo -n "$name: t.boolean()"
+    ;;
+  *)
+    log "Unknown type: $type" -3 >&2
+    exit 1
+    ;;
+  esac
+
+  # Process remaining parts (constraints and reference)
+  for part in $rest; do
+    # If it starts with #, it's a reference
+    if [ "$reference" = "" ] && [[ "$part" =~ ^#[a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      reference="$part"
+      continue
+    fi
+
+    # Otherwise it's a constraint
+    case "$part" in
+    primaryKey)
+      echo -n ".primaryKey()"
+      ;;
+    notNull)
+      echo -n ".notNull()"
+      ;;
+    unique)
+      echo -n ".unique()"
+      ;;
+    defaultNow)
+      echo -n '.$default(() => new Date())'
+      ;;
+    *)
+      die "Unknown constraint: $part" -1
+      ;;
+    esac
+  done
+
+  # Add reference if present
+  if [ -n "$reference" ]; then
+    local ref_var ref_col
+    ref_var=${reference#"#"}
+    IFS='.' read -r ref_var ref_col <<<"$ref_var"
+    echo -n ".references(() => $ref_var.$ref_col)"
+  fi
+
+  echo
+}
+
+# Generate schema code
+generate_schema() {
+  local table_name="$1"
+  shift
+  local columns=("$@")
+
+  local schema="export const $table_name = table(\n"
+  schema+="  \"$table_name\",\n"
+  schema+="  {\n"
+
+  for col in "${columns[@]}"; do
+    local parsed
+    parsed=$(parse_column "$col")
+    schema+="    $parsed,\n"
+  done
+
+  schema+="  }\n"
+  schema+=");"
+
+  echo -e "$schema"
+}
+
+log "Generating schema for table: $_arg_table_name" 2
+log "Columns: ${_arg_column[*]}" 2
+log "Output file: src/db/$_arg_output_file" 2
+[ "$_arg_dry_run" = "on" ] && log "Dry run mode enabled" 2
+
+schema=$(generate_schema "$_arg_table_name" "${_arg_column[@]}")
+
+if [ "$_arg_dry_run" = "on" ]; then
+  log "Generated schema:" 1
+  echo "$schema"
+else
+  echo -e "\n$schema" >>"src/db/$_arg_output_file"
+  log "Schema added to src/db/$_arg_output_file" 2
+fi

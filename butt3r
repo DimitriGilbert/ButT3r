@@ -12,7 +12,7 @@ if [ -t 1 ]; then # Check if stdout is a terminal
 	fi
 fi
 # @parseArger-declarations
-# @parseArger pos target "what to do" --subcommand-directory "bin" --subcommand-run --subcommand-use-leftovers --subcommand --one-of "create" --one-of "component" --one-of "db" --one-of "down" --one-of "layout" --one-of "page" --one-of "start" --one-of "stop" --one-of "up" --one-of "ts-edit"
+# @parseArger pos target "what to do" --subcommand-directory "bin" --subcommand-run --subcommand-use-leftovers --subcommand --one-of "create" --one-of "component" --one-of "db" --one-of "down" --one-of "layout" --one-of "page" --one-of "start" --one-of "stop" --one-of "up" --one-of "ts-edit" --one-of "api-route" --one-of "test" --one-of "trpc" --one-of "type-schema"
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -47,7 +47,7 @@ begins_with_short_option()
 _positionals=();
 _optional_positionals=();
 _arg_target="";
-_one_of_arg_target=("create" "component" "db" "down" "layout" "page" "start" "stop" "up" "create" "ts-edit" );
+_one_of_arg_target=("create" "component" "db" "down" "layout" "page" "start" "stop" "up" "ts-edit" "api-route" "create" "test" "trpc" "type-schema" );
 _arg_subcommand_arg="_arg_target";
 __subcommand=();
 # OPTIONALS ARGUMENTS
@@ -74,7 +74,7 @@ print_help()
 	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
 		_helpHasBeenPrinted=0;
 		echo -e "And, you thought T3 was opinionated:"
-	echo -e "	target: what to do [one of 'create' 'component' 'db' 'down' 'layout' 'page' 'start' 'stop' 'up' 'create' 'ts-edit']"
+	echo -e "	target: what to do [one of 'create' 'component' 'db' 'down' 'layout' 'page' 'start' 'stop' 'up' 'ts-edit' 'api-route' 'create' 'test' 'trpc' 'type-schema']"
 	echo -e "Usage :
 	$0 <target>";
 	fi

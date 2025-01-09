@@ -13,7 +13,7 @@ Usage :
 
 ```
 And, you thought T3 was opinionated:
-	target: what to do [one of 'create' 'component' 'db' 'down' 'layout' 'page' 'start' 'stop' 'up' 'create' 'ts-edit']
+	target: what to do [one of 'create' 'component' 'db' 'down' 'layout' 'page' 'start' 'stop' 'up' 'ts-edit' 'api-route' 'create' 'test' 'trpc' 'type-schema']
 Usage :
 	butt3r <target>
 ```
@@ -58,17 +58,31 @@ create/update a component:
 	--component-name <component-name>: component name
 	--props <props>: property definition (name:type), repeatable
 	--import <import>: import statement (from:what), repeatable
+	--emmet <emmet>: emmet pattern for the component, repeatable
+	--template <template>: template to use (page|layout|form|table) [one of 'page' 'layout' 'form' 'table']
 	--server|--no-server: is server component, on by default (use --no-server to turn it off)
 	--client|--no-client: is client component
 Usage :
-	butt3r component <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--[no-]server] [--[no-]client]
+	butt3r component <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]client]
+```
+
+## butt3r api-route
+
+```
+create a new API route:
+	name: route name
+	--methods <methods>: HTTP methods (GET,POST,PUT,DELETE), repeatable
+	--directory <directory>: subdirectory in src/app/api
+	--schema <schema>: input/output validation
+Usage :
+	butt3r api-route <name> [--methods <value>] [--directory <value>] [--schema <value>]
 ```
 
 ## butt3r db
 
 ```
-manage your butt3r db:
-	target: what to do [one of 'export' 'import' 'query' 'export']
+manage your butT3r db:
+	target: what to do [one of 'export' 'import' 'query' 'add-table' 'export']
 Usage :
 	butt3r db <target>
 ```
@@ -118,7 +132,7 @@ Usage :
 ## butt3r start
 
 ```
-I send an SOS to the world:
+start your stack:
 	--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']
 	--runner <runner>: what js runtime is used [default: ' bun '] [one of 'bun' 'npm' 'yarn']
 	--dev|--no-dev: start in dev mode
@@ -136,6 +150,28 @@ Usage :
 	butt3r stop [--containerd <value>] [--[no-]dev]
 ```
 
+## butt3r trpc
+
+```
+create tRPC functionality:
+	target: what to do [one of 'router' 'procedure' 'procedure' 'router']
+Usage :
+	butt3r trpc <target>
+```
+
+## butt3r type-schema
+
+```
+generate type schema:
+	type: type of schema [one of 'props' 'form' 'api']
+	target: target file
+	--props <props>: property definitions, repeatable
+	--form <form>: field definitions with validation, repeatable
+	--api <api>: input/output fields, repeatable
+Usage :
+	butt3r type-schema <type> <target> [--props <value>] [--form <value>] [--api <value>]
+```
+
 ## butt3r up
 
 ```
@@ -147,13 +183,27 @@ Usage :
 	butt3r up [--containerd <value>] [--runner <value>] [--[no-]dev]
 ```
 
-## butt3r ts-edit
+## butt3r api-route
 
 ```
-'edit' typescript file:
-	target: what to do [one of 'export-function' 'export-type' 'import' 'export-function']
+create a new API route:
+	name: route name
+	--methods <methods>: HTTP methods (GET,POST,PUT,DELETE), repeatable
+	--directory <directory>: subdirectory in src/app/api
+	--schema <schema>: input/output validation
 Usage :
-	butt3r ts-edit <target>
+	butt3r api-route <name> [--methods <value>] [--directory <value>] [--schema <value>]
+```
+
+## butt3r test
+
+```
+generate tests:
+	type: type of test [one of 'unit' 'e2e']
+	target: component/page to test
+	--directory <directory>: test directory location
+Usage :
+	butt3r test <type> <target> [--directory <value>]
 ```
 
 ## butt3r db export
@@ -191,6 +241,27 @@ run a query on the database:
 	--pretty|--no-pretty: pretty print output (when possible)
 Usage :
 	butt3r db query <query> [--containerd <value>] [--output <value>] [--format <value>] [--[no-]pretty]
+```
+
+## butt3r db add-table
+
+```
+add a database table to a schema file:
+	table-name: Name of the table to create
+	-c, --column <column>: Column declaration (e.g., id serial primary key, user_id integer references users.id), repeatable
+	-o, --output-file <output-file>: Name of the schema file in src/db [default: ' schema.ts ']
+	-d|--dry-run|--no-dry-run: Simulate the script without modifying files
+Usage :
+	bin/_db/add-table <table-name> [--column <value>] [--output-file <value>] [--[no-]dry-run]
+```
+
+## butt3r ts-edit
+
+```
+'edit' typescript file:
+	target: what to do [one of 'export-function' 'export-type' 'import' 'export-function']
+Usage :
+	butt3r ts-edit <target>
 ```
 
 ## butt3r ts-edit export-function
@@ -267,7 +338,30 @@ Usage :
 	butt3r create t3 <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote]
 ```
 
-## Component Generator Enhancement
+### butt3r trpc router
+
+```
+create new tRPC router:
+	name: router name
+	--schema <schema>: input/output validation
+Usage :
+	butt3r trpc router <name> [--schema <value>]
+```
+
+### butt3r trpc procedure
+
+```
+add procedure to router:
+	router: target router
+	name: procedure name
+	type: query|mutation|infinite [one of 'query' 'mutation' 'infinite']
+	--schema <schema>: input/output validation
+	--loader <loader>: generate loader hook
+Usage :
+	butt3r trpc procedure <router> <name> <type> [--schema <value>] [--loader <value>]
+```
+
+## Component Generator
 
 ### Common Scripts
 
