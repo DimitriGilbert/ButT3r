@@ -42,9 +42,8 @@ function add_import() {
 }
 
 function add_type() {
-  local file="$1"
-  local name="$2"
-  shift 2
+  local name="$1"
+  shift 1
   local properties=("$@")
 
   # Build the type definition with 2-space indentation
@@ -56,54 +55,27 @@ function add_type() {
   done
   type_def+="}"
 
-  # Add type at the end of the file
-  echo -e "\n$type_def" >> "$file"
+  echo -e "$type_def"
 }
 
 function add_function() {
-  local file="$1"
-  local name="$2"
-  local return_type="$3"
-  local is_async="$4"
+  local name="$1"
+  local return_type="$2"
+  local is_async="$3"
+  local params="$4"
   local body="$5"
-  shift 5
-  local props=("$@")
-
-  # If we have props and return type is JSX.Element, create a Props type
-  if [ "${#props[@]}" -gt 0 ] && [ "$return_type" = "JSX.Element" ]; then
-    add_type "$file" "${name}Props" "${props[@]}"
-    # Clear props array as we'll use the type instead
-    props=("props: ${name}Props")
-  fi
 
   # Build the function definition with 2-space indentation
-  local fn_def="export ${is_async}function $name("
-  local first=true
-  for prop in "${props[@]}"; do
-    if [ "$first" = true ]; then
-      first=false
-    else
-      fn_def+=", "
-    fi
-    local prop_name="${prop%%:*}"
-    local prop_type="${prop#*:}"
-    fn_def+="$prop_name: ${prop_type:-any}"
-  done
-  fn_def+="): ${return_type:-void} {\n"
+  local fn_def="export ${is_async}function $name($params): ${return_type:-void} {\n"
   
   if [ -n "$body" ]; then
     fn_def+="  $body\n"
-  elif [ "$return_type" = "JSX.Element" ]; then
-    local parsed_emmet
-    parsed_emmet=$(parse_emmet "$emmet" "$name")
-    fn_def+="  return ($parsed_emmet);\n"
   else
     fn_def+="  // TODO: implement $name\n"
   fi
   fn_def+="}"
 
-  # Add function at the end of the file
-  echo -e "\n$fn_def" >> "$file"
+  echo -e "$fn_def"
 }
 
 function format_component_name() {
@@ -124,30 +96,6 @@ function format_component_name() {
   echo "$name"
 }
 
-function parse_emmet() {
-  local emmet="$1"
-  local name="$2"
-  
-  if [ -z "$emmet" ]; then
-    echo "<>TODO ${name}</>"
-    return
-  fi
-
-  # Basic emmet parsing - can be expanded for more complex patterns
-  # Replace . with className=
-  emmet="${emmet//./ className=\"}"
-  # Add closing quotes for className
-  emmet="${emmet// /\"}"
-  # Replace # with id=
-  emmet="${emmet//#/ id=\"}"
-  # Handle basic nesting with >
-  emmet="${emmet//>/></}"
-  # Add closing tags
-  emmet="<${emmet}></${emmet%%[.#]*}>"
-  
-  echo "$emmet"
-}
-
 function process_page_template() {
   local name="$1"
   local file="$2"
@@ -160,7 +108,7 @@ function process_page_template() {
   add_import "$file" "./error" "Error"
   
   # Add base component with error boundary and suspense
-  add_function "$file" "$name" "JSX.Element" "" "return (
+  local fn_def=$(add_function "$file" "$name" "JSX.Element" "" "return (
     <ErrorBoundary FallbackComponent={Error}>
       <Suspense fallback={<Loading />}>
         <div>
@@ -169,7 +117,8 @@ function process_page_template() {
         </div>
       </Suspense>
     </ErrorBoundary>
-  )"
+  )")
+  echo -e "\n$fn_def" >> "$file"
 }
 
 function process_layout_template() {
@@ -185,12 +134,13 @@ function process_layout_template() {
   echo -e "\nexport const metadata: Metadata = getMetadata()" >> "$file"
   
   # Add layout component
-  add_function "$file" "$name" "JSX.Element" "" "return (
+  local fn_def=$(add_function "$file" "$name" "JSX.Element" "" "return (
     <div className=\"layout-container\">
       {/* Add your layout structure here */}
       {props.children}
     </div>
-  )" "children: React.ReactNode"
+  )" "children: React.ReactNode")
+  echo -e "\n$fn_def" >> "$file"
 }
 
 function process_form_template() {
@@ -203,7 +153,7 @@ function process_form_template() {
   add_import "$file" "./schema" "formSchema FormData"
   
   # Add form component
-  add_function "$file" "$name" "JSX.Element" "" "const form = useForm<FormData>({
+  local fn_def=$(add_function "$file" "$name" "JSX.Element" "" "const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
   });
@@ -220,7 +170,8 @@ function process_form_template() {
         Submit
       </button>
     </form>
-  )"
+  )")
+  echo -e "\n$fn_def" >> "$file"
 }
 
 function process_table_template() {
@@ -233,7 +184,7 @@ function process_table_template() {
   add_import "$file" "./types" "TableData"
   
   # Add table component
-  add_function "$file" "$name" "JSX.Element" "" "const [data, setData] = React.useState<TableData[]>([]);
+  local fn_def=$(add_function "$file" "$name" "JSX.Element" "" "const [data, setData] = React.useState<TableData[]>([]);
 
   const table = useReactTable({
     data,
@@ -291,7 +242,8 @@ function process_table_template() {
         </button>
       </div>
     </div>
-  )"
+  )")
+  echo -e "\n$fn_def" >> "$file"
 }
 
 function generate_api_route() {

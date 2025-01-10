@@ -330,5 +330,8 @@ done
 # Add children prop to the props array
 _arg_props+=("children:React.ReactNode")
 
-# Build the component
-add_function "$target_file" "${component_name}" "JSX.Element" "" "${_arg_props[@]}"
+# Generate the component
+fn_def=$(add_function "${component_name}" "JSX.Element" "" "${_arg_props[@]}")
+
+# Write to file
+echo -e "\n$fn_def" >> "$target_file"

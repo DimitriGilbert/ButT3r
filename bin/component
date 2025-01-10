@@ -20,6 +20,7 @@ fi
 # @parseArger opt template "template to use (page|layout|form|table)" --one-of "page" --one-of "layout" --one-of "form" --one-of "table"
 # @parseArger flag server "is server component" --on
 # @parseArger flag client "is client component"
+# @parseArger flag dry-run "output to stdout"
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -65,6 +66,7 @@ _one_of_arg_template=("page" "layout" "form" "table" );
 # FLAGS
 _arg_server="on"
 _arg_client="off"
+_arg_dry_run="off"
 # NESTED
 _verbose_level="0";
 
@@ -86,8 +88,9 @@ print_help()
 	echo -e "	--template <template>: template to use (page|layout|form|table) [one of 'page' 'layout' 'form' 'table']"
 	echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
 	echo -e "	--client|--no-client: is client component"
+	echo -e "	--dry-run|--no-dry-run: output to stdout"
 	echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]client]";
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]client] [--[no-]dry-run]";
 	fi
 
 }
@@ -202,6 +205,12 @@ parse_commandline()
 			--no-client)
 				_arg_client="off"
 				;;
+			--dry-run)
+				_arg_dry_run="on"
+				;;
+			--no-dry-run)
+				_arg_dry_run="off"
+				;;
 			-h|--help)
 				print_help;
 				exit 0;
@@ -287,6 +296,7 @@ print_debug()
 	echo -e "	template: ${_arg_template}";
 	echo -e "	server: ${_arg_server}";
 	echo -e "	client: ${_arg_client}";
+	echo -e "	dry-run: ${_arg_dry_run}";
 
 }
 
@@ -325,7 +335,9 @@ fi
 
 # Create the target directory if it doesn't exist
 target_dir="${base_dir}/${_arg_path}";
-mkdir -p "$target_dir";
+if [ "$_arg_dry_run" = "off" ]; then
+  mkdir -p "$target_dir";
+fi
 
 # Determine the component name
 component_name="${_arg_component_name}";
@@ -338,41 +350,30 @@ component_name="$(format_component_name "$component_name")";
 # Set up the component file path
 target_file="${target_dir}/index.tsx";
 
-# Check if component already exists
-if [ -f "$target_file" ]; then
-  log "Updating existing component: $component_name" 1;
-  
-  # Create temporary file
-  temp_file="${target_file}.tmp";
-  
-  # Add new imports without duplicates
-  for import in "${_arg_import[@]}"; do
-    IFS=':' read -r from what <<< "$import";
-    if ! grep -q "from ['\"]${from}['\"]" "$temp_file"; then
-      add_import "$temp_file" "$from" "$what";
-    fi
-  done
-  
-  # Update the component
-  update_component "$target_file" "$temp_file" "$component_name" "$_arg_client" "${_arg_emmet[0]}" "${_arg_props[@]}"
-  
-  # Replace original with updated version
-  mv "$temp_file" "$target_file";
+# Build the component content
+content=""
+
+# Add use client directive if needed
+if [ "$_arg_client" = "on" ]; then
+  content+="'use client';\n\n"
+fi
+
+# Add imports
+for import in "${_arg_import[@]}"; do
+  IFS=':' read -r from what <<< "$import"
+  content+="import { $what } from '$from';\n"
+done
+
+if [ -n "${_arg_import[*]}" ]; then
+  content+="\n"
+fi
+
+# Create the component content
+component_content=$(create_component "$component_name" "${_arg_emmet[0]}" "${_arg_props[@]}")
+content+="$component_content"
+
+if [ "$_arg_dry_run" = "on" ]; then
+  echo -e "$content"
 else
-  log "Creating new component: $component_name" 1;
-  
-  # Add use client directive if needed
-  if [ "$_arg_client" = "on" ]; then
-    echo "'use client';" > "$target_file";
-    echo "" >> "$target_file";
-  fi
-  
-  # Add imports
-  for import in "${_arg_import[@]}"; do
-    IFS=':' read -r from what <<< "$import";
-    add_import "$target_file" "$from" "$what";
-  done
-  
-  # Create the component
-  create_component "$target_file" "$component_name" "${_arg_emmet[0]}" "${_arg_props[@]}"
+  echo -e "$content" > "$target_file"
 fi

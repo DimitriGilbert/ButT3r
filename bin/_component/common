@@ -5,13 +5,15 @@ if ! declare -f add_function > /dev/null; then
 fi
 
 function write_component_function() {
-  local target_file="$1"
-  local component_name="$2"
-  local body="$3"
-  shift 3
+  local component_name="$1"
+  local body="$2"
+  shift 2
   local props=("$@")
+  local output=""
 
+  # If we have props, create Props type first
   if [ "${#props[@]}" -gt 0 ]; then
+    output+="$(write_props_interface "$component_name" "${props[@]}")\n\n"
     # Extract prop names for destructuring
     local props_list=""
     for prop in "${props[@]}"; do
@@ -22,22 +24,28 @@ function write_component_function() {
         props_list="$props_list, $prop_name"
       fi
     done
-    add_function "$target_file" "$component_name" "JSX.Element" "" "{ $props_list }: ${component_name}Props" "$body"
+    output+="$(add_function "$component_name" "JSX.Element" "" "{ $props_list }: ${component_name}Props" "$body")"
   else
-    add_function "$target_file" "$component_name" "JSX.Element" "" "()" "$body"
+    output+="$(add_function "$component_name" "JSX.Element" "" "()" "$body")"
   fi
+  echo -e "$output"
 }
 
 function create_component() {
-  local target_file="$1"
-  local component_name="$2"
-  local emmet="${3:-}"
-  shift 3
+  local component_name="$1"
+  local emmet="$2"
+  shift 2
   local props=("$@")
 
-  # Write Props interface if needed
-  write_props_interface "$target_file" "$component_name" "${props[@]}";
-  write_component_function "$target_file" "$component_name" "return ($(parse_emmet "$emmet"));" "${props[@]}";
+  # Create component with emmet-parsed body
+  local parsed_emmet
+  if [ -n "$emmet" ]; then
+    parsed_emmet=$(parse_emmet "$emmet")
+  else
+    parsed_emmet="<div>{/* TODO: implement $component_name */}</div>"
+  fi
+
+  write_component_function "$component_name" "return ($parsed_emmet);" "${props[@]}"
 }
 
 function update_component() {

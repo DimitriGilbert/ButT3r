@@ -15,6 +15,7 @@ fi
 # @parseArger opt props "function props (name:type)" --repeat
 # @parseArger opt return-type "function return type" --default-value "void"
 # @parseArger flag async "is async function"
+# @parseArger flag dry-run "output to stdout"
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -54,6 +55,7 @@ _arg_props=()
 _arg_return_type="void"
 # FLAGS
 _arg_async="off"
+_arg_dry_run="off"
 # NESTED
 _verbose_level="0";
 
@@ -70,8 +72,9 @@ print_help()
 	echo -e "	--props <props>: function props (name:type), repeatable"
 	echo -e "	--return-type <return-type>: function return type [default: ' void ']"
 	echo -e "	--async|--no-async: is async function"
+	echo -e "	--dry-run|--no-dry-run: output to stdout"
 	echo -e "Usage :
-	$0 <name> [--props <value>] [--return-type <value>] [--[no-]async]";
+	$0 <name> [--props <value>] [--return-type <value>] [--[no-]async] [--[no-]dry-run]";
 	fi
 
 }
@@ -141,6 +144,12 @@ parse_commandline()
 				;;
 			--no-async)
 				_arg_async="off"
+				;;
+			--dry-run)
+				_arg_dry_run="on"
+				;;
+			--no-dry-run)
+				_arg_dry_run="off"
 				;;
 			-h|--help)
 				print_help;
@@ -222,6 +231,7 @@ print_debug()
 	echo -e "	props: ${_arg_props[*]}";
 	echo -e "	return-type: ${_arg_return_type}";
 	echo -e "	async: ${_arg_async}";
+	echo -e "	dry-run: ${_arg_dry_run}";
 
 }
 
@@ -262,5 +272,12 @@ if [ "$_arg_async" = "on" ]; then
   async_prefix="async "
 fi
 
-# Add the function definition
-add_function "$target_file" "$_arg_name" "$_arg_return_type" "$async_prefix" "${_arg_props[@]}"
+# Generate the function definition
+fn_def=$(add_function "$_arg_name" "$_arg_return_type" "$async_prefix" "${_arg_props[@]}")
+
+# Write to file
+if [ "$_arg_dry_run" = "on" ]; then
+  echo -e "\n$fn_def"
+else
+  echo -e "\n$fn_def" >> "$target_file"
+fi

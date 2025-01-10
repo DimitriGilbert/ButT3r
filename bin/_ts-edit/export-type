@@ -13,6 +13,7 @@ fi
 # @parseArger-declarations
 # @parseArger pos name "type name"
 # @parseArger opt property "property definition (name:type)" --repeat
+# @parseArger flag dry-run "output to stdout"
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -50,6 +51,7 @@ _arg_name="";
 # OPTIONALS ARGUMENTS
 _arg_property=()
 # FLAGS
+_arg_dry_run="off"
 # NESTED
 _verbose_level="0";
 
@@ -64,8 +66,9 @@ print_help()
 		echo -e "export a type:"
 	echo -e "	name: type name"
 	echo -e "	--property <property>: property definition (name:type), repeatable"
+	echo -e "	--dry-run|--no-dry-run: output to stdout"
 	echo -e "Usage :
-	$0 <name> [--property <value>]";
+	$0 <name> [--property <value>] [--[no-]dry-run]";
 	fi
 
 }
@@ -121,6 +124,12 @@ parse_commandline()
 				_arg_property+=("${_key##--property=}")
 				;;
 			
+			--dry-run)
+				_arg_dry_run="on"
+				;;
+			--no-dry-run)
+				_arg_dry_run="off"
+				;;
 			-h|--help)
 				print_help;
 				exit 0;
@@ -199,6 +208,7 @@ print_debug()
 	
 	echo -e "	name: ${_arg_name}";
 	echo -e "	property: ${_arg_property[*]}";
+	echo -e "	dry-run: ${_arg_dry_run}";
 
 }
 
@@ -233,5 +243,12 @@ if [ -z "$target_file" ]; then
   die "No TypeScript file found in current directory" -2
 fi
 
-# Add the type definition
-add_type "$target_file" "$_arg_name" "${_arg_property[@]}"
+# Generate the type definition
+type_def=$(add_type "$_arg_name" "${_arg_property[@]}");
+
+# Write to file
+if [ "$_arg_dry_run" = "on" ]; then
+  echo -e "\n$type_def"
+else
+  echo -e "\n$type_def" >> "$target_file"
+fi

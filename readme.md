@@ -105,6 +105,10 @@ butt3r component Button --props "variant:string" --props "size:string"
 # Server/Client components
 butt3r component Header --server    # Server Component
 butt3r component Form --client      # Client Component
+# Advanced component creation
+butt3r component Card --props "title:string" --props "content:string" --import "@/components/CardStyles" --directory "ui"
+butt3r component Modal --props "isOpen:boolean" --props "onClose:() => void" --props "title:string" --props "children:ReactNode" --props "closeText:string" --client --import "@/components/ModalStyles" --emmet "div.modal>div.modal-header>h2{{props.title}}^div.modal-body{{props.children}}^div.modal-footer>button{{props.closeText}}[onclick={{e => props.onClose(e)}}]"
+butt3r component Input --props "value:string" --props "onChange:(value:string) => void" --import "@/components/InputStyles" --directory "forms"
 ```
 
 ### Page and Layout Creation
