@@ -216,6 +216,7 @@ trap on_interrupt INT;
 # @parseArger-end
 
 source "${_SCRIPT_DIR}/common"
+source "${_SCRIPT_DIR}/_ts-edit/common";
 
 if [ "$(is_butT3r_project)" = "1" ]; then
   die "${PWD} is not a ButT3r project" -2

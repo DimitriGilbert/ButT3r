@@ -286,6 +286,7 @@ trap on_interrupt INT;
 
 source "${_SCRIPT_DIR}/common";
 source "${_SCRIPT_DIR}/_ts-edit/common";
+source "${_SCRIPT_DIR}/_component/common";
 
 # Determine the target directory
 base_dir="src/app"
