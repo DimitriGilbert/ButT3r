@@ -4,195 +4,187 @@ A highly opinionated Next.js project creator and manager with built-in utilities
 
 ## Installation
 
-An installation script is provided:
-
 ```bash
-# download the script
-curl -s https://raw.githubusercontent.com/DimitriGilbert/ButT3r/main/utils/get_butt3r -O;
-# make it executable
-chmod +x get_butt3r;
-# display the help
-./get_butt3r --help;
-#	-b, --branch|--tag|--install-version <branch>: version to install
-#	--install-directory <install-directory>: where to install
-#	--install-file <install-file>: rc files to install to, forces install, repeatable
-#	-i|--install|--no-install: install in bashrc
-#	--remove-installer|--no-remove-installer: remove install script itself
-#	aliases: --rm,
-#	--ssh|--no-ssh: clone using ssh
-#	--zip|--no-zip: install using zip archive, not recommended
+# Download and install
+curl -s https://raw.githubusercontent.com/DimitriGilbert/ButT3r/main/utils/get_butt3r -O
+chmod +x get_butt3r
+./get_butt3r --install
 
-# generic install
-./get_butt3r --install;
+# Installation options (run --help to see all)
+./get_butt3r --help
 ```
 
-## Usage
+## Quick Start
 
-### create
+### Create a New Project
+```bash
+butt3r create my-app
+```
 
-Create a New Project.
+This creates a new Next.js project with our recommended stack:
+- Next.js with App Router
+- TypeScript
+- Tailwind CSS
+- tRPC
+- NextAuth
+- PostgreSQL with Drizzle ORM
+- Docker support
+- shadcn/ui components
 
+### Start Development
+```bash
+cd my-app
+
+# Start the development stack
+butt3r up --dev
+
+# Stop the stack
+butt3r stop
+```
+
+## Project Management
+
+### Stack Commands
+```bash
+# Initialize and start the stack
+butt3r up [--dev] [--containerd <docker|podman>] [--runner <bun|npm|yarn>]
+
+# Start an existing stack
+butt3r start [--dev] [--containerd <docker|podman>] [--runner <bun|npm|yarn>]
+
+# Stop the stack
+butt3r stop [--dev] [--containerd <docker|podman>]
+
+# Clean up the stack
+butt3r down [--dev] [--containerd <docker|podman>] [--all]
+```
+
+### Project Creation Options
+Customize your project during creation:
 ```bash
 butt3r create <name> [options]
+
+# Basic Configuration
+--package-manager <bun|npm|yarn>  # Package manager to use
+--[no-]app-router                 # Use Next.js App Router
+--[no-]tailwind                   # Include Tailwind CSS
+--[no-]shadcn                     # Include shadcn/ui components
+--shadcn-component <name>         # Add specific shadcn components
+
+# Database Options
+--[no-]db                         # Include database support
+--db-provider <postgres|mysql>    # Choose database provider
+--db-orm <drizzle|prisma>         # Choose ORM
+--db-user <username>              # Set database user
+--db-name <dbname>                # Set database name
+
+# Additional Features
+--[no-]auth                       # Include authentication
+--[no-]trpc                       # Include tRPC
+--[no-]mdx                        # Include MDX support
+--[no-]docker                     # Include Docker setup
+
+# Environment Configuration
+--app-port <port>                 # Set application port
+--app-env <KEY=VALUE>             # Set environment variables
+--db-ports <host:container>       # Map database ports
+--db-env <KEY=VALUE>              # Set database environment
 ```
 
-Options:
-- `--db-provider`: Database provider (default: postgres)
-- `--db-orm`: ORM to use (default: drizzle)
-- `--shadcn-component`: shadcn components to install (repeatable)
-- `--install`: Additional packages to install (repeatable)
-- `--package-manager`: Package manager to use (default: bun)
-- `--app-ports`: App ports configuration (repeatable)
-- `--app-env`: App environment variables (repeatable)
-- `--db-ports`: Database ports configuration (repeatable)
-- `--db-env`: Database environment variables (repeatable)
-- `--db-user`: Database user
-- `--db-name`: Database name
-- `--app-port`: App port
-- `--app-network`: Network for the app
+## Development Tools
 
-Flags:
-- `--[no-]db`: Enable/disable database (default: on)
-- `--[no-]app-router`: Use app router (default: on)
-- `--[no-]auth`: Use NextAuth (default: on)
-- `--[no-]trpc`: Use tRPC (default: on)
-- `--[no-]tailwind`: Use Tailwind CSS (default: on)
-- `--[no-]shadcn`: Use shadcn components (default: on)
-- `--[no-]mdx`: Use markdown content
-- `--[no-]mdx-remote`: Add next-mdx-remote and gray-matter (default: on)
-- `--[no-]docker`: Create Docker Compose stack (default: on)
-
-### Project Management
-
-Up, start, stop and down you stack.
-
+### Component Management
+Create and manage React components:
 ```bash
-# Initialize the stack
-butt3r up [--containerd <docker|podman>] [--runner <bun|npm|yarn>] [--dev]
+# Basic component
+butt3r component MyComponent
 
-# Start the project
-butt3r start [--containerd <docker|podman>] [--runner <bun|npm|yarn>] [--dev]
+# With props
+butt3r component Button --props "variant:string" --props "size:string"
 
-# Stop the project
-butt3r stop [--containerd <docker|podman>] [--dev]
-
-# Terminate and clean the stack
-butt3r down [--containerd <docker|podman>] [--dev] [--all]
+# Server/Client components
+butt3r component Header --server    # Server Component
+butt3r component Form --client      # Client Component
 ```
 
-### component, page, layout
-
-Create/update a component, page or layout.
-
+### Page and Layout Creation
 ```bash
-# Create/update a component
-butt3r component <path> [options]
+# Create a page
+butt3r page users/[id] --props "id:string"
 
-# Create/update a page
-butt3r page <path> [options]
-
-# Create/update a layout
-butt3r layout <path> [options]
+# Create a layout
+butt3r layout dashboard --props "children:ReactNode"
 ```
 
-Common options for components/pages/layouts:
-- `--directory`: Subdirectory location
-- `--component-name`: Component name
-- `--props`: Property definitions (name:type, repeatable)
-- `--import`: Import statements (from:what, repeatable)
-- `--[no-]server`: Server component (default: on)
-- `--[no-]client`: Client component
+### Database Management
 
-### db
-
-Export, import and run database queries.
-
+#### Schema Management
 ```bash
-# Export database
-butt3r db export <output> [options]
---format: Output format (sql|json|yaml|csv|xml)
---table: Specific table to export
---pretty: Pretty print output
+# Add a table to your schema
+butt3r db add-table users \
+  -c "id serial primaryKey" \
+  -c "email varchar notNull unique"
 
-# Import database
-butt3r db import <input> [options]
---force: Force import (drop existing data)
-
-# Run database query
-butt3r db query <query> [options]
---output: Output file
---format: Output format (table|json|yaml|csv|xml)
---pretty: Pretty print output
+# With relationships
+butt3r db add-table posts \
+  -c "id serial primaryKey" \
+  -c "author_id integer notNull #users.id"
 ```
 
-### ts-edit
-
-"Edit" typescript files
-
+#### Data Operations
 ```bash
-# Add import statement
-butt3r ts-edit import <from> <what>
+# Export data
+butt3r db export data.sql --format sql --pretty
 
-# Export a type: export type ... = {...}
-butt3r ts-edit export-type <name> [--property <name:type>...]
+# Import data
+butt3r db import data.sql
 
-# Export a function: export function <name> (...args: <type>[]) { ... }
-#   --props: export type <name>Props = { ... }
-butt3r ts-edit export-function <name> [options]
---props: Function props (name:type)
---return-type: Return type (default: void)
---async: Mark as async function
+# Run queries
+butt3r db query "SELECT * FROM users" --format json
 ```
 
-### Component Generator
-
-The component generator supports advanced templates and features:
-
-#### Template Types
+### TypeScript Utilities
 ```bash
-# Create a page component with error boundaries and suspense
+# Add imports
+butt3r ts-edit import "@/components" "Button"
+
+# Export types
+butt3r ts-edit export-type User --property "id:string" --property "name:string"
+
+# Export functions
+butt3r ts-edit export-function getUser --props "id:string" --return-type "Promise<User>"
+```
+
+## Advanced Features
+
+### Component Templates
+Create components with advanced features:
+```bash
+# Page with error boundaries
 butt3r component create MyPage --template page
 
-# Create a layout with metadata support
-butt3r component create MainLayout --template layout
-
-# Create a form with validation
+# Form with validation
 butt3r component create LoginForm --template form --schema form
 
-# Create a data table with pagination
+# Data table with pagination
 butt3r component create UserTable --template table
 ```
 
-#### API Integration
+### API Integration
 ```bash
-# Generate REST API route
+# REST API routes
 butt3r component create userApi --api-route "GET,POST,PUT"
 
-# Create tRPC procedure
-butt3r component create users --trpc-router "users" --trpc-procedure "getUsers" --loader "query"
-
-# Add data loader
-butt3r component create posts --loader "infinite"
+# tRPC procedures
+butt3r component create users --trpc-router "users" --trpc-procedure "getUsers"
 ```
 
-#### Schema Validation
+### Testing
 ```bash
-# Add props validation
-butt3r component create Button --schema "props" --props "variant:string" --props "size:string"
-
-# Add form validation
-butt3r component create SignupForm --schema "form" --fields "email:string|email()" --fields "password:string|min(8)"
-
-# Add API validation
-butt3r component create auth --schema "api" --input "username:string" --input "password:string"
-```
-
-#### Testing
-```bash
-# Generate unit tests
+# Unit tests
 butt3r component create Header --test "unit"
 
-# Generate E2E tests
+# E2E tests
 butt3r component create LoginFlow --test "e2e"
 ```
 

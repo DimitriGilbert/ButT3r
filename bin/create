@@ -557,6 +557,9 @@ if [[ "$_arg_docker" = "on" ]]; then
 	[[ "$_arg_app_network" = "" ]] && _arg_app_network="$_arg_name";
 	_dck_cmd+=("--network" "$_arg_app_network");
 
+	_dck_cmd+=("--file" "${_arg_name}/docker-compose.dev.yml");
+
 	# Execute the Docker command
 	"${_dck_cmd[@]}";
+	# echo "${_dck_cmd[*]}"
 fi
