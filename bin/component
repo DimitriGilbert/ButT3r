@@ -21,6 +21,7 @@ fi
 # @parseArger flag server "is server component" --on
 # @parseArger flag client "is client component"
 # @parseArger flag dry-run "output to stdout"
+# @parseArger flag prettier "run prettier before output" --on
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -67,6 +68,7 @@ _one_of_arg_template=("page" "layout" "form" "table" );
 _arg_server="on"
 _arg_client="off"
 _arg_dry_run="off"
+_arg_prettier="on"
 # NESTED
 _verbose_level="0";
 
@@ -89,8 +91,9 @@ print_help()
 	echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
 	echo -e "	--client|--no-client: is client component"
 	echo -e "	--dry-run|--no-dry-run: output to stdout"
+	echo -e "	--prettier|--no-prettier: run prettier before output, on by default (use --no-prettier to turn it off)"
 	echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]client] [--[no-]dry-run]";
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]client] [--[no-]dry-run] [--[no-]prettier]";
 	fi
 
 }
@@ -211,6 +214,12 @@ parse_commandline()
 			--no-dry-run)
 				_arg_dry_run="off"
 				;;
+			--prettier)
+				_arg_prettier="on"
+				;;
+			--no-prettier)
+				_arg_prettier="off"
+				;;
 			-h|--help)
 				print_help;
 				exit 0;
@@ -297,6 +306,7 @@ print_debug()
 	echo -e "	server: ${_arg_server}";
 	echo -e "	client: ${_arg_client}";
 	echo -e "	dry-run: ${_arg_dry_run}";
+	echo -e "	prettier: ${_arg_prettier}";
 
 }
 
@@ -371,6 +381,10 @@ fi
 # Create the component content
 component_content=$(create_component "$component_name" "${_arg_emmet[0]}" "${_arg_props[@]}")
 content+="$component_content"
+
+if [ "$_arg_prettier" = "on" ]; then
+  content=$(run_prettier "$content" || die "Failed to format content with Prettier." 1);
+fi
 
 if [ "$_arg_dry_run" = "on" ]; then
   echo -e "$content"

@@ -498,3 +498,41 @@ function generate_e2e_test() {
   
   echo -e "\n$test_suite" >> "$file"
 }
+
+function run_prettier() {
+  local input="$1"
+  local runner
+  runner=$(get_runner)
+  local cmd_prefix
+
+  case "$runner" in
+    "bun")
+      cmd_prefix="bun x"
+      ;;
+    "yarn")
+      cmd_prefix="yarn"
+      ;;
+    *)
+      cmd_prefix="npx"
+      ;;
+  esac
+
+  # If input is a file, format it; if it's a string, return the formatted string
+  if [[ -f "$input" ]]; then
+    # Try to run prettier on the file, if it fails return an error message
+    if $cmd_prefix prettier --write "$input" 2>/dev/null; then
+      echo "Formatted $input successfully."
+    else
+      return 1
+    fi
+  else
+    # Format the string input and return it
+    local formatted
+    if formatted=$(echo -e "$input" | $cmd_prefix prettier --parser typescript --stdin 2>/dev/null); then
+      echo "$formatted";
+    else
+      echo ""
+      return 1
+    fi
+  fi
+}
