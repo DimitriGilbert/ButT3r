@@ -367,4 +367,4 @@ component_args+=("--export-default")
 [ "$_arg_dry_run" = "on" ] && component_args+=("--dry-run")
 
 # Call the component script with our arguments
-"${_SCRIPT_DIR}/component" "${component_args[@]}"
+"${_SCRIPT_DIR}/../butt3r" component "${component_args[@]}"
