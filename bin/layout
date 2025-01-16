@@ -16,9 +16,12 @@ fi
 # @parseArger opt component-name "component name"
 # @parseArger opt props "property definition (name:type)" --repeat
 # @parseArger opt import "import statement (from:what)" --repeat
+# @parseArger opt emmet "emmet pattern for the component" --repeat
 # @parseArger flag server "is server component" --on
 # @parseArger flag client "is client component"
 # @parseArger flag root "is root layout"
+# @parseArger flag prettier " run prettier before output"
+# @parseArger flag dry-run "output to stdout"
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -58,10 +61,13 @@ _arg_directory=
 _arg_component_name=
 _arg_props=()
 _arg_import=()
+_arg_emmet=()
 # FLAGS
 _arg_server="on"
 _arg_client="off"
 _arg_root="off"
+_arg_prettier="off"
+_arg_dry_run="off"
 # NESTED
 _verbose_level="0";
 
@@ -79,11 +85,14 @@ print_help()
 	echo -e "	--component-name <component-name>: component name"
 	echo -e "	--props <props>: property definition (name:type), repeatable"
 	echo -e "	--import <import>: import statement (from:what), repeatable"
+	echo -e "	--emmet <emmet>: emmet pattern for the component, repeatable"
 	echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
 	echo -e "	--client|--no-client: is client component"
 	echo -e "	--root|--no-root: is root layout"
+	echo -e "	--prettier|--no-prettier:  run prettier before output"
+	echo -e "	--dry-run|--no-dry-run: output to stdout"
 	echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--[no-]server] [--[no-]client] [--[no-]root]";
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--[no-]server] [--[no-]client] [--[no-]root] [--[no-]prettier] [--[no-]dry-run]";
 	fi
 
 }
@@ -166,6 +175,15 @@ parse_commandline()
 				_arg_import+=("${_key##--import=}")
 				;;
 			
+			--emmet)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_emmet+=("$2")
+				shift
+				;;
+			--emmet=*)
+				_arg_emmet+=("${_key##--emmet=}")
+				;;
+			
 			--server)
 				_arg_server="on"
 				;;
@@ -183,6 +201,18 @@ parse_commandline()
 				;;
 			--no-root)
 				_arg_root="off"
+				;;
+			--prettier)
+				_arg_prettier="on"
+				;;
+			--no-prettier)
+				_arg_prettier="off"
+				;;
+			--dry-run)
+				_arg_dry_run="on"
+				;;
+			--no-dry-run)
+				_arg_dry_run="off"
 				;;
 			-h|--help)
 				print_help;
@@ -265,9 +295,12 @@ print_debug()
 	echo -e "	component-name: ${_arg_component_name}";
 	echo -e "	props: ${_arg_props[*]}";
 	echo -e "	import: ${_arg_import[*]}";
+	echo -e "	emmet: ${_arg_emmet[*]}";
 	echo -e "	server: ${_arg_server}";
 	echo -e "	client: ${_arg_client}";
 	echo -e "	root: ${_arg_root}";
+	echo -e "	prettier: ${_arg_prettier}";
+	echo -e "	dry-run: ${_arg_dry_run}";
 
 }
 
@@ -294,44 +327,44 @@ trap on_interrupt INT;
 # print_debug "$@"
 # @parseArger-end
 
-source "${_SCRIPT_DIR}/common";
-source "${_SCRIPT_DIR}/_ts-edit/common";
-source "${_SCRIPT_DIR}/_component/common";
+source "${_SCRIPT_DIR}/common"
 
-# Determine the target directory
-base_dir="src/app"
-if [ -n "$_arg_directory" ]; then
-  base_dir="${base_dir}/${_arg_directory}"
-fi
+# Convert layout arguments to component arguments
+component_args=()
 
-# Create the target directory if it doesn't exist
-target_dir="${base_dir}/${_arg_path}"
-mkdir -p "$target_dir"
+# Always output to layout.tsx in app directory
+component_args+=("${_arg_path}/layout")
+[ -n "$_arg_directory" ] && component_args+=("--directory" "app/${_arg_directory}")
 
-# Determine the component name
-component_name="${_arg_component_name:-Layout}"
-component_name="$(format_component_name "$component_name")"
-
-# Create the layout file
-target_file="${target_dir}/layout.tsx"
-
-# Add use client directive if needed
-if [ "$_arg_client" = "on" ]; then
-  echo "'use client';" > "$target_file"
-  echo "" >> "$target_file"
-fi
-
-# Add imports
-for import in "${_arg_import[@]}"; do
-  IFS=':' read -r from what <<< "$import"
-  add_import "$target_file" "$from" "$what"
-done
+# Pass through common arguments
+[ -n "$_arg_component_name" ] && component_args+=("--component-name" "$_arg_component_name")
+[ -z "$_arg_component_name" ] && component_args+=("--component-name" "$(basename "$_arg_path")")
 
 # Add children prop to the props array
 _arg_props+=("children:React.ReactNode")
 
-# Generate the component
-fn_def=$(add_function "${component_name}" "JSX.Element" "" "${_arg_props[@]}")
+# Pass through props and other arguments
+for prop in "${_arg_props[@]}"; do
+  component_args+=("--props" "$prop")
+done
+for import in "${_arg_import[@]}"; do
+  component_args+=("--import" "$import")
+done
+for pattern in "${_arg_emmet[@]}"; do
+  component_args+=("--emmet" "$pattern")
+done
 
-# Write to file
-echo -e "\n$fn_def" >> "$target_file"
+# Handle server/client component flags
+if [ "$_arg_client" = "on" ]; then
+  component_args+=("--client")
+fi
+
+# Layouts should be default exported
+component_args+=("--export-default")
+
+# Pass through formatting flags
+[ "$_arg_prettier" = "on" ] && component_args+=("--prettier")
+[ "$_arg_dry_run" = "on" ] && component_args+=("--dry-run")
+
+# Call the component script with our arguments
+"${_SCRIPT_DIR}/component" "${component_args[@]}"

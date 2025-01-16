@@ -64,9 +64,15 @@ function add_function() {
   local is_async="$3"
   local params="$4"
   local body="$5"
+  local is_default="${6:-off}"
 
   # Build the function definition with 2-space indentation
-  local fn_def="export ${is_async}function $name($params): ${return_type:-void} {\n"
+  local fn_def=""
+  if [ "$is_default" = "on" ]; then
+    fn_def="export default ${is_async}function $name($params): ${return_type:-void} {\n"
+  else
+    fn_def="export ${is_async}function $name($params): ${return_type:-void} {\n"
+  fi
   
   if [ -n "$body" ]; then
     fn_def+="  $body\n"

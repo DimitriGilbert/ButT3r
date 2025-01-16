@@ -18,10 +18,10 @@ fi
 # @parseArger opt import "import statement (from:what)" --repeat
 # @parseArger opt emmet "emmet pattern for the component" --repeat
 # @parseArger opt template "template to use (page|layout|form|table)" --one-of "page" --one-of "layout" --one-of "form" --one-of "table"
-# @parseArger flag server "is server component" --on
-# @parseArger flag client "is client component"
+# @parseArger flag server "is server component" --on --no-name client
 # @parseArger flag dry-run "output to stdout"
 # @parseArger flag prettier "run prettier before output" --on
+# @parseArger flag export-default "export component as default"
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -66,9 +66,9 @@ _arg_template=
 _one_of_arg_template=("page" "layout" "form" "table" );
 # FLAGS
 _arg_server="on"
-_arg_client="off"
 _arg_dry_run="off"
 _arg_prettier="on"
+_arg_export_default="off"
 # NESTED
 _verbose_level="0";
 
@@ -88,12 +88,12 @@ print_help()
 	echo -e "	--import <import>: import statement (from:what), repeatable"
 	echo -e "	--emmet <emmet>: emmet pattern for the component, repeatable"
 	echo -e "	--template <template>: template to use (page|layout|form|table) [one of 'page' 'layout' 'form' 'table']"
-	echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
-	echo -e "	--client|--no-client: is client component"
+	echo -e "	--server|--client: is server component, on by default (use --client to turn it off)"
 	echo -e "	--dry-run|--no-dry-run: output to stdout"
 	echo -e "	--prettier|--no-prettier: run prettier before output, on by default (use --no-prettier to turn it off)"
+	echo -e "	--export-default|--no-export-default: export component as default"
 	echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]client] [--[no-]dry-run] [--[no-]prettier]";
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]dry-run] [--[no-]prettier] [--[no-]export-default]";
 	fi
 
 }
@@ -199,14 +199,8 @@ parse_commandline()
 			--server)
 				_arg_server="on"
 				;;
-			--no-server)
-				_arg_server="off"
-				;;
 			--client)
-				_arg_client="on"
-				;;
-			--no-client)
-				_arg_client="off"
+				_arg_server="off"
 				;;
 			--dry-run)
 				_arg_dry_run="on"
@@ -219,6 +213,12 @@ parse_commandline()
 				;;
 			--no-prettier)
 				_arg_prettier="off"
+				;;
+			--export-default)
+				_arg_export_default="on"
+				;;
+			--no-export-default)
+				_arg_export_default="off"
 				;;
 			-h|--help)
 				print_help;
@@ -304,9 +304,9 @@ print_debug()
 	echo -e "	emmet: ${_arg_emmet[*]}";
 	echo -e "	template: ${_arg_template}";
 	echo -e "	server: ${_arg_server}";
-	echo -e "	client: ${_arg_client}";
 	echo -e "	dry-run: ${_arg_dry_run}";
 	echo -e "	prettier: ${_arg_prettier}";
+	echo -e "	export-default: ${_arg_export_default}";
 
 }
 
@@ -364,7 +364,7 @@ target_file="${target_dir}/index.tsx";
 content=""
 
 # Add use client directive if needed
-if [ "$_arg_client" = "on" ]; then
+if [ "$_arg_server" = "off" ]; then
   content+="'use client';\n\n"
 fi
 
@@ -379,7 +379,7 @@ if [ -n "${_arg_import[*]}" ]; then
 fi
 
 # Create the component content
-component_content=$(create_component "$component_name" "${_arg_emmet[0]}" "${_arg_props[@]}")
+component_content=$(create_component "$component_name" "${_arg_emmet[0]}" "$_arg_export_default" "${_arg_props[@]}")
 content+="$component_content"
 
 if [ "$_arg_prettier" = "on" ]; then

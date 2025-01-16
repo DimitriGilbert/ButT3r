@@ -7,7 +7,8 @@ fi
 function write_component_function() {
   local component_name="$1"
   local body="$2"
-  shift 2
+  local is_default="${3:-false}"
+  shift 3
   local props=("$@")
   local output=""
 
@@ -24,9 +25,9 @@ function write_component_function() {
         props_list="$props_list, $prop_name"
       fi
     done
-    output+="$(add_function "$component_name" "JSX.Element" "" "{ $props_list }: ${component_name}Props" "$body")"
+    output+="$(add_function "$component_name" "JSX.Element" "" "{ $props_list }: ${component_name}Props" "$body" "$is_default")"
   else
-    output+="$(add_function "$component_name" "JSX.Element" "" "()" "$body")"
+    output+="$(add_function "$component_name" "JSX.Element" "" "()" "$body" "$is_default")"
   fi
   echo -e "$output"
 }
@@ -34,18 +35,21 @@ function write_component_function() {
 function create_component() {
   local component_name="$1"
   local emmet="$2"
-  shift 2
+  local is_default="${3:-false}"
+  shift 3
   local props=("$@")
 
   # Create component with emmet-parsed body
   local parsed_emmet
   if [ -n "$emmet" ]; then
+    # Remove props. prefix from emmet pattern since we're destructuring
+    emmet=$(echo "$emmet" | sed 's/props\.//g')
     parsed_emmet=$(parse_emmet "$emmet")
   else
     parsed_emmet="<div>{/* TODO: implement $component_name */}</div>"
   fi
 
-  write_component_function "$component_name" "return ($parsed_emmet);" "${props[@]}"
+  write_component_function "$component_name" "return ($parsed_emmet);" "$is_default" "${props[@]}"
 }
 
 function update_component() {
@@ -54,7 +58,8 @@ function update_component() {
   local component_name="$3"
   local client_mode="$4"
   local emmet="${5:-}"
-  shift 5
+  local is_default="${6:-false}"
+  shift 6
   local props=("$@")
 
   # Create temporary file if not exists
@@ -74,5 +79,5 @@ function update_component() {
   sed -i "/^export.*interface.*${component_name}Props/,/^}/d" "$temp_file"
 
   # Create updated component
-  create_component "$temp_file" "$component_name" "$emmet" "${props[@]}"
+  create_component "$component_name" "$emmet" "$is_default" "${props[@]}"
 }
