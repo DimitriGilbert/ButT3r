@@ -246,7 +246,7 @@ fi
 
 # Generate procedure code
 procedure_code=""
-if [ -n "$_arg_schema" ]; then
+if [ "$_arg_schema" != "" ]; then
   procedure_code+="  // Input validation schema\n"
   procedure_code+="  const input = z.object({\n"
   procedure_code+="    // TODO: Add your schema validation here\n"
@@ -256,7 +256,7 @@ fi
 case "$_arg_type" in
   "query")
     procedure_code+="  ${_arg_name}: publicProcedure\n"
-    if [ -n "$_arg_schema" ]; then
+    if [ "$_arg_schema" != "" ]; then
       procedure_code+="    .input(input)\n"
     fi
     procedure_code+="    .query(async ({ ctx, input }) => {\n"
@@ -268,7 +268,7 @@ case "$_arg_type" in
     ;;
   "mutation")
     procedure_code+="  ${_arg_name}: publicProcedure\n"
-    if [ -n "$_arg_schema" ]; then
+    if [ "$_arg_schema" != "" ]; then
       procedure_code+="    .input(input)\n"
     fi
     procedure_code+="    .mutation(async ({ ctx, input }) => {\n"
@@ -280,7 +280,7 @@ case "$_arg_type" in
     ;;
   "infinite")
     procedure_code+="  ${_arg_name}: publicProcedure\n"
-    if [ -n "$_arg_schema" ]; then
+    if [ "$_arg_schema" != "" ]; then
       procedure_code+="    .input(input)\n"
     fi
     procedure_code+="    .query(async ({ ctx, input }) => {\n"
@@ -301,7 +301,7 @@ fi
 # Add procedure to router
 sed -i "/createTRPCRouter({/a\\$procedure_code," "$router_file"
 
-if [ -n "$_arg_loader" ]; then
+if [ "$_arg_loader" != "" ]; then
   # Create loader hook
   hooks_dir="src/utils/api/hooks/${_arg_router}"
   mkdir -p "$hooks_dir"

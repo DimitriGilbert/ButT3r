@@ -305,11 +305,11 @@ component_args=()
 
 # Always output to page.tsx in app directory
 component_args+=("${_arg_path}/page")
-[ -n "$_arg_directory" ] && component_args+=("--directory" "app/${_arg_directory}")
+[ "$_arg_directory" != "" ] && component_args+=("--directory" "app/${_arg_directory}")
 
 # Pass through common arguments
-[ -n "$_arg_component_name" ] && component_args+=("--component-name" "$_arg_component_name")
-[ -z "$_arg_component_name" ] && component_args+=("--component-name" "$(basename "$_arg_path")")
+[ "$_arg_component_name" != "" ] && component_args+=("--component-name" "$_arg_component_name")
+[ "$_arg_component_name" = "" ] && component_args+=("--component-name" "$(basename "$_arg_path")")
 for prop in "${_arg_props[@]}"; do
   component_args+=("--props" "$prop")
 done

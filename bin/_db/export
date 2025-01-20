@@ -299,15 +299,15 @@ case "$_arg_format" in
         case "$_db_type" in
             postgres)
                 _cmd=("pg_dump" "-U" "postgres")
-                [ -n "$_arg_table" ] && _cmd+=("-t" "$_arg_table")
+                [ "$_arg_table" != "" ] && _cmd+=("-t" "$_arg_table")
                 ;;
             mysql)
                 _cmd=("mysqldump" "-u" "root")
-                [ -n "$_arg_table" ] && _cmd+=("$_arg_table")
+                [ "$_arg_table" != "" ] && _cmd+=("$_arg_table")
                 ;;
             sqlite)
                 _cmd=("sqlite3" "$db")
-                if [ -n "$_arg_table" ]; then
+                if [ "$_arg_table" != "" ]; then
                     _cmd+=(".dump $_arg_table")
                 else
                     _cmd+=(".dump")
@@ -322,7 +322,7 @@ case "$_arg_format" in
         ;;
     *)
         # For other formats, use SQL query and format conversion
-        if [ -n "$_arg_table" ]; then
+        if [ "$_arg_table" != "" ]; then
             _query="SELECT * FROM $_arg_table"
         else
             case "$_db_type" in

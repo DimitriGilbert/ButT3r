@@ -344,19 +344,19 @@ function get_db_credentials() {
     source ".env";
     case "$db_type" in
     postgres)
-      [ -n "$POSTGRES_USER" ] && user="$POSTGRES_USER";
-      [ -n "$POSTGRES_PASSWORD" ] && pass="$POSTGRES_PASSWORD";
-      [ -n "$POSTGRES_DB" ] && db="$POSTGRES_DB";
-      [ -n "$POSTGRES_PORT" ] && port="$POSTGRES_PORT";
+      [ "$POSTGRES_USER" != "" ] && user="$POSTGRES_USER";
+      [ "$POSTGRES_PASSWORD" != "" ] && pass="$POSTGRES_PASSWORD";
+      [ "$POSTGRES_DB" != "" ] && db="$POSTGRES_DB";
+      [ "$POSTGRES_PORT" != "" ] && port="$POSTGRES_PORT";
       ;;
     mysql)
-      [ -n "$MYSQL_USER" ] && user="$MYSQL_USER";
-      [ -n "$MYSQL_PASSWORD" ] && pass="$MYSQL_PASSWORD";
-      [ -n "$MYSQL_DATABASE" ] && db="$MYSQL_DATABASE";
-      [ -n "$MYSQL_PORT" ] && port="$MYSQL_PORT";
+      [ "$MYSQL_USER" != "" ] && user="$MYSQL_USER";
+      [ "$MYSQL_PASSWORD" != "" ] && pass="$MYSQL_PASSWORD";
+      [ "$MYSQL_DATABASE" != "" ] && db="$MYSQL_DATABASE";
+      [ "$MYSQL_PORT" != "" ] && port="$MYSQL_PORT";
       ;;
     sqlite)
-      [ -n "$SQLITE_DB" ] && db="$SQLITE_DB";
+      [ "$SQLITE_DB" != "" ] && db="$SQLITE_DB";
       ;;
     esac;
   fi;

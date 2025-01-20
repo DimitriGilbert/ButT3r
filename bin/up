@@ -265,14 +265,14 @@ function init_docker() {
 
   if [ "$_arg_dev" = "on" ] && [ -f "docker-compose.dev.yml" ]; then
     log "Using development compose configuration" 1
-    _upCmd+=(-f "docker-compose.dev.yml")
+    _upCmd+=(-f "docker-compose.dev.yml");
   fi
 
-  _upCmd+=(build)
-  "${_upCmd[@]}"
+  _upCmd+=(build);
+  "${_upCmd[@]}";
 
   # Start the services after build
-  start_compose "$_arg_dev" "$1"
+  start_compose "$_arg_dev" "$1";
 }
 
 if [ "$(is_butT3r_project)" = "1" ]; then
@@ -286,7 +286,7 @@ if [ "$(is_using_docker)" = "0" ]; then
   fi
 
   log "Building and initializing $_arg_containerd services..." 1
-  init_docker "$_arg_containerd"
+  init_docker "$_arg_containerd";
 else
   log "Initializing native environment..." 1
 
@@ -296,33 +296,33 @@ else
     bun install
     if [ "$_arg_dev" = "on" ]; then
       bun run dev &
-      echo $! >.stackpid
+      echo $! >.stackpid;
     else
-      bun run build
+      bun run build;
       bun run start &
-      echo $! >.stackpid
+      echo $! >.stackpid;
     fi
   elif [ "$_arg_runner" = "npm" ]; then
     log "Installing dependencies with npm..." 1
-    npm install
+    npm install;
     if [ "$_arg_dev" = "on" ]; then
       npm run dev &
-      echo $! >.stackpid
+      echo $! >.stackpid;
     else
-      npm run build
+      npm run build;
       npm run start &
-      echo $! >.stackpid
+      echo $! >.stackpid;
     fi
   elif [ "$_arg_runner" = "yarn" ]; then
     log "Installing dependencies with yarn..." 1
-    yarn install
+    yarn install;
     if [ "$_arg_dev" = "on" ]; then
       yarn dev &
-      echo $! >.stackpid
+      echo $! >.stackpid;
     else
-      yarn build
+      yarn build;
       yarn start &
-      echo $! >.stackpid
+      echo $! >.stackpid;
     fi
   fi
 fi

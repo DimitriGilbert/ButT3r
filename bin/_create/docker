@@ -458,6 +458,8 @@ fi
 
 if [[ "$_arg_file" != "" ]]; then
 	echo "$_dckCmpStr" >"$_arg_file"
+	destination_dir=$(dirname "$_arg_file")
+	cp "$_SCRIPT_DIR/../../template/Dockerfile" "$destination_dir/Dockerfile"
 else
 	echo "$_dckCmpStr"
 fi

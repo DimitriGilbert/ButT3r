@@ -253,7 +253,7 @@ mkdir -p "$(dirname "$route_file")"
 # Generate the API route code
 {
   echo "import { NextRequest, NextResponse } from 'next/server'"
-  if [ -n "$_arg_schema" ]; then
+  if [ "$_arg_schema" != "" ]; then
     echo "import { z } from 'zod'"
     echo
     echo "// Input validation schema"
@@ -271,14 +271,14 @@ mkdir -p "$(dirname "$route_file")"
   for method in "${_arg_methods[@]}"; do
     echo "export async function $method(req: NextRequest) {"
     echo "  try {"
-    if [ -n "$_arg_schema" ]; then
+    if [ "$_arg_schema" != "" ]; then
       echo "    // Validate input"
       echo "    const input = await inputSchema.parseAsync(await req.json())"
       echo
     fi
     echo "    // TODO: Implement $method logic here"
     echo
-    if [ -n "$_arg_schema" ]; then
+    if [ "$_arg_schema" != "" ]; then
       echo "    // Validate output"
       echo "    const response = outputSchema.parse({
       // TODO: Add your response data here

@@ -288,7 +288,7 @@ function generate_trpc_procedure() {
   add_import "$file" "zod" "z"
   
   # Add input schema if provided
-  if [ -n "$input_schema" ]; then
+  if [ "$input_schema" != "" ]; then
     echo -e "\nexport const ${name}Schema = z.object($input_schema);" >> "$file"
   fi
   

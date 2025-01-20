@@ -320,7 +320,7 @@ source "${_SCRIPT_DIR}/_component/common"
 
 # Determine the target directory
 base_dir="src/components"
-if [ -n "$_arg_directory" ]; then
+if [ "$_arg_directory" != "" ]; then
 	base_dir="${base_dir}/${_arg_directory}"
 fi
 
@@ -332,7 +332,7 @@ fi
 
 # Determine the component name
 component_name="${_arg_component_name}"
-if [ -z "$component_name" ]; then
+if [ "$component_name" = "" ]; then
 	# Use the last part of the path as component name
 	component_name=$(basename "$_arg_path")
 fi
@@ -355,7 +355,7 @@ for import in "${_arg_import[@]}"; do
 	content+="import { $what } from '$from';\n"
 done
 
-if [ -n "${_arg_import[*]}" ]; then
+if [ "${#_arg_import[@]}" -gt 0 ]; then
 	content+="\n"
 fi
 

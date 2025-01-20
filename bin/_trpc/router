@@ -225,7 +225,7 @@ mkdir -p "$(dirname "$router_file")"
   echo "import { z } from 'zod'"
   echo "import { createTRPCRouter } from '../trpc'"
   echo
-  if [ -n "$_arg_schema" ]; then
+  if [ "$_arg_schema" != "" ]; then
     echo "// Input/Output validation schemas"
     echo "// TODO: Add your schema validation here"
     echo
