@@ -261,7 +261,11 @@ function init_docker() {
     _upCmd[0]="podman-compose"
   fi
 
-  _upCmd+=(-f "docker-compose.yml")
+	if { [ "$_arg_dev" = "on" ] || [ ! -f "docker-compose.yml" ]; } && [ -f "docker-compose.dev.yml" ]; then
+		_upCmd+=(-f "docker-compose.dev.yml")
+	else
+		_upCmd+=(-f "docker-compose.yml")
+	fi
 
   if [ "$_arg_dev" = "on" ] && [ -f "docker-compose.dev.yml" ]; then
     log "Using development compose configuration" 1

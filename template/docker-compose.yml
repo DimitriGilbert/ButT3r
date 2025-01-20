@@ -29,7 +29,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -37,14 +37,6 @@ services:
       retries: 5
     networks:
       - default
-
-volumes:
-  postgres_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./data/postgres
-      o: bind
 
 networks:
   default:

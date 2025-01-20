@@ -4,47 +4,64 @@ function is_butT3r_project() {
   if [[ ! -f "package.json" ]]; then
     echo "This is not a butT3r project missing package.json" >&2
     echo 1
+
+    return 0
   fi
   # check if use next and typescript
   if [[ ! -f "next.config.js" ]] && [[ ! -f "next.config.mjs" ]]; then
     echo "This is not a butT3r project missing next.config" >&2
     echo 1
+
+    return 0
   fi
   if [[ ! -f "tsconfig.json" ]]; then
     echo "This is not a butT3r project missing tsconfig.json" >&2
     echo 1
+
+    return 0
   fi
   echo 0
+  return 0;
 }
 
 function is_using_tailwind() {
   if [[ ! -f "tailwind.config.ts" ]]; then
     echo 1
+
+    return 0
   fi
   echo 0
+  return 0;
 }
 
 function is_using_shadcn() {
   if [[ ! -f "components.json" ]]; then
     echo 1
+
+    return 0
   fi
   echo 0
+  return 0;
 }
 
 function is_using_docker() {
-  if [[ ! -f "docker-compose.yml" ]]; then
+  if [[ ! -f "docker-compose.yml" ]] && [[ ! -f "docker-compose.dev.yml" ]]; then
     echo 1
+    return 1
   fi
   echo 0
+  return 0;
 }
 
 check_runtime() {
   if command -v "$1" >/dev/null 2>&1; then
     if "$1" info >/dev/null 2>&1; then
       echo 0
+      return 0
     fi
   fi
   echo 1
+  return 1;
 }
 
 check_compose_running() {
@@ -61,23 +78,24 @@ check_compose_running() {
   _chkCmd=("${_cmpCmd[@]}" "${_chkCmd[@]}");
   if "${_chkCmd[@]}" | "${_gpCmd[@]}"; then
     echo 0
+    return 0
   fi
   echo 1
+  return 1;
 }
 
 start_compose() {
   local dev_mode="$1"
   local compose_file="docker-compose.yml"
+  if [ "$dev_mode" = "on" ] && [ -f "docker-compose.dev.yml" ]; then
+    compose_file="docker-compose.dev.yml"
+  fi
   local _startCmd=("$2")
 
   if [ "$2" = "docker" ]; then
     _startCmd+=(compose);
   elif [ "$2" = "podman" ]; then
     _startCmd[0]="podman-compose";
-  fi
-
-  if [ "$dev_mode" = "on" ] && [ -f "docker-compose.dev.yml" ]; then
-    _compose_file="docker-compose.dev.yml";
   fi
 
   _startCmd+=(-f "$compose_file" up -d);
@@ -97,8 +115,10 @@ check_native_running() {
 
   if pgrep -f "$process_name" >/dev/null; then
     echo 0;
+    return 0;
   fi
-  echo 1;
+  echo 1
+  return 1;
 }
 
 start_native() {
@@ -160,6 +180,10 @@ function clean_docker() {
   local dev_mode="$2"
   local clean_all="$3"
   local _downCmd=("$runtime")
+  local compose_file="docker-compose.yml"
+  if [ "$dev_mode" = "on" ] && [ -f "docker-compose.dev.yml" ]; then
+    compose_file="docker-compose.dev.yml"
+  fi
 
   if [ "$runtime" = "docker" ]; then
     _downCmd+=(compose);
@@ -167,7 +191,7 @@ function clean_docker() {
     _downCmd[0]="podman-compose";
   fi
 
-  _downCmd+=(-f "docker-compose.yml");
+  _downCmd+=(-f "$compose_file");
 
   if [ "$dev_mode" = "on" ] && [ -f "docker-compose.dev.yml" ]; then
     log "Using development compose configuration" 1;
@@ -217,7 +241,8 @@ function check_local_postgres() {
       return;
     fi
   fi
-  echo 1;
+  echo 1
+  return 1;
 }
 
 function get_db_type() {
@@ -258,10 +283,14 @@ function get_db_type() {
 
   # Then check docker-compose if using docker
   if [ "$(is_using_docker)" = "0" ]; then
-    if grep -q "postgres:" docker-compose.yml 2>/dev/null; then
+    local compose_file="docker-compose.yml"
+    if [ ! -f "$compose_file" ]; then
+      compose_file="docker-compose.dev.yml"
+    fi
+    if grep -q "postgres:" "$compose_file" 2>/dev/null; then
       echo "postgres";
       return
-    elif grep -q "mysql:" docker-compose.yml 2>/dev/null; then
+    elif grep -q "mysql:" "$compose_file" 2>/dev/null; then
       echo "mysql";
       return
     fi
@@ -326,6 +355,7 @@ function check_db_available() {
     esac
   fi
   echo 1
+  return 1;
 }
 
 function get_db_credentials() {
