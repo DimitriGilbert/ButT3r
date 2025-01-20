@@ -43,7 +43,7 @@ function create_component() {
   local parsed_emmet
   if [ -n "$emmet" ]; then
     # Remove props. prefix from emmet pattern since we're destructuring
-    emmet=$(echo "$emmet" | sed 's/props\.//g')
+    emmet="$(echo "$emmet" | sed 's/props\.//g')"
     parsed_emmet=$(parse_emmet "$emmet")
   else
     parsed_emmet="<div>{/* TODO: implement $component_name */}</div>"

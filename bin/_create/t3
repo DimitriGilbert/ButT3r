@@ -25,6 +25,7 @@ fi
 # @parseArger flag shadcn "project use shadcn" --on
 # @parseArger flag mdx "project use markdown content"
 # @parseArger flag mdx-remote "add next remote mdx and gray-matter" --on
+# @parseArger flag git "init git" --on
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -74,6 +75,7 @@ _arg_tailwind="on"
 _arg_shadcn="on"
 _arg_mdx="off"
 _arg_mdx_remote="on"
+_arg_git="on"
 # NESTED
 _verbose_level="0";
 
@@ -100,8 +102,9 @@ print_help()
 	echo -e "	--shadcn|--no-shadcn: project use shadcn, on by default (use --no-shadcn to turn it off)"
 	echo -e "	--mdx|--no-mdx: project use markdown content"
 	echo -e "	--mdx-remote|--no-mdx-remote: add next remote mdx and gray-matter, on by default (use --no-mdx-remote to turn it off)"
+	echo -e "	--git|--no-git: init git, on by default (use --no-git to turn it off)"
 	echo -e "Usage :
-	$0 <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote]";
+	$0 <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote] [--[no-]git]";
 	fi
 
 }
@@ -241,6 +244,12 @@ parse_commandline()
 			--no-mdx-remote)
 				_arg_mdx_remote="off"
 				;;
+			--git)
+				_arg_git="on"
+				;;
+			--no-git)
+				_arg_git="off"
+				;;
 			-h|--help)
 				print_help;
 				exit 0;
@@ -331,6 +340,7 @@ print_debug()
 	echo -e "	shadcn: ${_arg_shadcn}";
 	echo -e "	mdx: ${_arg_mdx}";
 	echo -e "	mdx-remote: ${_arg_mdx_remote}";
+	echo -e "	git: ${_arg_git}";
 
 }
 
@@ -419,6 +429,10 @@ if [ "${_arg_tailwind}" = "on" ]; then
 	cmd+=("--tailwind");
 fi
 
+if [ "${_arg_git}" = "off" ]; then
+	cmd+=("--noGit");
+fi
+
 # Execute the command
 "${cmd[@]}";
 # echo "${cmd[*]}";
@@ -434,7 +448,7 @@ cd "${_arg_name}" || die "Failed to change into project directory to ${_arg_name
 # Install shadcn if enabled
 if [ "${_arg_shadcn}" = "on" ]; then
 	# Initialize shadcn
-	"${execCmd[@]}" shadcn@latest init -y;
+	"${execCmd[@]}" shadcn@latest init -y -d;
 	# Install specified shadcn components if any were provided
 	if [ ${#_arg_shadcn_component[@]} -gt 0 ]; then
 		"${execCmd[@]}" shadcn@latest add "${_arg_shadcn_component[@]}";

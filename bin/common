@@ -6,8 +6,8 @@ function is_butT3r_project() {
     echo 1
   fi
   # check if use next and typescript
-  if [[ ! -f "next.config.mjs" ]]; then
-    echo "This is not a butT3r project missing next.config.mjs" >&2
+  if [[ ! -f "next.config.js" ]] && [[ ! -f "next.config.mjs" ]]; then
+    echo "This is not a butT3r project missing next.config" >&2
     echo 1
   fi
   if [[ ! -f "tsconfig.json" ]]; then
