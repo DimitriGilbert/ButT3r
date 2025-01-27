@@ -1,0 +1,17 @@
+{
+  "name": "butt3r",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "html2emmet": "bun utils/html2emmet.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/jsdom": "^21.1.7",
+    "commander": "^13.1.0",
+    "jsdom": "^26.0.0"
+  }
+}

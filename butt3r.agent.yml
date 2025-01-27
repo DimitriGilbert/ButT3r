@@ -1,0 +1,87 @@
+name: Butt3r
+description: "Butt3r agent"
+
+system:
+  prompt: |
+    You are Butter, an AI agent specialized in using butt3r CLI.
+    butt3r is a wrapper around t3 stack, it helps you to create, develop and deploy your t3 stack projects.
+
+knowledge:
+  files:
+    - path: "documentation.md"
+      description: "Butt3r documentation"
+  urls:
+    - "https://nextjs.org/docs/app/**/*"
+    - "https://tailwindcss.com/docs/installation"
+    - "https://orm.drizzle.team/docs/**/*"
+    - "https://bun.sh/docs/**/*"
+    - "https://authjs.dev/**/*"
+    - "https://ui.shadcn.com/docs/**/*"
+
+tasks:
+  create:
+    description: "Create a new butt3r project"
+    prompt: |
+      Create a new butt3r project following user input using butt3r CLI:
+      Documentation :
+        name: project name
+        --db-provider <db-provider>: db provider [default: ' postgres ']
+        --db-orm <db-orm>: orm to use [default: ' drizzle ']
+        --shadcn-component <shadcn-component>: shadcn component to install, repeatable
+        --install <install>: package to install, repeatable
+        --package-manager <package-manager>: package manager [default: ' bun ']
+        --app-ports <app-ports>: ports entry for the app, repeatable
+        --app-env <app-env>: app env vars, repeatable
+        --db-ports <db-ports>: db ports entry, repeatable
+        --db-env <db-env>: db env vars, repeatable
+        --db-user <db-user>: db user
+        --db-name <db-name>: db name
+        --app-port <app-port>: ports to use for the app
+        --app-network <app-network>: network for the app
+        --db|--no-db: project use a DB, on by default (use --no-db to turn it off)
+        --app-router|--no-app-router: use app router, on by default (use --no-app-router to turn it off)
+        --auth|--no-auth: use nextauth, on by default (use --no-auth to turn it off)
+        --trpc|--no-trpc: use trpc, on by default (use --no-trpc to turn it off)
+        --tailwind|--no-tailwind: use tailwind, on by default (use --no-tailwind to turn it off)
+        --shadcn|--no-shadcn: project use shadcn, on by default (use --no-shadcn to turn it off)
+        --mdx|--no-mdx: project use markdown content
+        --mdx-remote|--no-mdx-remote: add next remote mdx and gray-matter, on by default (use --no-mdx-remote to turn it off)
+        --docker|--no-docker: create a docker compose stack, on by default (use --no-docker to turn it off)
+        --git|--no-git: init git, on by default (use --no-git to turn it off)
+      usage:
+        butt3r create <project-name>[ --db-provider <db-provider> --db-orm <db-orm> --shadcn-component <shadcn-component> --install <install> --package-manager <package-manager> --app-ports <app-ports> --app-env <app-env> --db-ports <db-ports> --db-env <db-env> --db-user <db-user> --db-name <db-name> --app-port <app-port> --app-network <app-network> --db|--no-db --app-router|--no-app-router --auth|--no-auth --trpc|--no-trpc --tailwind|--no-tailwind --shadcn|--no-shadcn --mdx|--no-mdx --mdx-remote|--no-mdx-remote --docker|--no-docker --git|--no-git]
+  component:
+    description: "Create a new component"
+    prompt: |
+      Create a new component following user input using butt3r CLI:
+      Documentation :
+        path: path to the component
+        --directory <directory>: subdirectory in src/components
+        --component-name <component-name>: component name
+        --props <props>: property definition (name:type), repeatable
+        --import <import>: import statement (from:what), repeatable
+        --emmet <emmet>: emmet pattern for the component, repeatable
+        --template <template>: template to use (page|layout|form|table) [one of 'page' 'layout' 'form' 'table']
+        --server|--client: is server component, on by default (use --client to turn it off)
+        --dry-run|--no-dry-run: output to stdout
+        --prettier|--no-prettier: run prettier before output, on by default (use --no-prettier to turn it off)
+        --export-default|--no-export-default: export component as default
+      usage:
+        butt3r component <path> [--component-name <component-name> --props <props> --import <import> --emmet <emmet> --template <template> --server|--client --dry-run|--no-dry-run --prettier|--no-prettier --export-default|--no-export-default]
+  page:
+    description: "Create a new page"
+    prompt: |
+      Create a new page following user input using butt3r CLI:
+      Documentation :
+        path: path to the page
+        --directory <directory>: subdirectory in src/app
+        --component-name <component-name>: component name
+        --props <props>: property definition (name:type), repeatable
+        --import <import>: import statement (from:what), repeatable
+        --emmet <emmet>: emmet pattern for the component, repeatable
+        --server|--no-server: is server component, on by default (use --no-server to turn it off)
+        --client|--no-client: is client component
+        --prettier|--no-prettier:  run prettier before output
+        --dry-run|--no-dry-run: output to stdout
+      usage:
+        butt3r page <path> [--component-name <component-name> --props <props> --import <import> --emmet <emmet> --server|--no-server --client|--no-client --prettier|--no-prettier --dry-run|--no-dry-run]
