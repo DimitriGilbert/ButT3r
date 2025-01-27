@@ -9,6 +9,10 @@ butt3r:
 - stop
 - up
 - ts-edit
+- api-route
+- test
+- trpc
+- type-schema
 butt3r create:
 - --db-provider
 - --db-orm
@@ -41,19 +45,28 @@ butt3r create:
 - --no-mdx-remote
 - --docker
 - --no-docker
+- --git
+- --no-git
 butt3r component:
 - --directory
 - --component-name
 - --props
 - --import
+- --emmet
+- --template
 - --server
-- --no-server
 - --client
-- --no-client
+- --dry-run
+- --no-dry-run
+- --prettier
+- --no-prettier
+- --export-default
+- --no-export-default
 butt3r db:
 - export
 - import
 - query
+- add-table
 butt3r db export:
 - --format
 - --table
@@ -70,6 +83,12 @@ butt3r db query:
 - --format
 - --pretty
 - --no-pretty
+butt3r db add-table:
+- --output-file
+- -o
+- --dry-run
+- --no-dry-run
+- -d
 butt3r down:
 - --containerd
 - --dev
@@ -81,21 +100,31 @@ butt3r layout:
 - --component-name
 - --props
 - --import
+- --emmet
 - --server
 - --no-server
 - --client
 - --no-client
 - --root
 - --no-root
+- --prettier
+- --no-prettier
+- --dry-run
+- --no-dry-run
 butt3r page:
 - --directory
 - --component-name
 - --props
 - --import
+- --emmet
 - --server
 - --no-server
 - --client
 - --no-client
+- --prettier
+- --no-prettier
+- --dry-run
+- --no-dry-run
 butt3r start:
 - --containerd
 - --runner
@@ -119,7 +148,36 @@ butt3r ts-edit export-function:
 - --return-type
 - --async
 - --no-async
+- --dry-run
+- --no-dry-run
 butt3r ts-edit export-type:
 - --property
-butt3r ts-edit import:
+- --dry-run
+- --no-dry-run
+butt3r api-route:
+- --methods
+- --directory
+- --schema
+butt3r test:
+- unit
+- e2e
+- --directory
+butt3r trpc:
+- router
+- procedure
+butt3r trpc router:
+- --schema
+butt3r trpc procedure:
+- query
+- mutation
+- infinite
+- --schema
+- --loader
+butt3r type-schema:
+- props
+- form
+- api
+- --props
+- --form
+- --api
 
