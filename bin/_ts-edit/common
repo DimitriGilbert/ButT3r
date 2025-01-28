@@ -69,10 +69,24 @@ function add_function() {
   # Build the function definition with 2-space indentation
   local fn_def=""
   if [ "$is_default" = "on" ]; then
-    fn_def="export default ${is_async}function $name($params): ${return_type:-void} {\n"
+    fn_def="export default ${is_async}function $name"
   else
-    fn_def="export ${is_async}function $name($params): ${return_type:-void} {\n"
+    fn_def="export ${is_async}function $name"
   fi
+  
+  # Only add params if they exist and aren't empty parentheses
+  if [ -n "$params" ] && [ "$params" != "()" ]; then
+    fn_def+="($params)"
+  else
+    fn_def+="()"
+  fi
+  
+  # Only add return type if it's not empty
+  if [ -n "$return_type" ]; then
+    fn_def+=": ${return_type}"
+  fi
+  
+  fn_def+=" {\n"
   
   if [ -n "$body" ]; then
     fn_def+="  $body\n"
@@ -509,32 +523,35 @@ function run_prettier() {
   local input="$1"
   local runner
   runner=$(get_runner)
-  local cmd_prefix
+  local _cmd__=()
 
   case "$runner" in
     "bun")
-      cmd_prefix="bun x"
+      _cmd__+=("bun" "x")
       ;;
     "yarn")
-      cmd_prefix="yarn"
+      _cmd__+=("yarn")
       ;;
     *)
-      cmd_prefix="npx"
+      _cmd__+=("npx")
       ;;
   esac
 
   # If input is a file, format it; if it's a string, return the formatted string
   if [[ -f "$input" ]]; then
+    _cmd__+=(prettier --write "$input" --parser typescript)
     # Try to run prettier on the file, if it fails return an error message
-    if $cmd_prefix prettier --write "$input" 2>/dev/null; then
+    if "${_cmd__[@]}" 2>/dev/null; then
       echo "Formatted $input successfully."
     else
       return 1
     fi
   else
+    _cmd__+=(prettier --parser typescript --stdin)
+    # echo "$input | ${_cmd__[*]}"
     # Format the string input and return it
     local formatted
-    if formatted=$(echo -e "$input" | $cmd_prefix prettier --parser typescript --stdin 2>/dev/null); then
+    if formatted=$(echo -e "$input" | "${_cmd__[@]}" 2>/dev/null); then
       echo "$formatted";
     else
       echo ""

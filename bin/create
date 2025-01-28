@@ -14,10 +14,10 @@ fi
 # @parseArger pos name "project name"
 # @parseArger opt db-provider "db provider" --default-value "postgres"
 # @parseArger opt db-orm "orm to use" --default-value "drizzle"
-# @parseArger opt shadcn-component "shadcn component to install" --repeat
-# @parseArger opt install "package to install" --repeat
+# @parseArger opt shadcn-component "shadcn component to install" --short c --repeat
+# @parseArger opt install "package to install" --short i --repeat
 # @parseArger opt package-manager "package manager" --default-value "bun"
-# @parseArger opt app-ports "ports entry for the app" --repeat
+# @parseArger opt app-ports "ports entry for the app" --short p --repeat
 # @parseArger opt app-env "app env vars" --repeat
 # @parseArger opt db-ports "db ports entry" --repeat
 # @parseArger opt db-env "db env vars" --repeat
@@ -38,34 +38,37 @@ fi
 # @parseArger-declarations-end
 
 # @parseArger-utils
-_helpHasBeenPrinted=1
-_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+_helpHasBeenPrinted=1;
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)";
 # @parseArger-utils-end
 
 # @parseArger-parsing
 
-__cli_arg_count=$#
+__cli_arg_count=$#;
 
-die() {
+die()
+{
 	local _ret=1
-	if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
-		_ret="$2"
-	fi
+    if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
+   	_ret="$2"
+    fi
 	test "${_PRINT_HELP:-no}" = yes && print_help >&2
 	log "$1" -3 >&2
 	exit "${_ret}"
 }
 
-begins_with_short_option() {
+
+begins_with_short_option()
+{
 	local first_option all_short_options=''
 	first_option="${1:0:1}"
 	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
 }
 
 # POSITIONALS ARGUMENTS
-_positionals=()
-_optional_positionals=()
-_arg_name=""
+_positionals=();
+_optional_positionals=();
+_arg_name="";
 # OPTIONALS ARGUMENTS
 _arg_db_provider="postgres"
 _arg_db_orm="drizzle"
@@ -92,371 +95,396 @@ _arg_mdx_remote="on"
 _arg_docker="on"
 _arg_git="on"
 # NESTED
-_verbose_level="0"
+_verbose_level="0";
 
-print_help() {
-	_triggerSCHelp=1
+
+
+print_help()
+{
+	_triggerSCHelp=1;
 
 	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
-		_helpHasBeenPrinted=0
+		_helpHasBeenPrinted=0;
 		echo -e "my go to project creator:"
-		echo -e "	name: project name"
-		echo -e "	--db-provider <db-provider>: db provider [default: ' postgres ']"
-		echo -e "	--db-orm <db-orm>: orm to use [default: ' drizzle ']"
-		echo -e "	--shadcn-component <shadcn-component>: shadcn component to install, repeatable"
-		echo -e "	--install <install>: package to install, repeatable"
-		echo -e "	--package-manager <package-manager>: package manager [default: ' bun ']"
-		echo -e "	--app-ports <app-ports>: ports entry for the app, repeatable"
-		echo -e "	--app-env <app-env>: app env vars, repeatable"
-		echo -e "	--db-ports <db-ports>: db ports entry, repeatable"
-		echo -e "	--db-env <db-env>: db env vars, repeatable"
-		echo -e "	--db-user <db-user>: db user"
-		echo -e "	--db-name <db-name>: db name"
-		echo -e "	--app-port <app-port>: ports to use for the app"
-		echo -e "	--app-network <app-network>: network for the app"
-		echo -e "	--db|--no-db: project use a DB, on by default (use --no-db to turn it off)"
-		echo -e "	--app-router|--no-app-router: use app router, on by default (use --no-app-router to turn it off)"
-		echo -e "	--auth|--no-auth: use nextauth, on by default (use --no-auth to turn it off)"
-		echo -e "	--trpc|--no-trpc: use trpc, on by default (use --no-trpc to turn it off)"
-		echo -e "	--tailwind|--no-tailwind: use tailwind, on by default (use --no-tailwind to turn it off)"
-		echo -e "	--shadcn|--no-shadcn: project use shadcn, on by default (use --no-shadcn to turn it off)"
-		echo -e "	--mdx|--no-mdx: project use markdown content"
-		echo -e "	--mdx-remote|--no-mdx-remote: add next remote mdx and gray-matter, on by default (use --no-mdx-remote to turn it off)"
-		echo -e "	--docker|--no-docker: create a docker compose stack, on by default (use --no-docker to turn it off)"
-		echo -e "	--git|--no-git: init git, on by default (use --no-git to turn it off)"
-		echo -e "Usage :
-	$0 <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--app-ports <value>] [--app-env <value>] [--db-ports <value>] [--db-env <value>] [--db-user <value>] [--db-name <value>] [--app-port <value>] [--app-network <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote] [--[no-]docker] [--[no-]git]"
+	echo -e "	name: project name"
+	echo -e "	--db-provider <db-provider>: db provider [default: ' postgres ']"
+	echo -e "	--db-orm <db-orm>: orm to use [default: ' drizzle ']"
+	echo -e "	-c, --shadcn-component <shadcn-component>: shadcn component to install, repeatable"
+	echo -e "	-i, --install <install>: package to install, repeatable"
+	echo -e "	--package-manager <package-manager>: package manager [default: ' bun ']"
+	echo -e "	-p, --app-ports <app-ports>: ports entry for the app, repeatable"
+	echo -e "	--app-env <app-env>: app env vars, repeatable"
+	echo -e "	--db-ports <db-ports>: db ports entry, repeatable"
+	echo -e "	--db-env <db-env>: db env vars, repeatable"
+	echo -e "	--db-user <db-user>: db user"
+	echo -e "	--db-name <db-name>: db name"
+	echo -e "	--app-port <app-port>: ports to use for the app"
+	echo -e "	--app-network <app-network>: network for the app"
+	echo -e "	--db|--no-db: project use a DB, on by default (use --no-db to turn it off)"
+	echo -e "	--app-router|--no-app-router: use app router, on by default (use --no-app-router to turn it off)"
+	echo -e "	--auth|--no-auth: use nextauth, on by default (use --no-auth to turn it off)"
+	echo -e "	--trpc|--no-trpc: use trpc, on by default (use --no-trpc to turn it off)"
+	echo -e "	--tailwind|--no-tailwind: use tailwind, on by default (use --no-tailwind to turn it off)"
+	echo -e "	--shadcn|--no-shadcn: project use shadcn, on by default (use --no-shadcn to turn it off)"
+	echo -e "	--mdx|--no-mdx: project use markdown content"
+	echo -e "	--mdx-remote|--no-mdx-remote: add next remote mdx and gray-matter, on by default (use --no-mdx-remote to turn it off)"
+	echo -e "	--docker|--no-docker: create a docker compose stack, on by default (use --no-docker to turn it off)"
+	echo -e "	--git|--no-git: init git, on by default (use --no-git to turn it off)"
+	echo -e "Usage :
+	$0 <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--app-ports <value>] [--app-env <value>] [--db-ports <value>] [--db-env <value>] [--db-user <value>] [--db-name <value>] [--app-port <value>] [--app-network <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote] [--[no-]docker] [--[no-]git]";
 	fi
 
 }
 
 log() {
-	local _arg_msg="${1}"
-	local _arg_level="${2:-0}"
+	local _arg_msg="${1}";
+	local _arg_level="${2:-0}";
 	if [ "${_arg_level}" -le "${_verbose_level}" ]; then
 		case "$_arg_level" in
-		-3)
-			_arg_COLOR="\033[0;31m"
-			;;
-		-2)
-			_arg_COLOR="\033[0;33m"
-			;;
-		-1)
-			_arg_COLOR="\033[1;33m"
-			;;
-		1)
-			_arg_COLOR="\033[0;32m"
-			;;
-		2)
-			_arg_COLOR="\033[1;36m"
-			;;
-		3)
-			_arg_COLOR="\033[0;36m"
-			;;
-		*)
-			_arg_COLOR="\033[0m"
-			;;
+			-3)
+				_arg_COLOR="\033[0;31m";
+				;;
+			-2)
+				_arg_COLOR="\033[0;33m";
+				;;
+			-1)
+				_arg_COLOR="\033[1;33m";
+				;;
+			1)
+				_arg_COLOR="\033[0;32m";
+				;;
+			2)
+				_arg_COLOR="\033[1;36m";
+				;;
+			3)
+				_arg_COLOR="\033[0;36m";
+				;;
+			*)
+				_arg_COLOR="\033[0m";
+				;;
 		esac
 		if [ "${_has_colors}" == "1" ]; then
-			echo -e "${_arg_COLOR}${_arg_msg}\033[0m"
+			echo -e "${_arg_COLOR}${_arg_msg}\033[0m";
 		else
-			echo "${_arg_msg}"
+			echo "${_arg_msg}";
 		fi
 	fi
 }
 
-parse_commandline() {
+parse_commandline()
+{
 	_positionals_count=0
-	while test $# -gt 0; do
+	while test $# -gt 0
+	do
 		_key="$1"
 		case "$_key" in
-		--db-provider)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_db_provider="$2"
-			shift
-			;;
-		--db-provider=*)
-			_arg_db_provider="${_key##--db-provider=}"
-			;;
-
-		--db-orm)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_db_orm="$2"
-			shift
-			;;
-		--db-orm=*)
-			_arg_db_orm="${_key##--db-orm=}"
-			;;
-
-		--shadcn-component)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_shadcn_component+=("$2")
-			shift
-			;;
-		--shadcn-component=*)
-			_arg_shadcn_component+=("${_key##--shadcn-component=}")
-			;;
-
-		--install)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_install+=("$2")
-			shift
-			;;
-		--install=*)
-			_arg_install+=("${_key##--install=}")
-			;;
-
-		--package-manager)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_package_manager="$2"
-			shift
-			;;
-		--package-manager=*)
-			_arg_package_manager="${_key##--package-manager=}"
-			;;
-
-		--app-ports)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_app_ports+=("$2")
-			shift
-			;;
-		--app-ports=*)
-			_arg_app_ports+=("${_key##--app-ports=}")
-			;;
-
-		--app-env)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_app_env+=("$2")
-			shift
-			;;
-		--app-env=*)
-			_arg_app_env+=("${_key##--app-env=}")
-			;;
-
-		--db-ports)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_db_ports+=("$2")
-			shift
-			;;
-		--db-ports=*)
-			_arg_db_ports+=("${_key##--db-ports=}")
-			;;
-
-		--db-env)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_db_env+=("$2")
-			shift
-			;;
-		--db-env=*)
-			_arg_db_env+=("${_key##--db-env=}")
-			;;
-
-		--db-user)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_db_user="$2"
-			shift
-			;;
-		--db-user=*)
-			_arg_db_user="${_key##--db-user=}"
-			;;
-
-		--db-name)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_db_name="$2"
-			shift
-			;;
-		--db-name=*)
-			_arg_db_name="${_key##--db-name=}"
-			;;
-
-		--app-port)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_app_port="$2"
-			shift
-			;;
-		--app-port=*)
-			_arg_app_port="${_key##--app-port=}"
-			;;
-
-		--app-network)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_app_network="$2"
-			shift
-			;;
-		--app-network=*)
-			_arg_app_network="${_key##--app-network=}"
-			;;
-
-		--db)
-			_arg_db="on"
-			;;
-		--no-db)
-			_arg_db="off"
-			;;
-		--app-router)
-			_arg_app_router="on"
-			;;
-		--no-app-router)
-			_arg_app_router="off"
-			;;
-		--auth)
-			_arg_auth="on"
-			;;
-		--no-auth)
-			_arg_auth="off"
-			;;
-		--trpc)
-			_arg_trpc="on"
-			;;
-		--no-trpc)
-			_arg_trpc="off"
-			;;
-		--tailwind)
-			_arg_tailwind="on"
-			;;
-		--no-tailwind)
-			_arg_tailwind="off"
-			;;
-		--shadcn)
-			_arg_shadcn="on"
-			;;
-		--no-shadcn)
-			_arg_shadcn="off"
-			;;
-		--mdx)
-			_arg_mdx="on"
-			;;
-		--no-mdx)
-			_arg_mdx="off"
-			;;
-		--mdx-remote)
-			_arg_mdx_remote="on"
-			;;
-		--no-mdx-remote)
-			_arg_mdx_remote="off"
-			;;
-		--docker)
-			_arg_docker="on"
-			;;
-		--no-docker)
-			_arg_docker="off"
-			;;
-		--git)
-			_arg_git="on"
-			;;
-		--no-git)
-			_arg_git="off"
-			;;
-		-h | --help)
-			print_help
-			exit 0
-			;;
-		-h*)
-			print_help
-			exit 0
-			;;
-		-v | --version)
-			print_version
-			exit 0
-			;;
-		-v*)
-			print_version
-			exit 0
-			;;
-		--verbose)
-			if [ $# -lt 2 ]; then
-				_verbose_level="$((_verbose_level + 1))"
-			else
-				_verbose_level="$2"
+			--db-provider)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_provider="$2"
 				shift
-			fi
-			;;
-		--quiet)
-			if [ $# -lt 2 ]; then
-				_verbose_level="$((_verbose_level - 1))"
-			else
-				_verbose_level="-$2"
+				;;
+			--db-provider=*)
+				_arg_db_provider="${_key##--db-provider=}"
+				;;
+			
+			--db-orm)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_orm="$2"
 				shift
-			fi
-			;;
-
-		*)
-			_last_positional="$1"
-			_positionals+=("$_last_positional")
-			_positionals_count=$((_positionals_count + 1))
-			;;
+				;;
+			--db-orm=*)
+				_arg_db_orm="${_key##--db-orm=}"
+				;;
+			
+			-c|--shadcn-component)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_shadcn_component+=("$2")
+				shift
+				;;
+			--shadcn-component=*)
+				_arg_shadcn_component+=("${_key##--shadcn-component=}")
+				;;
+			-c*)
+				_arg_shadcn_component+=("${_key##-c}")
+				;;
+			
+			-i|--install)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_install+=("$2")
+				shift
+				;;
+			--install=*)
+				_arg_install+=("${_key##--install=}")
+				;;
+			-i*)
+				_arg_install+=("${_key##-i}")
+				;;
+			
+			--package-manager)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_package_manager="$2"
+				shift
+				;;
+			--package-manager=*)
+				_arg_package_manager="${_key##--package-manager=}"
+				;;
+			
+			-p|--app-ports)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_app_ports+=("$2")
+				shift
+				;;
+			--app-ports=*)
+				_arg_app_ports+=("${_key##--app-ports=}")
+				;;
+			-p*)
+				_arg_app_ports+=("${_key##-p}")
+				;;
+			
+			--app-env)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_app_env+=("$2")
+				shift
+				;;
+			--app-env=*)
+				_arg_app_env+=("${_key##--app-env=}")
+				;;
+			
+			--db-ports)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_ports+=("$2")
+				shift
+				;;
+			--db-ports=*)
+				_arg_db_ports+=("${_key##--db-ports=}")
+				;;
+			
+			--db-env)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_env+=("$2")
+				shift
+				;;
+			--db-env=*)
+				_arg_db_env+=("${_key##--db-env=}")
+				;;
+			
+			--db-user)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_user="$2"
+				shift
+				;;
+			--db-user=*)
+				_arg_db_user="${_key##--db-user=}"
+				;;
+			
+			--db-name)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_db_name="$2"
+				shift
+				;;
+			--db-name=*)
+				_arg_db_name="${_key##--db-name=}"
+				;;
+			
+			--app-port)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_app_port="$2"
+				shift
+				;;
+			--app-port=*)
+				_arg_app_port="${_key##--app-port=}"
+				;;
+			
+			--app-network)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_app_network="$2"
+				shift
+				;;
+			--app-network=*)
+				_arg_app_network="${_key##--app-network=}"
+				;;
+			
+			--db)
+				_arg_db="on"
+				;;
+			--no-db)
+				_arg_db="off"
+				;;
+			--app-router)
+				_arg_app_router="on"
+				;;
+			--no-app-router)
+				_arg_app_router="off"
+				;;
+			--auth)
+				_arg_auth="on"
+				;;
+			--no-auth)
+				_arg_auth="off"
+				;;
+			--trpc)
+				_arg_trpc="on"
+				;;
+			--no-trpc)
+				_arg_trpc="off"
+				;;
+			--tailwind)
+				_arg_tailwind="on"
+				;;
+			--no-tailwind)
+				_arg_tailwind="off"
+				;;
+			--shadcn)
+				_arg_shadcn="on"
+				;;
+			--no-shadcn)
+				_arg_shadcn="off"
+				;;
+			--mdx)
+				_arg_mdx="on"
+				;;
+			--no-mdx)
+				_arg_mdx="off"
+				;;
+			--mdx-remote)
+				_arg_mdx_remote="on"
+				;;
+			--no-mdx-remote)
+				_arg_mdx_remote="off"
+				;;
+			--docker)
+				_arg_docker="on"
+				;;
+			--no-docker)
+				_arg_docker="off"
+				;;
+			--git)
+				_arg_git="on"
+				;;
+			--no-git)
+				_arg_git="off"
+				;;
+			-h|--help)
+				print_help;
+				exit 0;
+				;;
+			-h*)
+				print_help;
+				exit 0;
+				;;
+			-v|--version)
+				print_version;
+				exit 0;
+				;;
+			-v*)
+				print_version;
+				exit 0;
+				;;
+			--verbose)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level + 1))";
+					else
+						_verbose_level="$2";
+						shift;
+					fi
+					;;
+				--quiet)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level - 1))";
+					else
+						_verbose_level="-$2";
+						shift;
+					fi
+					;;
+				
+				*)
+				_last_positional="$1"
+				_positionals+=("$_last_positional")
+				_positionals_count=$((_positionals_count + 1))
+				;;
 		esac
 		shift
 	done
 }
 
-handle_passed_args_count() {
+
+handle_passed_args_count()
+{
 	local _required_args_string="name"
-	if [ "${_positionals_count}" -gt 1 ] && [ "$_helpHasBeenPrinted" == "1" ]; then
+	if [ "${_positionals_count}" -gt 1 ] && [ "$_helpHasBeenPrinted" == "1" ];then
 		_PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect at most 1 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}').\n\t${_positionals[*]}" 1
 	fi
-	if [ "${_positionals_count}" -lt 1 ] && [ "$_helpHasBeenPrinted" == "1" ]; then
+	if [ "${_positionals_count}" -lt 1 ] && [ "$_helpHasBeenPrinted" == "1" ];then
 		_PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require at least 1 (namely: $_required_args_string), but got only ${_positionals_count}.
-	${_positionals[*]}" 1
+	${_positionals[*]}" 1;
 	fi
 }
 
-assign_positional_args() {
-	local _positional_name _shift_for=$1
-	_positional_names="_arg_name "
+
+assign_positional_args()
+{
+	local _positional_name _shift_for=$1;
+	_positional_names="_arg_name ";
 	shift "$_shift_for"
-	for _positional_name in ${_positional_names}; do
-		test $# -gt 0 || break
-		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1
-		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1
-		shift
+	for _positional_name in ${_positional_names};do
+		test $# -gt 0 || break;
+		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1;
+		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1;
+		shift;
 	done
 }
 
-print_debug() {
+print_debug()
+{
 	print_help
 	# shellcheck disable=SC2145
-	echo "DEBUG: $0 $@"
-
-	echo -e "	name: ${_arg_name}"
-	echo -e "	db-provider: ${_arg_db_provider}"
-	echo -e "	db-orm: ${_arg_db_orm}"
-	echo -e "	shadcn-component: ${_arg_shadcn_component[*]}"
-	echo -e "	install: ${_arg_install[*]}"
-	echo -e "	package-manager: ${_arg_package_manager}"
-	echo -e "	app-ports: ${_arg_app_ports[*]}"
-	echo -e "	app-env: ${_arg_app_env[*]}"
-	echo -e "	db-ports: ${_arg_db_ports[*]}"
-	echo -e "	db-env: ${_arg_db_env[*]}"
-	echo -e "	db-user: ${_arg_db_user}"
-	echo -e "	db-name: ${_arg_db_name}"
-	echo -e "	app-port: ${_arg_app_port}"
-	echo -e "	app-network: ${_arg_app_network}"
-	echo -e "	db: ${_arg_db}"
-	echo -e "	app-router: ${_arg_app_router}"
-	echo -e "	auth: ${_arg_auth}"
-	echo -e "	trpc: ${_arg_trpc}"
-	echo -e "	tailwind: ${_arg_tailwind}"
-	echo -e "	shadcn: ${_arg_shadcn}"
-	echo -e "	mdx: ${_arg_mdx}"
-	echo -e "	mdx-remote: ${_arg_mdx_remote}"
-	echo -e "	docker: ${_arg_docker}"
-	echo -e "	git: ${_arg_git}"
+	echo "DEBUG: $0 $@";
+	
+	echo -e "	name: ${_arg_name}";
+	echo -e "	db-provider: ${_arg_db_provider}";
+	echo -e "	db-orm: ${_arg_db_orm}";
+	echo -e "	shadcn-component: ${_arg_shadcn_component[*]}";
+	echo -e "	install: ${_arg_install[*]}";
+	echo -e "	package-manager: ${_arg_package_manager}";
+	echo -e "	app-ports: ${_arg_app_ports[*]}";
+	echo -e "	app-env: ${_arg_app_env[*]}";
+	echo -e "	db-ports: ${_arg_db_ports[*]}";
+	echo -e "	db-env: ${_arg_db_env[*]}";
+	echo -e "	db-user: ${_arg_db_user}";
+	echo -e "	db-name: ${_arg_db_name}";
+	echo -e "	app-port: ${_arg_app_port}";
+	echo -e "	app-network: ${_arg_app_network}";
+	echo -e "	db: ${_arg_db}";
+	echo -e "	app-router: ${_arg_app_router}";
+	echo -e "	auth: ${_arg_auth}";
+	echo -e "	trpc: ${_arg_trpc}";
+	echo -e "	tailwind: ${_arg_tailwind}";
+	echo -e "	shadcn: ${_arg_shadcn}";
+	echo -e "	mdx: ${_arg_mdx}";
+	echo -e "	mdx-remote: ${_arg_mdx_remote}";
+	echo -e "	docker: ${_arg_docker}";
+	echo -e "	git: ${_arg_git}";
 
 }
 
-print_version() {
-	echo "0.0.1"
+
+print_version()
+{
+	echo "0.0.1";
 }
+
 
 on_interrupt() {
-	die Process aborted! 130
+	die Process aborted! 130;
 }
 
-parse_commandline "$@"
-handle_passed_args_count
-assign_positional_args 1 "${_positionals[@]}"
-trap on_interrupt INT
+
+parse_commandline "$@";
+handle_passed_args_count;
+assign_positional_args 1 "${_positionals[@]}";
+trap on_interrupt INT;
+
+
 
 # @parseArger-parsing-end
 # print_debug "$@"

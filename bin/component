@@ -325,9 +325,11 @@ if [ "$_arg_directory" != "" ]; then
 fi
 
 # Create the target directory if it doesn't exist
-target_dir="${base_dir}/${_arg_path}"
+target_dir="${base_dir}/$(dirname "$_arg_path")"
+# Clean up the path by removing any ./ and ensuring it's absolute
+target_dir=$(realpath -m "$target_dir" | sed 's|^\./||')
 if [ "$_arg_dry_run" = "off" ]; then
-	mkdir -p "$target_dir"
+	mkdir -p "$target_dir";
 fi
 
 # Determine the component name
@@ -338,8 +340,7 @@ if [ "$component_name" = "" ]; then
 fi
 component_name="$(format_component_name "$component_name")"
 
-# Set up the component file path
-target_file="${target_dir}/index.tsx"
+target_file="${target_dir}/$(basename "$_arg_path").tsx"
 
 # Build the component content
 content=""
@@ -377,12 +378,20 @@ fi
 component_content=$(create_component "$component_name" "$_emmet" "$_arg_export_default" "${_arg_props[@]}")
 content+="$component_content"
 
+# log "$content" -1
+
 if [ "$_arg_prettier" = "on" ]; then
 	content=$(run_prettier "$content" || die "Failed to format content with Prettier." 1)
 fi
 
 if [ "$_arg_dry_run" = "on" ]; then
+	echo "$target_file"
 	echo -e "$content"
 else
+	# Backup file if it exists
+	if [ -f "$target_file" ]; then
+		cp "$target_file" "$target_file.bak" || die "Failed to backup $target_file" 1
+	fi
+
 	echo -e "$content" >"$target_file"
 fi

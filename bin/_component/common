@@ -25,9 +25,9 @@ function write_component_function() {
         props_list="$props_list, $prop_name"
       fi
     done
-    output+="$(add_function "$component_name" "JSX.Element" "" "{ $props_list }: ${component_name}Props" "$body" "$is_default")"
+    output+="$(add_function "$component_name" "" "" "{ $props_list }: ${component_name}Props" "$body" "$is_default")"
   else
-    output+="$(add_function "$component_name" "JSX.Element" "" "()" "$body" "$is_default")"
+    output+="$(add_function "$component_name" "" "" "" "$body" "$is_default")"
   fi
   echo -e "$output"
 }
@@ -44,7 +44,8 @@ function create_component() {
   if [ -n "$emmet" ]; then
     # Remove props. prefix from emmet pattern since we're destructuring
     emmet="$(echo "$emmet" | sed 's/props\.//g')"
-    parsed_emmet=$(parse_emmet "$emmet")
+    parsed_emmet=$(parse_emmet "$emmet");
+    # die "$parsed_emmet"
   else
     parsed_emmet="<div>{/* TODO: implement $component_name */}</div>"
   fi

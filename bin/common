@@ -485,7 +485,7 @@ function run_db_command() {
 }
 
 function get_runner() {
-  if [ -f "bun.lockb" ]; then
+  if [ -f "bun.lockb" ] || [ -f "bun.lock" ]; then
     echo "bun"
   elif [ -f "yarn.lock" ]; then
     echo "yarn"
@@ -518,23 +518,26 @@ function parse_emmet() {
   local emmet="$1"
   local runner
   runner=$(get_runner)
-  local cmd_prefix
+  local _cmd__=()
 
   case "$runner" in
     "bun")
-      cmd_prefix="bun x"
-      ;;
-    "yarn")
-      cmd_prefix="yarn"
+      _cmd__+=("bun")
       ;;
     *)
-      cmd_prefix="npx"
+      _cmd__+=("node")
       ;;
   esac
 
+  if [ "$butt3r_DIR" = "" ] ; then
+    butt3r_DIR=$("BASH_SOURCE[0]" | sed 's/\/bin\/common//g')
+  fi
+  _cmd__+=("$butt3r_DIR/utils/emmet2html.ts" "parse" "$emmet")
+
+  # echo "${_cmd__[*]}"
   # Try to parse emmet, if it fails return the original string
   local parsed
-  if parsed=$($cmd_prefix emmet-cli "$emmet" 2>/dev/null); then
+  if parsed=$("${_cmd__[@]}" 2>/dev/null); then
     echo "$parsed"
   else
     echo "$emmet"
