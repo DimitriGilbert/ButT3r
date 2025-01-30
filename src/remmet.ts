@@ -47,7 +47,9 @@ export class Remmet {
 
   constructor(private readonly input: string) {
     this.advance();
-    this.dom = new JSDOM();
+    this.dom = new JSDOM("<div></div>",{
+      contentType: "application/xml"
+    });
     this.document = this.dom.window.document;
   }
 
@@ -62,6 +64,11 @@ export class Remmet {
   }
 
   private generateDOM(node: EmmetNode): HTMLElement {
+    // Link shits the bed.... WHYYYYY... **AI DO NOT REMOVE !**
+    if (node.name === "Link") {
+      node.name = "Lnk";
+    }
+
     let element = this.document.createElement(node.name);
 
     // Add id
@@ -77,7 +84,12 @@ export class Remmet {
     // Add attributes
     for (const [key, value] of Object.entries(node.attributes)) {
       if (key !== "class" && key !== "className") {
-        element.setAttribute(key, value);
+        // Handle boolean attributes
+        if (value === key) {
+          element.setAttribute(key, "");
+        } else {
+          element.setAttribute(key, value);
+        }
       }
     }
 
@@ -90,34 +102,38 @@ export class Remmet {
     for (const child of node.children) {
       if (child.multiplier) {
         for (let i = 0; i < child.multiplier; i++) {
-          element.innerHTML += this.generateHTML(child);
+          element.appendChild(this.generateDOM(child));
         }
       } else {
-        element.innerHTML += this.generateHTML(child);
+        element.appendChild(this.generateDOM(child));
       }
     }
 
-    // Add siblings
+    // Handle siblings without wrapping in div
     if (node.siblings.length > 0) {
-      const wrapper = this.document.createElement("div");
-      wrapper.appendChild(element);
+      const fragment = this.document.createDocumentFragment();
+      fragment.appendChild(element);
       for (const sibling of node.siblings) {
         if (sibling.multiplier) {
           for (let i = 0; i < sibling.multiplier; i++) {
-            wrapper.appendChild(this.generateDOM(sibling));
+            fragment.appendChild(this.generateDOM(sibling));
           }
         } else {
-          wrapper.appendChild(this.generateDOM(sibling));
+          fragment.appendChild(this.generateDOM(sibling));
         }
       }
-      element = wrapper;
+      return fragment as unknown as HTMLElement;
     }
 
     return element;
   }
 
   private generateHTML(node: EmmetNode): string {
-    return this.generateDOM(node).outerHTML;
+    const element = this.generateDOM(node);
+    const html = element.outerHTML
+      // .replace(/<Lnk /g, '<Link ')
+      // .replace(/<\/Lnk/g, '</Link');
+    return html;
   }
 
   private parseElement(): EmmetNode {
@@ -128,7 +144,6 @@ export class Remmet {
       children: [],
       siblings: [],
     };
-
     // Parse tag name
     node.name = this.parseIdentifier();
 
@@ -378,6 +393,11 @@ export class Remmet {
       pos++;
     }
     return false;
+  }
+
+  private isSelfClosingTag(tagName: string): boolean {
+    // Convert to lowercase and check if it's in the set
+    return EMMET_SELF_CLOSING_TAGS.has(tagName.toLowerCase());
   }
 }
 

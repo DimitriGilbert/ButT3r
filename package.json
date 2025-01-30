@@ -1,15 +1,21 @@
 {
   "name": "butt3r",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/parse5": "^7.0.0"
   },
   "scripts": {
     "html2emmet": "bun utils/html2emmet.ts"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "@babel/types": "^7.26.7",
+    "@types/babel-traverse": "^6.25.10",
+    "@types/babel__traverse": "^7.20.6"
   },
   "dependencies": {
+    "@babel/parser": "^7.26.7",
+    "@babel/traverse": "^7.26.7",
     "@types/jsdom": "^21.1.7",
     "chalk": "^5.4.1",
     "chokidar": "^4.0.3",

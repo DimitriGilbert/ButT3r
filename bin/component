@@ -381,7 +381,7 @@ content+="$component_content"
 # log "$content" -1
 
 if [ "$_arg_prettier" = "on" ]; then
-	content=$(run_prettier "$content" || die "Failed to format content with Prettier." 1)
+	content=$(run_prettier "$content" || log "Failed to format content with Prettier." -1)
 fi
 
 if [ "$_arg_dry_run" = "on" ]; then

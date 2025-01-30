@@ -2,7 +2,7 @@
 import { Command } from 'commander';
 import { htmlStringToEmmet, htmlToEmmet } from '../src/html2emmet';
 import { readFileSync } from 'fs';
-import { JSDOM } from 'jsdom';
+import { parse } from 'node-html-parser';
 
 const program = new Command();
 
@@ -48,10 +48,11 @@ program
       }
 
       let result;
-      // If selector is provided, extract the matching element
       if (options.selector) {
-        const dom = new JSDOM(html);
-        const element = dom.window.document.querySelector(options.selector);
+        const root = parse(html, {
+          lowerCaseTagName: false
+        });
+        const element = root.querySelector(options.selector);
         if (!element) {
           throw new Error(`No element found matching selector: ${options.selector}`);
         }
