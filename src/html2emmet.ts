@@ -30,8 +30,14 @@ function processJSXElement(element: t.JSXElement): string {
   const openingElement = element.openingElement;
   let abbreviation = getJSXElementAbbreviation(openingElement);
 
-  // Handle text content
-  const textChild = element.children.find((node): node is t.JSXText => t.isJSXText(node));
+  // Get all meaningful children (non-empty text nodes and elements)
+  const children = element.children.filter(child => 
+    t.isJSXElement(child) || 
+    (t.isJSXText(child) && child.value.trim())
+  );
+  
+  // Process text content first
+  const textChild = children.find((node): node is t.JSXText => t.isJSXText(node));
   if (textChild) {
     const text = textChild.value.trim();
     if (text) {
@@ -39,10 +45,11 @@ function processJSXElement(element: t.JSXElement): string {
     }
   }
 
-  // Handle children
-  const children = element.children.filter((child): child is t.JSXElement => t.isJSXElement(child));
-  if (children.length > 0) {
-    abbreviation += '>' + children.map(processJSXElement).join('+');
+  // Process element children
+  const elementChildren = children.filter((child): child is t.JSXElement => t.isJSXElement(child));
+  if (elementChildren.length > 0) {
+    const childrenStr = elementChildren.map(processJSXElement).join('+');
+    abbreviation += '>' + childrenStr;
   }
 
   return abbreviation;
@@ -81,11 +88,20 @@ function processJSXAttribute(attr: t.JSXAttribute): string | null {
   }
 
   if (t.isStringLiteral(attr.value)) {
+    // Handle string literals
     return `${name}="${attr.value.value}"`;
   }
 
   if (t.isJSXExpressionContainer(attr.value)) {
-    return `${name}={${attr.value.expression}}`;
+    // Handle numeric literals and other expressions
+    if (t.isNumericLiteral(attr.value.expression) || t.isStringLiteral(attr.value.expression)) {
+      return `${name}={{${attr.value.expression.value}}}`;
+    }
+    if (t.isIdentifier(attr.value.expression)) {
+      return `${name}={{${attr.value.expression.name}}}`;
+    }
+    // For other expressions, convert to string without curly braces
+    return `${name}={{${JSON.stringify(attr.value.expression)}}}`;
   }
 
   return null;
@@ -98,14 +114,19 @@ export function htmlToEmmet(element: Element): string {
 export function processElement(element: Element): string {
   let abbreviation = getElementAbbreviation(element);
   const textContent = getTextContent(element);
+  const children = Array.from(element.children);
 
   if (textContent) {
     abbreviation += `{${textContent}}`;
   }
 
-  const childrenAbbreviation = processChildren(element);
-  if (childrenAbbreviation) {
-    abbreviation += `>${childrenAbbreviation}`;
+  // If there are children, process them
+  if (children.length > 0) {
+    const childrenAbbrev = processChildren(element);
+    if (childrenAbbrev) {
+      // Don't add extra parentheses if the children string already has them
+      abbreviation += `>${childrenAbbrev}`;
+    }
   }
 
   return abbreviation;
@@ -165,26 +186,6 @@ export function processChildren(element: Element): string {
   const children = Array.from(element.children);
   if (children.length === 0) return "";
 
-  const groups: Array<{ abbreviation: string; count: number }> = [];
-  let currentGroup: { abbreviation: string; count: number } | null = null;
-
-  for (const child of children) {
-    const childAbbrev = processElement(child);
-    if (currentGroup && currentGroup.abbreviation === childAbbrev) {
-      currentGroup.count++;
-    } else {
-      if (currentGroup) groups.push(currentGroup);
-      currentGroup = { abbreviation: childAbbrev, count: 1 };
-    }
-  }
-
-  if (currentGroup) groups.push(currentGroup);
-
-  return groups
-    .map((group) =>
-      group.count > 1
-        ? `${group.abbreviation}*${group.count}`
-        : group.abbreviation
-    )
-    .join("+");
+  // Join all children with + operator
+  return children.map(child => processElement(child)).join('+');
 }

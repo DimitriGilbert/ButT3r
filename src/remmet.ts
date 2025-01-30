@@ -83,7 +83,10 @@ export class Remmet {
 
     // Add attributes
     for (const [key, value] of Object.entries(node.attributes)) {
-      if (key !== "class" && key !== "className") {
+      if (key === "className") {
+        // Handle className separately to merge with existing classes
+        element.className = `${element.className} ${value}`.trim();
+      } else if (key !== "class") {
         // Handle boolean attributes
         if (value === key) {
           element.setAttribute(key, "");
@@ -130,10 +133,37 @@ export class Remmet {
 
   private generateHTML(node: EmmetNode): string {
     const element = this.generateDOM(node);
-    const html = element.outerHTML
-      // .replace(/<Lnk /g, '<Link ')
-      // .replace(/<\/Lnk/g, '</Link');
+    
+    // console.log(element);
+    // Use JSDOM's built-in serialization
+    let html = element.outerHTML;
     return html;
+  }
+
+  private formatHTML(html: string): string {
+    const indentSize = 2;
+    let indentLevel = 0;
+    const lines = html.split('><');
+    let formatted = '';
+
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        if (i > 0) {
+            line = line.trim();
+        }
+
+        if (line.startsWith('/')) {
+            indentLevel--;
+        }
+
+        formatted += ' '.repeat(indentLevel * indentSize) + '<' + line + '>\n';
+
+        if (!line.startsWith('/') && !line.endsWith('/') && !line.includes('</')) {
+            indentLevel++;
+        }
+    }
+
+    return formatted.trim();
   }
 
   private parseElement(): EmmetNode {
@@ -148,7 +178,7 @@ export class Remmet {
     node.name = this.parseIdentifier();
 
     // Parse properties
-    while (!this.isEnd() && !this.isOperator()) {
+    while (!this.isEnd() && !this.isOperator() && this.currentChar !== '(') {
       switch (this.currentChar) {
         case "#":
           this.advance();
@@ -198,7 +228,16 @@ export class Remmet {
 
     // Parse children and siblings
     while (!this.isEnd()) {
-      if (this.currentChar === ">") {
+      if (this.currentChar === "(") {
+        // Start of a group
+        this.advance();
+        const groupNodes = this.parseGroup();
+        node.children.push(...groupNodes);
+      } else if (this.currentChar === ")") {
+        // End of a group
+        this.advance();
+        break;
+      } else if (this.currentChar === ">") {
         this.advance();
         const child = this.parseElement();
         if (child) {
@@ -278,9 +317,9 @@ export class Remmet {
 
     // First, collect the entire attribute string
     while (!this.isEnd() && bracketDepth > 0) {
-      if (!inQuote && this.currentChar === "[") {
+      if (!inQuote && this.currentChar === '[') {
         bracketDepth++;
-      } else if (!inQuote && this.currentChar === "]") {
+      } else if (!inQuote && this.currentChar === ']') {
         bracketDepth--;
         if (bracketDepth === 0) break;
       } else if (this.currentChar === '"' || this.currentChar === "'") {
@@ -297,7 +336,7 @@ export class Remmet {
     this.advance(); // Skip closing ]
 
     // Now parse the attributes
-    const attributeRegex = /([a-zA-Z0-9-]+)(?:="([^"]*)")?/g;
+    const attributeRegex = /([a-zA-Z0-9-]+)(?:=(?:"([^"]*)"|'([^']*)'|{([^}]*)})?)?/g;
     let match;
 
     while ((match = attributeRegex.exec(buffer)) !== null) {
@@ -368,6 +407,25 @@ export class Remmet {
     return buffer;
   }
 
+  private parseGroup(): EmmetNode[] {
+    const groupNodes: EmmetNode[] = [];
+    
+    while (!this.isEnd() && this.currentChar !== ")") {
+      const element = this.parseElement();
+      if (element) {
+        groupNodes.push(element);
+      }
+      // Handle operators between group elements
+      if (this.currentChar === "+") {
+        this.advance();
+      } else if (this.currentChar === ">") {
+        this.advance();
+      }
+    }
+
+    return groupNodes;
+  }
+
   private advance(): void {
     this.currentChar = this.input[this.position] || "";
     this.position++;
@@ -378,7 +436,7 @@ export class Remmet {
   }
 
   private isOperator(): boolean {
-    return [">", "+", "*"].includes(this.currentChar);
+    return [">", "+", "*", "(", ")"].includes(this.currentChar);
   }
 
   private isAttribute(): boolean {

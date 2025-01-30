@@ -246,7 +246,10 @@ You may now add components.`
       --export-default|--no-export-default: export component as default`
                 },
                 {
-                  prompt:`butt3r component menu --import "~/components/ui/navigation-menu:NavigationMenu,NavigationMenuItem,NavigationMenuLink,NavigationMenuList" --emmet 'NavigationMenu>NavigationMenuList>NavigationMenuItem>NavigationMenuLink>a[href="/"]{Home}'`,
+                  prompt: "# emmet ? huh ? naughties' are new again ?"
+                },
+                {
+                  prompt:`butt3r component menu --import "~/components/ui/navigation-menu:NavigationMenu,NavigationMenuItem,NavigationMenuLink,NavigationMenuList" --emmet 'NavigationMenu>NavigationMenuList>NavigationMenuItem>NavigationMenuLink>a[href="/"]{Home}' --dry-run`,
                   output:`src/components/menu.tsx
 import {
   NavigationMenu,
@@ -268,6 +271,13 @@ export function Menu() {
     </NavigationMenu>
   );
 }`
+                },
+                {
+                  prompt:"# ok, ok sure you ain't eating that cup cake !"
+                },
+                {
+                  prompt:``,
+                  typingSpeed:10
                 }
               ]}
             />
