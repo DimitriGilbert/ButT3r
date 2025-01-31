@@ -130,9 +130,7 @@ export default function TerminalSimulator({
       const outputs = Array.isArray(cmd.output) ? cmd.output : [cmd.output];
       for (const line of outputs) {
         if (line) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, defaultOutputSpeed),
-          );
+          await new Promise((resolve) => setTimeout(resolve, defaultOutputSpeed));
 
           if (typeof line === "string") {
             setDisplay((prev) => [
@@ -140,8 +138,6 @@ export default function TerminalSimulator({
               { type: "output", content: line },
             ]);
           } else {
-            const currentLength = display.length;
-
             // Add initial output entry with placeholder if it exists
             setDisplay((prev) => [
               ...prev,
@@ -158,15 +154,12 @@ export default function TerminalSimulator({
 
             // Update output entry with final content
             setDisplay((prev) => {
-              if (prev.length > currentLength) {
-                const newDisplay = [...prev];
-                newDisplay[currentLength] = {
-                  type: "output",
-                  content: line.content,
-                };
-                return newDisplay;
+              const newDisplay = [...prev];
+              const lastEntry = newDisplay[newDisplay.length - 1];
+              if (lastEntry?.type === "output") {
+                lastEntry.content = line.content;
               }
-              return prev;
+              return newDisplay;
             });
           }
         }
