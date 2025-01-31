@@ -10,15 +10,14 @@ import {
 import { T3Link } from "~/components/ui/t3-link";
 import { Hero } from "~/components/home/hero";
 import { DemoTerminal } from "~/components/home/demo-terminal";
-import { CliForm } from "~/components/cli-form";
 import { useState } from "react";
 import { Clickodrome } from "~/components/clickodrome";
 
 export default function HomePage() {
   const [terminalCommands, setTerminalCommands] = useState<{ prompt: string }[]>([]);
+  const [demoTerminalKey, setDemoTerminalKey] = useState(Date.now());
 
   const handleSubmit = (data: any, cmd: string) => {
-    console.log(cmd);
     setTerminalCommands(prev => [...prev, { prompt: `${cmd}` }]);
   };
 

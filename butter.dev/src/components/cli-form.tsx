@@ -85,6 +85,7 @@ export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight }:
           overflowY: maxHeight ? 'auto' : undefined
         }}
       >
+          <Button type="submit">as command</Button>
         {sortedFields.map((field) => (
           <FormFieldComponent key={field.name} field={field} control={form.control} />
         ))}
@@ -92,7 +93,7 @@ export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight }:
           "col-span-full",
           columns > 1 && `md:col-span-${columns}`
         )}>
-          <Button type="submit">Generate Command</Button>
+          <Button type="submit">as command</Button>
         </div>
       </form>
     </Form>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 type OutputContent = {
   delay?: number;
@@ -44,11 +44,10 @@ export default function TerminalSimulator({
   const [display, setDisplay] = useState<DisplayEntry[]>([
     { type: "output", content: startLine },
   ]);
-  const [isRunning, setIsRunning] = useState(false);
   const processingRef = useRef(false);
-  const displayLengthRef = useRef(0);
   const terminalRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
+  const commandIndexRef = useRef(0);
 
   // Auto-scroll logic
   useEffect(() => {
@@ -57,155 +56,139 @@ export default function TerminalSimulator({
     }
   }, [display]);
 
-  // Handle scroll events
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (!terminalRef.current) return;
 
     const { scrollTop, scrollHeight, clientHeight } = terminalRef.current;
     const isScrolledToBottom = scrollHeight - scrollTop === clientHeight;
 
-    // Only mark as user scrolled if they scroll up while content is still being added
-    if (!isScrolledToBottom && isRunning) {
+    if (!isScrolledToBottom) {
       userScrolledRef.current = true;
-    }
-
-    // Reset when user scrolls back to bottom
-    if (isScrolledToBottom) {
+    } else {
       userScrolledRef.current = false;
     }
-  };
+  }, []);
 
-  // Sync display length with ref
-  useEffect(() => {
-    displayLengthRef.current = display.length;
-  }, [display]);
+  const processCommand = useCallback(async (cmd: typeof commands[number] | undefined) => {
+    if (!cmd) return;
 
-  const processCommands = async () => {
-    if (processingRef.current) return;
-    
-    processingRef.current = true;
-    setIsRunning(true);
+    // Add delay before next command (except first)
+    if (commandIndexRef.current > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
 
-    // Only process new commands that haven't been displayed yet
-    const startIndex = displayLengthRef.current > 0 ? 
-      commands.findIndex(cmd => 
-        !display.some(entry => 
-          entry.type === "command" && entry.content === cmd.prompt
-        )
-      ) : 0;
+    // Add the command prompt line
+    setDisplay((prev) => [
+      ...prev,
+      { type: "command", content: "", done: false },
+    ]);
 
-    for (let i = startIndex; i < commands.length; i++) {
-      const cmd = commands[i];
-      if (!cmd) continue;
-      // Add delay before next command (except first)
-      if (displayLengthRef.current > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-
-      // Trim the command to remove any leading/trailing whitespace or newlines
-      const trimmedPrompt = cmd.prompt.trim();
-
-      // Add the command prompt line
-      setDisplay((prev) => [
-        ...prev,
-        { type: "command", content: "", done: false },
-      ]);
-      displayLengthRef.current += 1; // Update the ref immediately
-
-      // Type the command
-      let promptDisplay = "";
-      for (const char of trimmedPrompt) {
-        promptDisplay += char;
-        setDisplay((prev) => {
-          const newDisplay = [...prev];
-          newDisplay[newDisplay.length - 1] = {
-            type: "command",
-            content: promptDisplay,
-            done: false,
-          };
-          return newDisplay;
-        });
-
-        // Calculate random delay
-        const baseSpeed = cmd.typingSpeed || defaultTypingSpeed;
-        const randomFactor = cmd.typingRandom || 0;
-        const randomVariation = Math.random() * (baseSpeed * (randomFactor / 100));
-        const delay = baseSpeed + (Math.random() > 0.5 ? randomVariation : -randomVariation);
-
-        await new Promise((resolve) => setTimeout(resolve, Math.max(10, delay)));
-      }
-
-      // Mark the command as done
+    // Type the command
+    const trimmedPrompt = cmd.prompt.trim();
+    for (const char of trimmedPrompt) {
       setDisplay((prev) => {
-        const newDisplay = [...prev];
-        newDisplay[newDisplay.length - 1] = {
-          type: "command",
-          content: trimmedPrompt,
-          done: true,
-        };
-        return newDisplay;
+        const lastEntry = prev[prev.length - 1];
+        if (lastEntry?.type === "command") {
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...lastEntry,
+              content: lastEntry.content + char,
+              type: "command",
+            },
+          ];
+        }
+        return prev;
       });
 
-      // Process outputs
-      if (cmd.output) {
-        const outputs = Array.isArray(cmd.output) ? cmd.output : [cmd.output];
-        for (const line of outputs) {
-          if (line) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, defaultOutputSpeed),
-            );
+      const baseSpeed = cmd.typingSpeed || defaultTypingSpeed;
+      const randomFactor = cmd.typingRandom || 0;
+      const randomVariation = Math.random() * (baseSpeed * (randomFactor / 100));
+      const delay = baseSpeed + (Math.random() > 0.5 ? randomVariation : -randomVariation);
 
-            if (typeof line === "string") {
-              setDisplay((prev) => [
-                ...prev,
-                { type: "output", content: line },
-              ]);
-              displayLengthRef.current += 1;
-            } else {
-              const currentLength = displayLengthRef.current;
+      await new Promise((resolve) => setTimeout(resolve, Math.max(10, delay)));
+    }
 
-              // Add initial output entry with placeholder if it exists
-              setDisplay((prev) => [
-                ...prev,
-                {
-                  type: "output",
-                  content: line.placeholder || "",
-                },
-              ]);
-              displayLengthRef.current += 1;
+    // Mark the command as done
+    setDisplay((prev) => {
+      const lastEntry = prev[prev.length - 1];
+      if (lastEntry?.type === "command") {
+        return [
+          ...prev.slice(0, -1),
+          {
+            ...lastEntry,
+            done: true,
+            type: "command",
+          },
+        ];
+      }
+      return prev;
+    });
 
-              // If there's a delay, wait before showing the final content
-              if (line.delay) {
-                await new Promise((resolve) => setTimeout(resolve, line.delay));
-              }
+    // Process outputs
+    if (cmd.output) {
+      const outputs = Array.isArray(cmd.output) ? cmd.output : [cmd.output];
+      for (const line of outputs) {
+        if (line) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, defaultOutputSpeed),
+          );
 
-              // Update output entry with final content
-              setDisplay((prev) => {
-                if (prev.length > currentLength) {
-                  const newDisplay = [...prev];
-                  newDisplay[currentLength] = {
-                    type: "output",
-                    content: line.content,
-                  };
-                  return newDisplay;
-                }
-                return prev;
-              });
+          if (typeof line === "string") {
+            setDisplay((prev) => [
+              ...prev,
+              { type: "output", content: line },
+            ]);
+          } else {
+            const currentLength = display.length;
+
+            // Add initial output entry with placeholder if it exists
+            setDisplay((prev) => [
+              ...prev,
+              {
+                type: "output",
+                content: line.placeholder || "",
+              },
+            ]);
+
+            // If there's a delay, wait before showing the final content
+            if (line.delay) {
+              await new Promise((resolve) => setTimeout(resolve, line.delay));
             }
+
+            // Update output entry with final content
+            setDisplay((prev) => {
+              if (prev.length > currentLength) {
+                const newDisplay = [...prev];
+                newDisplay[currentLength] = {
+                  type: "output",
+                  content: line.content,
+                };
+                return newDisplay;
+              }
+              return prev;
+            });
           }
         }
       }
     }
 
-    processingRef.current = false;
-    setIsRunning(false);
-  };
+    commandIndexRef.current += 1;
+  }, [defaultOutputSpeed, defaultTypingSpeed, defaultTypingRandom]);
 
   useEffect(() => {
-    if (autoStart && !processingRef.current) {
-      processCommands();
-    }
-  }, [commands]);
+    if (!autoStart || processingRef.current) return;
+
+    const processCommands = async () => {
+      processingRef.current = true;
+      while (commandIndexRef.current < commands.length) {
+        await processCommand(commands[commandIndexRef.current]);
+      }
+      processingRef.current = false;
+    };
+
+    processCommands();
+  }, [commands, autoStart, processCommand]);
 
   return (
     <div
