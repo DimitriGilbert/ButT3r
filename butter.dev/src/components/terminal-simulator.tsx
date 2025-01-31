@@ -81,53 +81,70 @@ export default function TerminalSimulator({
   }, [display]);
 
   const processCommands = async () => {
+    if (processingRef.current) return;
+    
     processingRef.current = true;
     setIsRunning(true);
 
-    for (const cmd of commands) {
+    // Only process new commands that haven't been displayed yet
+    const startIndex = displayLengthRef.current > 0 ? 
+      commands.findIndex(cmd => 
+        !display.some(entry => 
+          entry.type === "command" && entry.content === cmd.prompt
+        )
+      ) : 0;
+
+    for (let i = startIndex; i < commands.length; i++) {
+      const cmd = commands[i];
+      if (!cmd) continue;
       // Add delay before next command (except first)
       if (displayLengthRef.current > 0) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      // Type command prompt
-      let promptDisplay = "";
-      setDisplay((prev) => [
-        ...prev,
-        { type: "command", content: "", done: false },
-      ]);
+      // Handle multi-line prompts
+      const promptLines = cmd.prompt.split('\n');
+      
+      for (const line of promptLines) {
+        // Type command prompt
+        let promptDisplay = "";
+        setDisplay((prev) => [
+          ...prev,
+          { type: "command", content: "", done: false },
+        ]);
 
-      for (const char of cmd.prompt) {
-        promptDisplay += char;
+        for (const char of line) {
+          promptDisplay += char;
+          setDisplay((prev) => {
+            const newDisplay = [...prev];
+            newDisplay[newDisplay.length - 1] = {
+              type: "command",
+              content: promptDisplay,
+              done: false,
+            };
+            return newDisplay;
+          });
+
+          // Calculate random delay
+          const baseSpeed = cmd.typingSpeed || defaultTypingSpeed;
+          const randomFactor = cmd.typingRandom || 0;
+          const randomVariation = Math.random() * (baseSpeed * (randomFactor / 100));
+          const delay = baseSpeed + (Math.random() > 0.5 ? randomVariation : -randomVariation);
+
+          await new Promise((resolve) => setTimeout(resolve, Math.max(10, delay)));
+        }
+
+        // Mark prompt line as done
         setDisplay((prev) => {
           const newDisplay = [...prev];
           newDisplay[newDisplay.length - 1] = {
             type: "command",
-            content: promptDisplay,
-            done: false,
+            content: line,
+            done: true,
           };
           return newDisplay;
         });
-
-        // Calculate random delay
-        const baseSpeed = cmd.typingSpeed || defaultTypingSpeed;
-        const randomFactor = cmd.typingRandom || 0; // Percentage (0-100)
-        const randomVariation = Math.random() * (baseSpeed * (randomFactor / 100));
-        const delay = baseSpeed + (Math.random() > 0.5 ? randomVariation : -randomVariation);
-
-        await new Promise((resolve) => setTimeout(resolve, Math.max(10, delay)));
       }
-
-      // Mark prompt as done
-      setDisplay((prev) => {
-        const newDisplay = [...prev];
-        newDisplay[newDisplay.length - 1] = {
-          type: "command",
-          content: cmd.prompt,
-          done: true,
-        };
-        return newDisplay;
-      });
 
       // Process outputs
       if (cmd.output) {
@@ -188,7 +205,7 @@ export default function TerminalSimulator({
     if (autoStart && !processingRef.current) {
       processCommands();
     }
-  }, [autoStart, commands]);
+  }, [commands]);
 
   return (
     <div
@@ -204,7 +221,7 @@ export default function TerminalSimulator({
       <div
         ref={terminalRef}
         onScroll={handleScroll}
-        className={`${height} overflow-y-auto p-5 text-[#00ff00]`}
+        className={`${height} overflow-y-auto p-5 text-[#00ff00] whitespace-pre-wrap break-words`}
       >
         {display.map((entry, index) => (
           <div key={index} className="my-1">
@@ -212,14 +229,14 @@ export default function TerminalSimulator({
               <div className="flex">
                 <span className="mr-2 text-[#00ff00]">{termPrompt}</span>
                 <span
-                  className={`${!entry.done ? "animate-blink border-r-2 border-[#00ff00]" : ""}`}
+                  className={`${!entry.done ? "animate-blink border-r-2 border-[#00ff00]" : ""} break-all`}
                 >
                   {entry.content}
                 </span>
               </div>
             )}
             {entry.type === "output" && (
-              <div className="ml-6 whitespace-pre-wrap text-white">
+              <div className="ml-6 whitespace-pre-wrap break-all text-white">
                 {entry.content}
               </div>
             )}
