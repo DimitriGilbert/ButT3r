@@ -1,8 +1,7 @@
 "use client";
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
 import { CliForm } from "~/components/cli-form";
-import { useState } from "react";
 
 interface ClickodromeProps {
   onSubmit: (data: any, cmd: string) => void;
@@ -85,13 +84,12 @@ export function Clickodrome({ onSubmit }: ClickodromeProps) {
   };
 
   return (
-    <Tabs defaultValue="install" className="w-full">
-      <TabsList className="flex w-full flex-wrap justify-center gap-2 rounded-lg bg-white/10 p-2">
+    <Tabs defaultValue="install">
+      <TabsList>
         {Object.keys(commands).map((cmd) => (
           <TabsTrigger
             key={cmd}
             value={cmd}
-            className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
           >
             {cmd}
           </TabsTrigger>
@@ -103,7 +101,7 @@ export function Clickodrome({ onSubmit }: ClickodromeProps) {
             helpText={helpText}
             baseCmd={cmd === 'install' ? 'utils/install' : `butt3r ${cmd}`}
             onSubmit={onSubmit}
-            columns={cmd === 'create' ? 2 : 1}
+            columns={cmd === 'install' ? 1 : 2}
           />
         </TabsContent>
       ))}

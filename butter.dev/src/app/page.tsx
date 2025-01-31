@@ -1,6 +1,5 @@
 "use client";
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
 import Link from "next/link";
 import TerminalSimulator from "~/components/terminal-simulator";
 import {
@@ -96,7 +95,7 @@ export default function HomePage() {
           <div className="mx-auto flex flex-col gap-2 md:gap-4 xl:max-w-full">
             <TerminalSimulator
               startLine="# terminalophobic and other terminal-impared individuals rejoice !"
-              defaultTypingRandom={95}
+              defaultTypingRandom={250}
               defaultTypingSpeed={10}
               commands={[
                 {
