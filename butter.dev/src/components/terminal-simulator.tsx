@@ -102,49 +102,49 @@ export default function TerminalSimulator({
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      // Handle multi-line prompts
-      const promptLines = cmd.prompt.split('\n');
-      
-      for (const line of promptLines) {
-        // Type command prompt
-        let promptDisplay = "";
-        setDisplay((prev) => [
-          ...prev,
-          { type: "command", content: "", done: false },
-        ]);
+      // Trim the command to remove any leading/trailing whitespace or newlines
+      const trimmedPrompt = cmd.prompt.trim();
 
-        for (const char of line) {
-          promptDisplay += char;
-          setDisplay((prev) => {
-            const newDisplay = [...prev];
-            newDisplay[newDisplay.length - 1] = {
-              type: "command",
-              content: promptDisplay,
-              done: false,
-            };
-            return newDisplay;
-          });
+      // Add the command prompt line
+      setDisplay((prev) => [
+        ...prev,
+        { type: "command", content: "", done: false },
+      ]);
+      displayLengthRef.current += 1; // Update the ref immediately
 
-          // Calculate random delay
-          const baseSpeed = cmd.typingSpeed || defaultTypingSpeed;
-          const randomFactor = cmd.typingRandom || 0;
-          const randomVariation = Math.random() * (baseSpeed * (randomFactor / 100));
-          const delay = baseSpeed + (Math.random() > 0.5 ? randomVariation : -randomVariation);
-
-          await new Promise((resolve) => setTimeout(resolve, Math.max(10, delay)));
-        }
-
-        // Mark prompt line as done
+      // Type the command
+      let promptDisplay = "";
+      for (const char of trimmedPrompt) {
+        promptDisplay += char;
         setDisplay((prev) => {
           const newDisplay = [...prev];
           newDisplay[newDisplay.length - 1] = {
             type: "command",
-            content: line,
-            done: true,
+            content: promptDisplay,
+            done: false,
           };
           return newDisplay;
         });
+
+        // Calculate random delay
+        const baseSpeed = cmd.typingSpeed || defaultTypingSpeed;
+        const randomFactor = cmd.typingRandom || 0;
+        const randomVariation = Math.random() * (baseSpeed * (randomFactor / 100));
+        const delay = baseSpeed + (Math.random() > 0.5 ? randomVariation : -randomVariation);
+
+        await new Promise((resolve) => setTimeout(resolve, Math.max(10, delay)));
       }
+
+      // Mark the command as done
+      setDisplay((prev) => {
+        const newDisplay = [...prev];
+        newDisplay[newDisplay.length - 1] = {
+          type: "command",
+          content: trimmedPrompt,
+          done: true,
+        };
+        return newDisplay;
+      });
 
       // Process outputs
       if (cmd.output) {
@@ -229,7 +229,12 @@ export default function TerminalSimulator({
               <div className="flex">
                 <span className="mr-2 text-[#00ff00]">{termPrompt}</span>
                 <span
-                  className={`${!entry.done ? "animate-blink border-r-2 border-[#00ff00]" : ""} break-all`}
+                  className={`${!entry.done ? "animate-blink border-r-2 border-[#00ff00]" : ""} break-all cursor-pointer hover:bg-[#333] rounded px-1`}
+                  onClick={() => {
+                    if (entry.done && typeof entry.content === 'string') {
+                      navigator.clipboard.writeText(entry.content);
+                    }
+                  }}
                 >
                   {entry.content}
                 </span>

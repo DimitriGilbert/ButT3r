@@ -13,17 +13,14 @@ import { Hero } from "~/components/home/hero";
 import { DemoTerminal } from "~/components/home/demo-terminal";
 import { CliForm } from "~/components/cli-form";
 import { useState } from "react";
+import { Clickodrome } from "~/components/clickodrome";
 
 export default function HomePage() {
   const [terminalCommands, setTerminalCommands] = useState<{ prompt: string }[]>([]);
 
   const handleSubmit = (data: any, cmd: string) => {
     console.log(cmd);
-    setTerminalCommands(prev => {
-      const newCommands = [...prev, { prompt: `$ ${cmd}` }];
-      console.log('Updating terminal commands:', newCommands);
-      return newCommands;
-    });
+    setTerminalCommands(prev => [...prev, { prompt: `${cmd}` }]);
   };
 
   return (
@@ -98,11 +95,9 @@ export default function HomePage() {
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
           <div className="mx-auto flex flex-col gap-2 md:gap-4 xl:max-w-full">
             <TerminalSimulator
-              // @ts-ignore
-              id="terminalophobia-therapist"
               startLine="# terminalophobic and other terminal-impared individuals rejoice !"
-              defaultTypingRandom={75}
-              defaultTypingSpeed={75}
+              defaultTypingRandom={95}
+              defaultTypingSpeed={10}
               commands={[
                 {
                   prompt: "# use the form on the right to create your CLI commands !",
@@ -112,115 +107,7 @@ export default function HomePage() {
             />
           </div>
           <div className="mx-auto flex flex-col gap-2 md:gap-4 xl:max-w-full">
-            <Tabs defaultValue="account" className="w-full">
-              <TabsList className="flex w-full flex-wrap justify-center gap-2 rounded-lg bg-white/10 p-2">
-                <TabsTrigger
-                  value="install"
-                  className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
-                >
-                  install
-                </TabsTrigger>
-                <TabsTrigger
-                  value="create"
-                  className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
-                >
-                  create
-                </TabsTrigger>
-                <TabsTrigger
-                  value="component"
-                  className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
-                >
-                  component
-                </TabsTrigger>
-                <TabsTrigger
-                  value="page"
-                  className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
-                >
-                  page
-                </TabsTrigger>
-                <TabsTrigger
-                  value="layout"
-                  className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
-                >
-                  layout
-                </TabsTrigger>
-                <TabsTrigger
-                  value="up"
-                  className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
-                >
-                  up
-                </TabsTrigger>
-                <TabsTrigger
-                  value="start"
-                  className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
-                >
-                  start
-                </TabsTrigger>
-                <TabsTrigger
-                  value="stop"
-                  className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
-                >
-                  stop
-                </TabsTrigger>
-                <TabsTrigger
-                  value="down"
-                  className="rounded-md px-4 py-2 transition-colors hover:bg-white/10 data-[state=active]:bg-white/20 data-[state=active]:text-white"
-                >
-                  down
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="install">
-                <CliForm
-                  helpText={`Install butt3r:
-  --shell-rc-file|--install-file <shell-rc-file>: where to put the source directive, repeatable [default: '( $HOME/.bashrc )']
-  --comment|--no-comment: add parsearger comment, on by default (use --no-comment to turn it off)
-  --install-dependencies|--no-install-dependencies: install dependencies, on by default (use --no-install-dependencies to turn it off)
-          no-aliases: --no-deps,
-`}
-                  baseCmd="utils/install"
-                  onSubmit={handleSubmit}
-                />
-              </TabsContent>
-              <TabsContent value="create">
-                <CliForm
-                  helpText={`my go to project creator:
-  name: project name
-  --db-provider <db-provider>: db provider [default: ' postgres ']
-  --db-orm <db-orm>: orm to use [default: ' drizzle ']
-  -c, --shadcn-component <shadcn-component>: shadcn component to install, repeatable
-  -i, --install <install>: package to install, repeatable
-  --package-manager <package-manager>: package manager [default: ' bun ']
-  -p, --app-ports <app-ports>: ports entry for the app, repeatable
-  --app-env <app-env>: app env vars, repeatable
-  --db-ports <db-ports>: db ports entry, repeatable
-  --db-env <db-env>: db env vars, repeatable
-  --db-user <db-user>: db user
-  --db-name <db-name>: db name
-  --app-port <app-port>: ports to use for the app
-  --app-network <app-network>: network for the app
-  --db|--no-db: project use a DB, on by default (use --no-db to turn it off)
-  --app-router|--no-app-router: use app router, on by default (use --no-app-router to turn it off)
-  --auth|--no-auth: use nextauth, on by default (use --no-auth to turn it off)
-  --trpc|--no-trpc: use trpc, on by default (use --no-trpc to turn it off)
-  --tailwind|--no-tailwind: use tailwind, on by default (use --no-tailwind to turn it off)
-  --shadcn|--no-shadcn: project use shadcn, on by default (use --no-shadcn to turn it off)
-  --mdx|--no-mdx: project use markdown content
-  --mdx-remote|--no-mdx-remote: add next remote mdx and gray-matter, on by default (use --no-mdx-remote to turn it off)
-  --docker|--no-docker: create a docker compose stack, on by default (use --no-docker to turn it off)
-  --git|--no-git: init git, on by default (use --no-git to turn it off)`}
-                  baseCmd="butt3r create"
-                  onSubmit={handleSubmit}
-                  columns={2}
-                />
-              </TabsContent>
-              <TabsContent value="component"></TabsContent>
-              <TabsContent value="page"></TabsContent>
-              <TabsContent value="layout"></TabsContent>
-              <TabsContent value="up"></TabsContent>
-              <TabsContent value="start"></TabsContent>
-              <TabsContent value="stop"></TabsContent>
-              <TabsContent value="down"></TabsContent>
-            </Tabs>
+            <Clickodrome onSubmit={handleSubmit} />
           </div>
         </section>
       </div>
