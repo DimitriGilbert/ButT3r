@@ -276,8 +276,50 @@ export function Menu() {
                   prompt:"# ok, ok sure you ain't eating that cup cake !"
                 },
                 {
-                  prompt:``,
-                  typingSpeed:10
+                  prompt:`butt3r component menu --import "~/components/ui/navigation-menu:NavigationMenu,NavigationMenuItem,NavigationMenuLink,NavigationMenuList" --emmet 'ResizablePanelGroup[direction="horizontal" className="max-w-md rounded-lg border md:min-w-[450px]"]>(ResizablePanel[defaultSize={50}]>(div[className="flex h-[200px] items-center justify-center p-6"]>(span[className="font-semibold"]>({One})))+ResizableHandle+ResizablePanel[defaultSize={50}]>(ResizablePanelGroup[direction="vertical"]>(ResizablePanel[defaultSize={25}]>(div[className="flex h-full items-center justify-center p-6"]>(span[className="font-semibold"]>({Two})))+ResizableHandle+ResizablePanel[defaultSize={75}]>(div[className="flex h-full items-center justify-center p-6"]>(span[className="font-semibold"]>({Three}))))))' --dry-run`,
+                  typingSpeed:10,
+                  output:`/home/didi/workspace/Code/ButT3r/src/components/menu.tsx
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from "~/components/ui/navigation-menu";
+
+export function Menu() {
+  return (
+    <ResizablePanelGroup
+      xmlns="http://www.w3.org/1999/xhtml"
+      direction="horizontal"
+      className="max-w-md rounded-lg border md:min-w-[450px]"
+    >
+      <ResizablePanel defaultSize="{50}">
+        <div className="flex h-[200px] items-center justify-center p-6">
+          <span className="font-semibold">One</span>
+          <ResizableHandle></ResizableHandle>
+          <ResizablePanel defaultSize="{50}">
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize="{25}">
+                <div className="flex h-full items-center justify-center p-6">
+                  <span className="font-semibold">Two</span>
+                  <ResizableHandle></ResizableHandle>
+                  <ResizablePanel defaultSize="{75}">
+                    <div className="flex h-full items-center justify-center p-6">
+                      <span className="font-semibold">Three</span>
+                    </div>
+                  </ResizablePanel>
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
+} `
+                },
+                {
+                  prompt:"# HAHA ! I knew it would fall on it's face ! (bruh, me no care laaaaahhhh.)"
                 }
               ]}
             />

@@ -1,72 +1,49 @@
-##### DEPENDENCIES
+# Use Bun as base image
+FROM --platform=linux/amd64 oven/bun:alpine
 
-# Node.js dependencies
-FROM --platform=linux/amd64 node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat openssl
+# Set working directory
 WORKDIR /app
-# COPY prisma ./
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* bun.lockb* ./
-RUN \
-    if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then npm ci; \
-    elif [ -f pnpm-lock.yaml ]; then npm install -g pnpm && pnpm i; \
-    elif [ -f bun.lockb ]; then echo "Skipping node deps for Bun build" && exit 0; \
-    else echo "Lockfile not found." && exit 1; \
+
+# Install shadow for user management
+RUN apk add --no-cache shadow
+
+# Copy package files first for better layer caching
+COPY package.json ./
+COPY bun.lockb* ./
+COPY bun.lock* ./
+COPY yarn.lock* ./
+COPY package-lock.json* ./
+COPY pnpm-lock.yaml* ./
+
+# Install dependencies based on lock file
+RUN if [ -f bun.lockb ] || [ -f bun.lock ]; then \
+        bun install; \
+    elif [ -f yarn.lock ]; then \
+        yarn install; \
+    elif [ -f package-lock.json ]; then \
+        npm install; \
+    elif [ -f pnpm-lock.yaml ]; then \
+        pnpm install; \
+    else \
+        echo "No lockfile found! Using bun install" && \
+        bun install; \
     fi
 
-# Bun dependencies
-FROM --platform=linux/amd64 oven/bun:alpine AS bun_deps
-WORKDIR /app
-COPY package.json bun.lockb ./
-RUN if [ -f bun.lockb ]; then bun install; \
-    else echo "No bun.lockb found" && exit 0; \
-    fi
-
-##### BUILDER
-
-FROM --platform=linux/amd64 oven/bun:alpine AS builder
-WORKDIR /app
+# Copy the rest of the application
 COPY . .
 
-# Install and build based on package manager
-RUN if [ -f bun.lockb ]; then \
-        echo "Using Bun builder" && \
-        bun install; \
-    else \
-        echo "Using Node.js builder" && \
-        if [ -f yarn.lock ]; then yarn install; \
-        elif [ -f package-lock.json ]; then npm install; \
-        elif [ -f pnpm-lock.yaml ]; then npm install -g pnpm && pnpm i; \
-        else echo "No lockfile found." && exit 1; \
-        fi \
-    fi
+# Create user with dynamic UID if it doesn't exist
+ARG UID=1000
+RUN if ! getent passwd $UID; then \
+        useradd -u $UID -d /app -s /bin/sh appuser; \
+    fi && \
+    chown -R $UID:$UID /app
 
-##### PRODUCTION
+# Switch to appuser
+USER $UID
 
-FROM --platform=linux/amd64 gcr.io/distroless/nodejs20-debian12 AS production
-WORKDIR /app
-ENV NODE_ENV production
+# Expose port
+EXPOSE 42712
 
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/public ./public/
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/.next/static ./.next/static/
-
-EXPOSE 3000
-ENV PORT 3000
-CMD ["server.js"]
-
-##### DEVELOPMENT
-
-FROM builder AS development
-EXPOSE 3000
-CMD if [ -f bun.lockb ]; then \
-        bun run dev; \
-    else \
-        if [ -f yarn.lock ]; then yarn dev; \
-        elif [ -f package-lock.json ]; then npm run dev; \
-        elif [ -f pnpm-lock.yaml ]; then pnpm dev; \
-        fi \
-    fi
-
-FROM ${NODE_ENV:-development} AS final
+# Start development server
+CMD ["bun", "run", "dev"]

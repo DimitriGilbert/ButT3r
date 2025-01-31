@@ -68,8 +68,25 @@ export class Remmet {
     if (node.name === "Link") {
       node.name = "Lnk";
     }
+    // Handle text nodes
+    if (node.text) {
+        return this.document.createTextNode(node.text) as unknown as HTMLElement;
+    }
 
-    let element = this.document.createElement(node.name);
+    // Handle fragment nodes
+    if (!node.name) {
+        const fragment = this.document.createDocumentFragment();
+        node.children.forEach(child => {
+            fragment.appendChild(this.generateDOM(child));
+        });
+        return fragment as unknown as HTMLElement;
+    }
+
+    // Create element with XML namespace
+    const element = this.document.createElementNS(
+      "http://www.w3.org/1999/xhtml",
+      node.name
+    );
 
     // Add id
     if (node.id) {
@@ -94,11 +111,6 @@ export class Remmet {
           element.setAttribute(key, value);
         }
       }
-    }
-
-    // Add text content
-    if (node.text) {
-      element.textContent = node.text;
     }
 
     // Add children
@@ -134,10 +146,14 @@ export class Remmet {
   private generateHTML(node: EmmetNode): string {
     const element = this.generateDOM(node);
     
-    // console.log(element);
-    // Use JSDOM's built-in serialization
-    let html = element.outerHTML;
-    return html;
+    // Handle fragment serialization
+    if (element.nodeType === 11) { // 11 = DOCUMENT_FRAGMENT_NODE
+      return Array.from(element.childNodes)
+        .map(child => (child as HTMLElement).outerHTML)
+        .join('');
+    }
+
+    return element.outerHTML;
   }
 
   private formatHTML(html: string): string {
@@ -168,15 +184,13 @@ export class Remmet {
 
   private parseElement(): EmmetNode {
     const node: EmmetNode = {
-      name: "div",
+      name: this.parseIdentifier(),
       classes: [],
       attributes: {},
       children: [],
       siblings: [],
     };
-    // Parse tag name
-    node.name = this.parseIdentifier();
-
+    
     // Parse properties
     while (!this.isEnd() && !this.isOperator() && this.currentChar !== '(') {
       switch (this.currentChar) {
@@ -211,7 +225,18 @@ export class Remmet {
           break;
 
         case "{":
-          node.text = this.parseTextContent();
+          // Create a text node instead of setting text property
+          const textContent = this.parseTextContent();
+          if (textContent) {
+            node.children.push({
+              name: '',  // Empty name for text nodes
+              classes: [],
+              attributes: {},
+              children: [],
+              siblings: [],
+              text: textContent
+            });
+          }
           break;
 
         default:
@@ -229,26 +254,22 @@ export class Remmet {
     // Parse children and siblings
     while (!this.isEnd()) {
       if (this.currentChar === "(") {
-        // Start of a group
         this.advance();
-        const groupNodes = this.parseGroup();
-        node.children.push(...groupNodes);
+        // AI DO NOT FUCKING UNCOMMENT THIS FUCK YOU MORON !
+        const groupChildren = this.parseGroup();
+        node.children.push(...groupChildren);
       } else if (this.currentChar === ")") {
-        // End of a group
         this.advance();
         break;
       } else if (this.currentChar === ">") {
         this.advance();
         const child = this.parseElement();
-        if (child) {
-          node.children.push(child);
-        }
+        node.children.push(child);
       } else if (this.currentChar === "+") {
         this.advance();
         const sibling = this.parseElement();
-        if (sibling) {
-          node.siblings.push(sibling);
-        }
+        node.siblings.push(sibling);
+        break;
       } else if (this.currentChar === "*") {
         this.advance();
         node.multiplier = this.parseNumber();
@@ -256,6 +277,14 @@ export class Remmet {
         break;
       }
     }
+
+    // Post-process to remove empty children
+    node.children = node.children.filter(child => 
+      child.name !== "div" || 
+      child.classes.length > 0 ||
+      Object.keys(child.attributes).length > 0 ||
+      child.children.length > 0
+    );
 
     return node;
   }
@@ -317,36 +346,42 @@ export class Remmet {
 
     // First, collect the entire attribute string
     while (!this.isEnd() && bracketDepth > 0) {
-      if (!inQuote && this.currentChar === '[') {
-        bracketDepth++;
-      } else if (!inQuote && this.currentChar === ']') {
-        bracketDepth--;
-        if (bracketDepth === 0) break;
-      } else if (this.currentChar === '"' || this.currentChar === "'") {
-        if (!inQuote) {
-          inQuote = true;
-          quoteChar = this.currentChar;
-        } else if (quoteChar === this.currentChar) {
-          inQuote = false;
+        if (!inQuote && this.currentChar === '[') {
+            bracketDepth++;
+        } else if (!inQuote && this.currentChar === ']') {
+            bracketDepth--;
+            if (bracketDepth === 0) break;
+        } else if (this.currentChar === '"' || this.currentChar === "'") {
+            if (!inQuote) {
+                inQuote = true;
+                quoteChar = this.currentChar;
+            } else if (quoteChar === this.currentChar) {
+                inQuote = false;
+            }
         }
-      }
-      buffer += this.currentChar;
-      this.advance();
+        buffer += this.currentChar;
+        this.advance();
     }
     this.advance(); // Skip closing ]
 
     // Now parse the attributes
-    const attributeRegex = /([a-zA-Z0-9-]+)(?:=(?:"([^"]*)"|'([^']*)'|{([^}]*)})?)?/g;
+    const attributeRegex = /([a-zA-Z0-9-]+)(?:=(?:{([^}]*)}|"([^"]*)"|'([^']*)'|([^\s\]]+)))?/g;
     let match;
 
     while ((match = attributeRegex.exec(buffer)) !== null) {
-      const [, key, value] = match;
-      if (value === undefined) {
-        // Boolean attribute
-        node.attributes[key] = key;
-      } else {
-        node.attributes[key] = value;
-      }
+        const [, key, jsValue, doubleQuoted, singleQuoted, plainValue] = match;
+        if (!jsValue && !doubleQuoted && !singleQuoted && !plainValue) {
+            // Boolean attribute
+            node.attributes[key] = key;
+        } else {
+            const value = jsValue || doubleQuoted || singleQuoted || plainValue;
+            if (jsValue) {
+                // Keep JS expressions with curly braces
+                node.attributes[key] = `{${value}}`;
+            } else {
+                node.attributes[key] = value;
+            }
+        }
     }
   }
 
@@ -354,29 +389,35 @@ export class Remmet {
     this.advance(); // Skip '{'
     let text = "";
     let braceDepth = 1;
+    // console.log("Starting to parse text content"); // Debug
 
     while (!this.isEnd() && braceDepth > 0) {
-      if (this.currentChar === "{") {
-        braceDepth++;
-      } else if (this.currentChar === "}") {
-        braceDepth--;
-        if (braceDepth === 0) break;
-      }
-      text += this.currentChar;
-      this.advance();
+        // console.log("Current char:", this.currentChar, "Depth:", braceDepth); // Debug
+        if (this.currentChar === "{") {
+            braceDepth++;
+        } else if (this.currentChar === "}") {
+            braceDepth--;
+            if (braceDepth === 0) break;
+        }
+        if (braceDepth > 0) {  // Only add text if we're not at the closing brace
+            text += this.currentChar;
+        }
+        this.advance();
     }
 
     this.advance(); // Skip closing '}'
+    // console.log("Final text content:", text); // Debug
     return text;
   }
 
   private parseIdentifier(): string {
     let result = "";
-    while (!this.isEnd() && !EMMET_SYMBOLS.includes(this.currentChar as any)) {
+    const componentChars = /[a-zA-Z0-9_\-:@]/;
+    while (!this.isEnd() && componentChars.test(this.currentChar)) {
       result += this.currentChar;
       this.advance();
     }
-    return result || "div";
+    return result;
   }
 
   private parseNumber(): number {
@@ -410,19 +451,28 @@ export class Remmet {
   private parseGroup(): EmmetNode[] {
     const groupNodes: EmmetNode[] = [];
     
-    while (!this.isEnd() && this.currentChar !== ")") {
+    while (!this.isEnd() && this.currentChar !== ')') {
+      const preParsePosition = this.position;
       const element = this.parseElement();
-      if (element) {
+      
+      // Only add node if it has content or children
+      if (element.name !== "div" || 
+          element.classes.length > 0 ||
+          Object.keys(element.attributes).length > 0 ||
+          element.children.length > 0) {
         groupNodes.push(element);
       }
+
+      // Break if no progress was made
+      if (this.position === preParsePosition) break;
+      
       // Handle operators between group elements
-      if (this.currentChar === "+") {
-        this.advance();
-      } else if (this.currentChar === ">") {
+      if (this.currentChar === "+" || this.currentChar === ">") {
         this.advance();
       }
     }
 
+    this.advance(); // Skip closing )
     return groupNodes;
   }
 

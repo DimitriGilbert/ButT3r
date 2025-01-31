@@ -30,26 +30,28 @@ function processJSXElement(element: t.JSXElement): string {
   const openingElement = element.openingElement;
   let abbreviation = getJSXElementAbbreviation(openingElement);
 
-  // Get all meaningful children (non-empty text nodes and elements)
   const children = element.children.filter(child => 
     t.isJSXElement(child) || 
     (t.isJSXText(child) && child.value.trim())
   );
-  
-  // Process text content first
-  const textChild = children.find((node): node is t.JSXText => t.isJSXText(node));
-  if (textChild) {
-    const text = textChild.value.trim();
-    if (text) {
-      abbreviation += `{${text}}`;
-    }
-  }
 
-  // Process element children
-  const elementChildren = children.filter((child): child is t.JSXElement => t.isJSXElement(child));
-  if (elementChildren.length > 0) {
-    const childrenStr = elementChildren.map(processJSXElement).join('+');
-    abbreviation += '>' + childrenStr;
+  if (children.length > 0) {
+    const childAbbrevs = children.map(child => {
+      if (t.isJSXText(child)) {
+        return `{${child.value.trim()}}`;
+      }
+      if (t.isJSXElement(child)) {
+        return processJSXElement(child);
+      }
+      return null;
+    }).filter(Boolean).join('+');
+
+    // Only add parentheses for multiple children or mixed content
+    const needsGroup = children.length > 1 || 
+                      children.some(child => t.isJSXText(child)) ||
+                      children.some(c => t.isJSXElement(c) && c.children.length > 0);
+
+    abbreviation += needsGroup ? `>(${childAbbrevs})` : `>${childAbbrevs}`;
   }
 
   return abbreviation;
@@ -95,13 +97,13 @@ function processJSXAttribute(attr: t.JSXAttribute): string | null {
   if (t.isJSXExpressionContainer(attr.value)) {
     // Handle numeric literals and other expressions
     if (t.isNumericLiteral(attr.value.expression) || t.isStringLiteral(attr.value.expression)) {
-      return `${name}={{${attr.value.expression.value}}}`;
+      return `${name}={${attr.value.expression.value}}`;
     }
     if (t.isIdentifier(attr.value.expression)) {
-      return `${name}={{${attr.value.expression.name}}}`;
+      return `${name}={${attr.value.expression.name}}`;
     }
     // For other expressions, convert to string without curly braces
-    return `${name}={{${JSON.stringify(attr.value.expression)}}}`;
+    return `${name}={${JSON.stringify(attr.value.expression)}}`;
   }
 
   return null;
@@ -120,11 +122,9 @@ export function processElement(element: Element): string {
     abbreviation += `{${textContent}}`;
   }
 
-  // If there are children, process them
   if (children.length > 0) {
     const childrenAbbrev = processChildren(element);
     if (childrenAbbrev) {
-      // Don't add extra parentheses if the children string already has them
       abbreviation += `>${childrenAbbrev}`;
     }
   }
@@ -186,6 +186,7 @@ export function processChildren(element: Element): string {
   const children = Array.from(element.children);
   if (children.length === 0) return "";
 
-  // Join all children with + operator
-  return children.map(child => processElement(child)).join('+');
+  // Group multiple children with parentheses
+  const childrenStr = children.map(child => processElement(child)).join('+');
+  return children.length > 1 ? `(${childrenStr})` : childrenStr;
 }
