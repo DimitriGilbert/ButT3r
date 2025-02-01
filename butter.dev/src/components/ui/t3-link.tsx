@@ -7,7 +7,8 @@ export function T3Link() {
       target="_blank"
       color="rgba(168, 85, 247, 0.8)"
       size={8}
-      duration={0.3}
+      duration={1}
+      scale={1.4}
       className="font-extrabold text-purple-500"
     >
       T3
