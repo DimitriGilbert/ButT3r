@@ -1,0 +1,58 @@
+"use client";
+
+import { createContext, useContext, useState } from "react";
+import { Button } from "~/components/ui/button";
+import { FaMoon, FaSun } from "react-icons/fa";
+
+
+type Theme = "light" | "dark";
+type ThemeContextType = {
+  theme: Theme;
+  toggleTheme: () => void;
+};
+
+const ThemeContext = createContext<ThemeContextType | null>(null);
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === "light" ? "dark" : "light");
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <div className={theme === "dark" ? "dark" : ""}>
+        {children}
+      </div>
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
+}
+
+export function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggleTheme}
+      className="hover:bg-white/20"
+    >
+      {theme === "dark" ? (
+        <FaMoon className="h-[1.2rem] w-[1.2rem]" />
+      ) : (
+        <FaSun className="h-[1.2rem] w-[1.2rem]" />
+      )}
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  );
+} 

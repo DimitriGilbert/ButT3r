@@ -1,11 +1,16 @@
-import Link from "next/link";
+import { GlowLink } from "./glow-link";
 
 export function T3Link() {
   return (
-    <span className="text-purple-500 font-extrabold">
-      <Link href="https://create.t3.gg/" target="_blank">
-        T3
-      </Link>
-    </span>
+    <GlowLink
+      href="https://create.t3.gg/"
+      target="_blank"
+      color="rgba(168, 85, 247, 0.8)"
+      size={8}
+      duration={0.3}
+      className="font-extrabold text-purple-500"
+    >
+      T3
+    </GlowLink>
   );
 }

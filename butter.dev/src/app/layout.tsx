@@ -2,6 +2,18 @@ import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
+import { ThemeProvider } from "~/components/theme-provider";
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
+  navigationMenuTriggerStyle,
+} from "~/components/ui/navigation-menu";
+import Link from "next/link";
+import { ThemeToggle } from "~/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "Create ButT3r App",
@@ -14,7 +26,78 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <body>{children}</body>
+      <body className="bg-gradient-to-b from-[#57aed1] to-[#2e026d] dark:from-[#2e026d] dark:to-[#57aed1]">
+        <ThemeProvider>
+          <nav className="fixed top-0 left-0 right-0 bg-white/10 backdrop-blur-md p-4">
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <Link href="/" legacyBehavior passHref>
+                    <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300`}>
+                      BT3r
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300`}>
+                    Docs
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md">
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                      <li>
+                        <Link href="https://create.t3.gg/docs" legacyBehavior passHref>
+                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                            T3 Docs
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="https://nextjs.org/docs" legacyBehavior passHref>
+                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                            Next.js Docs
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="https://tailwindcss.com/docs" legacyBehavior passHref>
+                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                            Tailwind Docs
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="https://ui.shadcn.com/docs" legacyBehavior passHref>
+                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                            Shadcn Docs
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/docs" legacyBehavior passHref>
+                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                            ButT3r Docs
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="https://github.com/your-repo" legacyBehavior passHref>
+                    <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300`}>
+                      GitHub
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <ThemeToggle />
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+          </nav>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
