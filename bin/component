@@ -18,6 +18,10 @@ fi
 # @parseArger opt import "import statement (from:what)" --repeat
 # @parseArger opt emmet "emmet pattern for the component" --repeat
 # @parseArger opt template "template to use (page|layout|form|table)" --one-of "page" --one-of "layout" --one-of "form" --one-of "table"
+# @parseArger opt ai-emmet "description for the ai generated emmet string"
+# @parseArger opt ai-provider "ai provider"
+# @parseArger opt ai-model "ai model"
+# @parseArger opt ai "get the ai to do something with the generated code"
 # @parseArger flag server "is server component" --on --no-name client
 # @parseArger flag dry-run "output to stdout"
 # @parseArger flag prettier "run prettier before output" --on
@@ -61,6 +65,10 @@ _arg_import=()
 _arg_emmet=()
 _arg_template=
 _one_of_arg_template=("page" "layout" "form" "table")
+_arg_ai_emmet=
+_arg_ai_provider=
+_arg_ai_model=
+_arg_ai=
 # FLAGS
 _arg_server="on"
 _arg_dry_run="off"
@@ -82,12 +90,16 @@ print_help() {
 		echo -e "	--import <import>: import statement (from:what), repeatable"
 		echo -e "	--emmet <emmet>: emmet pattern for the component, repeatable"
 		echo -e "	--template <template>: template to use (page|layout|form|table) [one of 'page' 'layout' 'form' 'table']"
+		echo -e "	--ai-emmet <ai-emmet>: description for the ai generated emmet string"
+		echo -e "	--ai-provider <ai-provider>: ai provider"
+		echo -e "	--ai-model <ai-model>: ai model"
+		echo -e "	--ai <ai>: get the ai to do something with the generated code"
 		echo -e "	--server|--client: is server component, on by default (use --client to turn it off)"
 		echo -e "	--dry-run|--no-dry-run: output to stdout"
 		echo -e "	--prettier|--no-prettier: run prettier before output, on by default (use --no-prettier to turn it off)"
 		echo -e "	--export-default|--no-export-default: export component as default"
 		echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]dry-run] [--[no-]prettier] [--[no-]export-default]"
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--[no-]server] [--[no-]dry-run] [--[no-]prettier] [--[no-]export-default]"
 	fi
 
 }
@@ -186,6 +198,42 @@ parse_commandline() {
 		--template=*)
 			_arg_template="${_key##--template=}"
 			if [[ "${#_one_of_arg_template[@]}" -gt 0 ]]; then [[ "${_one_of_arg_template[*]}" =~ (^|[[:space:]])"$_arg_template"($|[[:space:]]) ]] || die "template must be one of: page layout form table"; fi
+			;;
+
+		--ai-emmet)
+			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+			_arg_ai_emmet="$2"
+			shift
+			;;
+		--ai-emmet=*)
+			_arg_ai_emmet="${_key##--ai-emmet=}"
+			;;
+
+		--ai-provider)
+			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+			_arg_ai_provider="$2"
+			shift
+			;;
+		--ai-provider=*)
+			_arg_ai_provider="${_key##--ai-provider=}"
+			;;
+
+		--ai-model)
+			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+			_arg_ai_model="$2"
+			shift
+			;;
+		--ai-model=*)
+			_arg_ai_model="${_key##--ai-model=}"
+			;;
+
+		--ai)
+			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+			_arg_ai="$2"
+			shift
+			;;
+		--ai=*)
+			_arg_ai="${_key##--ai=}"
 			;;
 
 		--server)
@@ -290,6 +338,10 @@ print_debug() {
 	echo -e "	import: ${_arg_import[*]}"
 	echo -e "	emmet: ${_arg_emmet[*]}"
 	echo -e "	template: ${_arg_template}"
+	echo -e "	ai-emmet: ${_arg_ai_emmet}"
+	echo -e "	ai-provider: ${_arg_ai_provider}"
+	echo -e "	ai-model: ${_arg_ai_model}"
+	echo -e "	ai: ${_arg_ai}"
 	echo -e "	server: ${_arg_server}"
 	echo -e "	dry-run: ${_arg_dry_run}"
 	echo -e "	prettier: ${_arg_prettier}"
@@ -329,7 +381,7 @@ target_dir="${base_dir}/$(dirname "$_arg_path")"
 # Clean up the path by removing any ./ and ensuring it's absolute
 target_dir=$(realpath -m "$target_dir" | sed 's|^\./||')
 if [ "$_arg_dry_run" = "off" ]; then
-	mkdir -p "$target_dir";
+	mkdir -p "$target_dir"
 fi
 
 # Determine the component name
@@ -361,22 +413,79 @@ if [ "${#_arg_import[@]}" -gt 0 ]; then
 fi
 
 _emmet=""
-# Combine emmet strings with an encapsulating div for each argument
-if [ "${#_arg_emmet[@]}" -gt 1 ]; then
-	_emmet+="div("
-	for emmet_content in "${_arg_emmet[@]}"; do
-		_emmet+="($emmet_content)"
-	done
-	_emmet+=")"
-elif [ "${#_arg_emmet[@]}" -eq 1 ]; then
-	_emmet+="${_arg_emmet[0]}"
-else
-	_emmet+="div{{/* TODO: implement $component_name */}}"
+# First handle AI emmet generation if requested
+if [ "$_arg_ai_emmet" != "" ]; then
+	if [ "$AI_GENTS_DIR" != "" ]; then
+		source "$AI_GENTS_DIR/src/bash/common"
+		_ai_params=()
+		
+		log "Generating emmet pattern from AI description..." 1
+		raw_ai_emmet_result="$("$AI_GENTS_DIR/ai" agent ask "$_SCRIPT_DIR/../butt3r.agent.yml" "${_ai_params[@]}" "#/task component_emmet;$_arg_ai_emmet")"
+		mapfile -t ai_emmet_result < <(extract_code_blocks "$raw_ai_emmet_result" 1)
+		
+		if [ "${#ai_emmet_result[@]}" -gt 0 ] && [ -n "${ai_emmet_result[0]}" ]; then
+			log "Successfully generated emmet pattern" 1
+			_emmet="${ai_emmet_result[0]}"
+		else
+			log "Failed to generate emmet pattern, using default" -1
+		fi
+	else
+		log "AI-gents not found. Install AI-gents (https://github.com/DimitriGilbert/AI-gents) to use AI features" -1
+	fi
 fi
 
-# Create the component content
+# Create initial component content with the emmet pattern
 component_content=$(create_component "$component_name" "$_emmet" "$_arg_export_default" "${_arg_props[@]}")
-content+="$component_content"
+content="$component_content"
+
+# Optionally enhance with AI if requested
+if [ "$_arg_ai" != "" ]; then
+	if [ "$AI_GENTS_DIR" != "" ]; then
+		source "$AI_GENTS_DIR/src/bash/common"
+		_ai_params=()
+		
+		log "Enhancing component with AI..." 1
+		
+		# Create a temporary file for the AI response
+		ai_response_file="$(mktemp)"
+		
+		# Run AI request synchronously with the generated component and ensure we get the full response
+		"$AI_GENTS_DIR/ai" agent ask "$_SCRIPT_DIR/../butt3r.agent.yml" "${_ai_params[@]}" "#/task component_ai;$_arg_ai\n\n$content" > "$ai_response_file"
+		
+		# Make sure the command completed successfully
+		if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+			# Read and process the AI response
+			raw_ai_result="$(cat "$ai_response_file")"
+			
+			# Debug log
+			# log "Raw AI Response:\n$raw_ai_result" -1
+			
+			if [ -n "$raw_ai_result" ]; then
+				# Extract code blocks as null-separated entries
+				mapfile -t -d '' ai_result < <(extract_code_blocks "$raw_ai_result" 1)
+				log "Extracted Code Blocks: ${#ai_result[@]}" -1
+				
+				if [ "${#ai_result[@]}" -gt 0 ] && [ -n "${ai_result[0]}" ]; then
+					# Preserve all newlines from the code block
+					content="${ai_result[0]//$'\n'/\\n}"
+					content="${content%\\n}"  # Remove trailing newline if needed
+					content="$(echo -e "$content")"  # Convert escaped newlines to real ones
+				else
+					log "No valid code blocks found in AI response" -1
+				fi
+			else
+				log "AI enhancement returned empty result" -1
+			fi
+		else
+			log "AI request failed" -2
+		fi
+		
+		# Clean up
+		rm -f "$ai_response_file"
+	else
+		log "AI-gents not found. Install AI-gents (https://github.com/DimitriGilbert/AI-gents) to use AI features" -1
+	fi
+fi
 
 # log "$content" -1
 
