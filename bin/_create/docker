@@ -24,6 +24,7 @@ fi
 # @parseArger opt app-networks "more net for the app" --repeat
 # @parseArger opt db-type "db-type" --default-value "postgres"
 # @parseArger opt file "file to output to"
+# @parseArger flag db "use a db" --on
 # @parseArger-declarations-end
 
 # @parseArger-utils
@@ -69,6 +70,7 @@ _arg_app_networks=()
 _arg_db_type="postgres"
 _arg_file=
 # FLAGS
+_arg_db="on"
 # NESTED
 _verbose_level="0"
 
@@ -91,8 +93,9 @@ print_help() {
 		echo -e "	--app-networks <app-networks>: more net for the app, repeatable"
 		echo -e "	--db-type <db-type>: db-type [default: ' postgres ']"
 		echo -e "	--file <file>: file to output to"
+		echo -e "	--db|--no-db: use a db, on by default (use --no-db to turn it off)"
 		echo -e "Usage :
-	$0 [--app-name <value>] [--app-ports <value>] [--app-env <value>] [--db-ports <value>] [--db-env <value>] [--db-user <value>] [--db-name <value>] [--app-port <value>] [--network <value>] [--db-networks <value>] [--app-networks <value>] [--db-type <value>] [--file <value>]"
+	$0 [--app-name <value>] [--app-ports <value>] [--app-env <value>] [--db-ports <value>] [--db-env <value>] [--db-user <value>] [--db-name <value>] [--app-port <value>] [--network <value>] [--db-networks <value>] [--app-networks <value>] [--db-type <value>] [--file <value>] [--[no-]db]"
 	fi
 
 }
@@ -254,6 +257,12 @@ parse_commandline() {
 			_arg_file="${_key##--file=}"
 			;;
 
+		--db)
+			_arg_db="on"
+			;;
+		--no-db)
+			_arg_db="off"
+			;;
 		-h | --help)
 			print_help
 			exit 0
@@ -338,6 +347,7 @@ print_debug() {
 	echo -e "	app-networks: ${_arg_app_networks[*]}"
 	echo -e "	db-type: ${_arg_db_type}"
 	echo -e "	file: ${_arg_file}"
+	echo -e "	db: ${_arg_db}"
 
 }
 
@@ -361,6 +371,11 @@ trap on_interrupt INT
 # Initialize command array
 yq_commands=()
 
+# Remove database service if --no-db is set
+if [[ "$_arg_db" == "off" ]]; then
+	yq_commands+=("del(.services.${_arg_db_type})")
+fi
+
 _ARG_DB_TYPE=$(echo "$_arg_db_type" | tr '[:lower:]' '[:upper:]')
 
 # App service changes
@@ -368,7 +383,11 @@ _ARG_DB_TYPE=$(echo "$_arg_db_type" | tr '[:lower:]' '[:upper:]')
 
 # First clean up all environment variables
 yq_commands+=(".services.app.environment = []")
-yq_commands+=(".services.${_arg_db_type}.environment = []")
+
+# Only set up database environment if db is enabled
+if [[ "$_arg_db" == "on" ]]; then
+	yq_commands+=(".services.${_arg_db_type}.environment = []")
+fi
 
 # Set base environment
 yq_commands+=(".services.app.environment += [\"NODE_ENV=development\"]")
@@ -380,48 +399,43 @@ if [[ "$_arg_app_port" != "" ]]; then
 	yq_commands+=(".services.app.environment += [\"PORT=${_arg_app_port}\"]")
 fi
 
-# Database configuration first
-[[ "$_arg_db_user" != "" ]] && yq_commands+=(".services.${_arg_db_type}.environment += [\"${_ARG_DB_TYPE}_USER=${_arg_db_user}\"]")
-[[ "$_arg_db_name" != "" ]] && yq_commands+=(".services.${_arg_db_type}.environment += [\"${_ARG_DB_TYPE}_DB=${_arg_db_name}\"]")
-yq_commands+=(".services.${_arg_db_type}.environment += [\"${_ARG_DB_TYPE}_PASSWORD=${_arg_db_user:-postgres}\"]")
+# Database configuration only if db is enabled
+if [[ "$_arg_db" == "on" ]]; then
+	[[ "$_arg_db_user" != "" ]] && yq_commands+=(".services.${_arg_db_type}.environment += [\"${_ARG_DB_TYPE}_USER=${_arg_db_user}\"]")
+	[[ "$_arg_db_name" != "" ]] && yq_commands+=(".services.${_arg_db_type}.environment += [\"${_ARG_DB_TYPE}_DB=${_arg_db_name}\"]")
+	yq_commands+=(".services.${_arg_db_type}.environment += [\"${_ARG_DB_TYPE}_PASSWORD=${_arg_db_user:-postgres}\"]")
 
-# Then database URL in app environment
-if [[ "$_arg_db_user" != "" || "$_arg_db_name" != "" || "$_arg_db_port" != "" ]]; then
-	case "$_arg_db_type" in
-	"postgres")
-		yq_commands+=(".services.app.environment += [\"DATABASE_URL=postgres://${_arg_db_user:-postgres}:${_arg_db_user:-postgres}@postgres:${_arg_db_port:-5432}/${_arg_db_name:-db}\"]")
-		;;
-	"mysql")
-		yq_commands+=(".services.app.environment += [\"DATABASE_URL=mysql://${_arg_db_user:-mysql}:${_arg_db_user:-mysql}@mysql:${_arg_db_port:-3306}/${_arg_db_name:-db}\"]")
-		;;
-	"sqlite")
-		yq_commands+=(".services.app.environment += [\"DATABASE_URL=sqlite://${_arg_db_name:-db}\"]")
-		;;
-	esac
-fi
+	# Then database URL in app environment
+	if [[ "$_arg_db_user" != "" || "$_arg_db_name" != "" || "$_arg_db_port" != "" ]]; then
+		case "$_arg_db_type" in
+		"postgres")
+			yq_commands+=(".services.app.environment += [\"DATABASE_URL=postgres://${_arg_db_user:-postgres}:${_arg_db_user:-postgres}@postgres:${_arg_db_port:-5432}/${_arg_db_name:-db}\"]")
+			;;
+		"mysql")
+			yq_commands+=(".services.app.environment += [\"DATABASE_URL=mysql://${_arg_db_user:-mysql}:${_arg_db_user:-mysql}@mysql:${_arg_db_port:-3306}/${_arg_db_name:-db}\"]")
+			;;
+		"sqlite")
+			yq_commands+=(".services.app.environment += [\"DATABASE_URL=sqlite://${_arg_db_name:-db}\"]")
+			;;
+		esac
+	fi
 
-# Additional environment variables
-if [[ ${#_arg_app_env[@]} -gt 0 ]]; then
-	for env in "${_arg_app_env[@]}"; do
-		yq_commands+=(".services.app.environment += [\"${env}\"]")
-	done
-fi
+	# Database ports
+	[[ "$_arg_db_port" != "" ]] && yq_commands+=(".services.${_arg_db_type}.ports[0] = \"${_arg_db_port}:${_arg_db_port}\"")
 
-# Database ports
-[[ "$_arg_db_port" != "" ]] && yq_commands+=(".services.${_arg_db_type}.ports[0] = \"${_arg_db_port}:${_arg_db_port}\"")
+	# Additional database ports
+	if [[ ${#_arg_db_ports[@]} -gt 0 ]]; then
+		for port in "${_arg_db_ports[@]}"; do
+			yq_commands+=(".services.${_arg_db_type}.ports += [\"${port}\"]")
+		done
+	fi
 
-# Additional database ports
-if [[ ${#_arg_db_ports[@]} -gt 0 ]]; then
-	for port in "${_arg_db_ports[@]}"; do
-		yq_commands+=(".services.${_arg_db_type}.ports += [\"${port}\"]")
-	done
-fi
-
-# Additional database environment variables
-if [[ ${#_arg_db_env[@]} -gt 0 ]]; then
-	for env in "${_arg_db_env[@]}"; do
-		yq_commands+=(".services.${_arg_db_type}.environment += [\"${env}\"]")
-	done
+	# Additional database environment variables
+	if [[ ${#_arg_db_env[@]} -gt 0 ]]; then
+		for env in "${_arg_db_env[@]}"; do
+			yq_commands+=(".services.${_arg_db_type}.environment += [\"${env}\"]")
+		done
+	fi
 fi
 
 # Network configuration
@@ -441,8 +455,8 @@ for net in "${_arg_db_networks[@]}"; do
 	yq_commands+=(".services.${_arg_db_type}.networks += [\"${net}\"]")
 done
 
-# depends_on configuration
-if [[ "$_arg_db_type" != "" ]]; then
+# depends_on configuration only if db is enabled
+if [[ "$_arg_db" == "on" && "$_arg_db_type" != "" ]]; then
 	yq_commands+=(".services.app.depends_on.${_arg_db_type}.condition = \"service_healthy\"")
 fi
 
