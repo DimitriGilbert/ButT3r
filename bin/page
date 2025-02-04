@@ -17,6 +17,10 @@ fi
 # @parseArger opt props "property definition (name:type)" --repeat
 # @parseArger opt import "import statement (from:what)" --repeat
 # @parseArger opt emmet "emmet pattern for the component" --repeat
+# @parseArger opt ai-emmet "description for the ai generated emmet string"
+# @parseArger opt ai-provider "ai provider"
+# @parseArger opt ai-model "ai model"
+# @parseArger opt ai "get the ai to do something with the generated code"
 # @parseArger flag server "is server component" --on
 # @parseArger flag client "is client component"
 # @parseArger flag prettier " run prettier before output"
@@ -24,275 +28,342 @@ fi
 # @parseArger-declarations-end
 
 # @parseArger-utils
-_helpHasBeenPrinted=1
-_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+_helpHasBeenPrinted=1;
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)";
 # @parseArger-utils-end
 
 # @parseArger-parsing
 
-__cli_arg_count=$#
+__cli_arg_count=$#;
 
-die() {
+die()
+{
 	local _ret=1
-	if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
-		_ret="$2"
-	fi
+    if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
+   	_ret="$2"
+    fi
 	test "${_PRINT_HELP:-no}" = yes && print_help >&2
 	log "$1" -3 >&2
 	exit "${_ret}"
 }
 
-begins_with_short_option() {
+
+begins_with_short_option()
+{
 	local first_option all_short_options=''
 	first_option="${1:0:1}"
 	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
 }
 
 # POSITIONALS ARGUMENTS
-_positionals=()
-_optional_positionals=()
-_arg_path=""
+_positionals=();
+_optional_positionals=();
+_arg_path="";
 # OPTIONALS ARGUMENTS
 _arg_directory=
 _arg_component_name=
 _arg_props=()
 _arg_import=()
 _arg_emmet=()
+_arg_ai_emmet=
+_arg_ai_provider=
+_arg_ai_model=
+_arg_ai=
 # FLAGS
 _arg_server="on"
 _arg_client="off"
 _arg_prettier="off"
 _arg_dry_run="off"
 # NESTED
-_verbose_level="0"
+_verbose_level="0";
 
-print_help() {
-	_triggerSCHelp=1
+
+
+print_help()
+{
+	_triggerSCHelp=1;
 
 	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
-		_helpHasBeenPrinted=0
+		_helpHasBeenPrinted=0;
 		echo -e "create/update a page:"
-		echo -e "	path: path to the page"
-		echo -e "	--directory <directory>: subdirectory in src/app"
-		echo -e "	--component-name <component-name>: component name"
-		echo -e "	--props <props>: property definition (name:type), repeatable"
-		echo -e "	--import <import>: import statement (from:what), repeatable"
-		echo -e "	--emmet <emmet>: emmet pattern for the component, repeatable"
-		echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
-		echo -e "	--client|--no-client: is client component"
-		echo -e "	--prettier|--no-prettier:  run prettier before output"
-		echo -e "	--dry-run|--no-dry-run: output to stdout"
-		echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--[no-]server] [--[no-]client] [--[no-]prettier] [--[no-]dry-run]"
+	echo -e "	path: path to the page"
+	echo -e "	--directory <directory>: subdirectory in src/app"
+	echo -e "	--component-name <component-name>: component name"
+	echo -e "	--props <props>: property definition (name:type), repeatable"
+	echo -e "	--import <import>: import statement (from:what), repeatable"
+	echo -e "	--emmet <emmet>: emmet pattern for the component, repeatable"
+	echo -e "	--ai-emmet <ai-emmet>: description for the ai generated emmet string"
+	echo -e "	--ai-provider <ai-provider>: ai provider"
+	echo -e "	--ai-model <ai-model>: ai model"
+	echo -e "	--ai <ai>: get the ai to do something with the generated code"
+	echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
+	echo -e "	--client|--no-client: is client component"
+	echo -e "	--prettier|--no-prettier:  run prettier before output"
+	echo -e "	--dry-run|--no-dry-run: output to stdout"
+	echo -e "Usage :
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--[no-]server] [--[no-]client] [--[no-]prettier] [--[no-]dry-run]";
 	fi
 
 }
 
 log() {
-	local _arg_msg="${1}"
-	local _arg_level="${2:-0}"
+	local _arg_msg="${1}";
+	local _arg_level="${2:-0}";
 	if [ "${_arg_level}" -le "${_verbose_level}" ]; then
 		case "$_arg_level" in
-		-3)
-			_arg_COLOR="\033[0;31m"
-			;;
-		-2)
-			_arg_COLOR="\033[0;33m"
-			;;
-		-1)
-			_arg_COLOR="\033[1;33m"
-			;;
-		1)
-			_arg_COLOR="\033[0;32m"
-			;;
-		2)
-			_arg_COLOR="\033[1;36m"
-			;;
-		3)
-			_arg_COLOR="\033[0;36m"
-			;;
-		*)
-			_arg_COLOR="\033[0m"
-			;;
+			-3)
+				_arg_COLOR="\033[0;31m";
+				;;
+			-2)
+				_arg_COLOR="\033[0;33m";
+				;;
+			-1)
+				_arg_COLOR="\033[1;33m";
+				;;
+			1)
+				_arg_COLOR="\033[0;32m";
+				;;
+			2)
+				_arg_COLOR="\033[1;36m";
+				;;
+			3)
+				_arg_COLOR="\033[0;36m";
+				;;
+			*)
+				_arg_COLOR="\033[0m";
+				;;
 		esac
 		if [ "${_has_colors}" == "1" ]; then
-			echo -e "${_arg_COLOR}${_arg_msg}\033[0m"
+			echo -e "${_arg_COLOR}${_arg_msg}\033[0m";
 		else
-			echo "${_arg_msg}"
+			echo "${_arg_msg}";
 		fi
 	fi
 }
 
-parse_commandline() {
+parse_commandline()
+{
 	_positionals_count=0
-	while test $# -gt 0; do
+	while test $# -gt 0
+	do
 		_key="$1"
 		case "$_key" in
-		--directory)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_directory="$2"
-			shift
-			;;
-		--directory=*)
-			_arg_directory="${_key##--directory=}"
-			;;
-
-		--component-name)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_component_name="$2"
-			shift
-			;;
-		--component-name=*)
-			_arg_component_name="${_key##--component-name=}"
-			;;
-
-		--props)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_props+=("$2")
-			shift
-			;;
-		--props=*)
-			_arg_props+=("${_key##--props=}")
-			;;
-
-		--import)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_import+=("$2")
-			shift
-			;;
-		--import=*)
-			_arg_import+=("${_key##--import=}")
-			;;
-
-		--emmet)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_emmet+=("$2")
-			shift
-			;;
-		--emmet=*)
-			_arg_emmet+=("${_key##--emmet=}")
-			;;
-
-		--server)
-			_arg_server="on"
-			;;
-		--no-server)
-			_arg_server="off"
-			;;
-		--client)
-			_arg_client="on"
-			;;
-		--no-client)
-			_arg_client="off"
-			;;
-		--prettier)
-			_arg_prettier="on"
-			;;
-		--no-prettier)
-			_arg_prettier="off"
-			;;
-		--dry-run)
-			_arg_dry_run="on"
-			;;
-		--no-dry-run)
-			_arg_dry_run="off"
-			;;
-		-h | --help)
-			print_help
-			exit 0
-			;;
-		-h*)
-			print_help
-			exit 0
-			;;
-		-v | --version)
-			print_version
-			exit 0
-			;;
-		-v*)
-			print_version
-			exit 0
-			;;
-		--verbose)
-			if [ $# -lt 2 ]; then
-				_verbose_level="$((_verbose_level + 1))"
-			else
-				_verbose_level="$2"
+			--directory)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_directory="$2"
 				shift
-			fi
-			;;
-		--quiet)
-			if [ $# -lt 2 ]; then
-				_verbose_level="$((_verbose_level - 1))"
-			else
-				_verbose_level="-$2"
+				;;
+			--directory=*)
+				_arg_directory="${_key##--directory=}"
+				;;
+			
+			--component-name)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_component_name="$2"
 				shift
-			fi
-			;;
-
-		*)
-			_last_positional="$1"
-			_positionals+=("$_last_positional")
-			_positionals_count=$((_positionals_count + 1))
-			;;
+				;;
+			--component-name=*)
+				_arg_component_name="${_key##--component-name=}"
+				;;
+			
+			--props)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_props+=("$2")
+				shift
+				;;
+			--props=*)
+				_arg_props+=("${_key##--props=}")
+				;;
+			
+			--import)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_import+=("$2")
+				shift
+				;;
+			--import=*)
+				_arg_import+=("${_key##--import=}")
+				;;
+			
+			--emmet)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_emmet+=("$2")
+				shift
+				;;
+			--emmet=*)
+				_arg_emmet+=("${_key##--emmet=}")
+				;;
+			
+			--ai-emmet)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_emmet="$2"
+				shift
+				;;
+			--ai-emmet=*)
+				_arg_ai_emmet="${_key##--ai-emmet=}"
+				;;
+			
+			--ai-provider)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_provider="$2"
+				shift
+				;;
+			--ai-provider=*)
+				_arg_ai_provider="${_key##--ai-provider=}"
+				;;
+			
+			--ai-model)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_model="$2"
+				shift
+				;;
+			--ai-model=*)
+				_arg_ai_model="${_key##--ai-model=}"
+				;;
+			
+			--ai)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai="$2"
+				shift
+				;;
+			--ai=*)
+				_arg_ai="${_key##--ai=}"
+				;;
+			
+			--server)
+				_arg_server="on"
+				;;
+			--no-server)
+				_arg_server="off"
+				;;
+			--client)
+				_arg_client="on"
+				;;
+			--no-client)
+				_arg_client="off"
+				;;
+			--prettier)
+				_arg_prettier="on"
+				;;
+			--no-prettier)
+				_arg_prettier="off"
+				;;
+			--dry-run)
+				_arg_dry_run="on"
+				;;
+			--no-dry-run)
+				_arg_dry_run="off"
+				;;
+			-h|--help)
+				print_help;
+				exit 0;
+				;;
+			-h*)
+				print_help;
+				exit 0;
+				;;
+			-v|--version)
+				print_version;
+				exit 0;
+				;;
+			-v*)
+				print_version;
+				exit 0;
+				;;
+			--verbose)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level + 1))";
+					else
+						_verbose_level="$2";
+						shift;
+					fi
+					;;
+				--quiet)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level - 1))";
+					else
+						_verbose_level="-$2";
+						shift;
+					fi
+					;;
+				
+				*)
+				_last_positional="$1"
+				_positionals+=("$_last_positional")
+				_positionals_count=$((_positionals_count + 1))
+				;;
 		esac
 		shift
 	done
 }
 
-handle_passed_args_count() {
+
+handle_passed_args_count()
+{
 	local _required_args_string="path"
-	if [ "${_positionals_count}" -gt 1 ] && [ "$_helpHasBeenPrinted" == "1" ]; then
+	if [ "${_positionals_count}" -gt 1 ] && [ "$_helpHasBeenPrinted" == "1" ];then
 		_PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect at most 1 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}').\n\t${_positionals[*]}" 1
 	fi
-	if [ "${_positionals_count}" -lt 1 ] && [ "$_helpHasBeenPrinted" == "1" ]; then
+	if [ "${_positionals_count}" -lt 1 ] && [ "$_helpHasBeenPrinted" == "1" ];then
 		_PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require at least 1 (namely: $_required_args_string), but got only ${_positionals_count}.
-	${_positionals[*]}" 1
+	${_positionals[*]}" 1;
 	fi
 }
 
-assign_positional_args() {
-	local _positional_name _shift_for=$1
-	_positional_names="_arg_path "
+
+assign_positional_args()
+{
+	local _positional_name _shift_for=$1;
+	_positional_names="_arg_path ";
 	shift "$_shift_for"
-	for _positional_name in ${_positional_names}; do
-		test $# -gt 0 || break
-		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1
-		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1
-		shift
+	for _positional_name in ${_positional_names};do
+		test $# -gt 0 || break;
+		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1;
+		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1;
+		shift;
 	done
 }
 
-print_debug() {
+print_debug()
+{
 	print_help
 	# shellcheck disable=SC2145
-	echo "DEBUG: $0 $@"
-
-	echo -e "	path: ${_arg_path}"
-	echo -e "	directory: ${_arg_directory}"
-	echo -e "	component-name: ${_arg_component_name}"
-	echo -e "	props: ${_arg_props[*]}"
-	echo -e "	import: ${_arg_import[*]}"
-	echo -e "	emmet: ${_arg_emmet[*]}"
-	echo -e "	server: ${_arg_server}"
-	echo -e "	client: ${_arg_client}"
-	echo -e "	prettier: ${_arg_prettier}"
-	echo -e "	dry-run: ${_arg_dry_run}"
+	echo "DEBUG: $0 $@";
+	
+	echo -e "	path: ${_arg_path}";
+	echo -e "	directory: ${_arg_directory}";
+	echo -e "	component-name: ${_arg_component_name}";
+	echo -e "	props: ${_arg_props[*]}";
+	echo -e "	import: ${_arg_import[*]}";
+	echo -e "	emmet: ${_arg_emmet[*]}";
+	echo -e "	ai-emmet: ${_arg_ai_emmet}";
+	echo -e "	ai-provider: ${_arg_ai_provider}";
+	echo -e "	ai-model: ${_arg_ai_model}";
+	echo -e "	ai: ${_arg_ai}";
+	echo -e "	server: ${_arg_server}";
+	echo -e "	client: ${_arg_client}";
+	echo -e "	prettier: ${_arg_prettier}";
+	echo -e "	dry-run: ${_arg_dry_run}";
 
 }
 
-print_version() {
-	echo "0.0.1"
+
+print_version()
+{
+	echo "0.0.1";
 }
+
 
 on_interrupt() {
-	die Process aborted! 130
+	die Process aborted! 130;
 }
 
-parse_commandline "$@"
-handle_passed_args_count
-assign_positional_args 1 "${_positionals[@]}"
-trap on_interrupt INT
+
+parse_commandline "$@";
+handle_passed_args_count;
+assign_positional_args 1 "${_positionals[@]}";
+trap on_interrupt INT;
+
+
 
 # @parseArger-parsing-end
 # print_debug "$@"
@@ -323,6 +394,26 @@ done
 # Handle server/client component flags
 if [ "$_arg_client" = "on" ]; then
   component_args+=("--client")
+fi
+
+# Handle AI emmet generation
+if [ "$_arg_ai_emmet" != "" ]; then
+  component_args+=("--ai-emmet" "$_arg_ai_emmet")
+fi
+
+# Handle AI provider
+if [ "$_arg_ai_provider" != "" ]; then
+  component_args+=("--ai-provider" "$_arg_ai_provider")
+fi
+
+# Handle AI model
+if [ "$_arg_ai_model" != "" ]; then
+  component_args+=("--ai-model" "$_arg_ai_model")
+fi
+
+# Handle AI
+if [ "$_arg_ai" != "" ]; then
+  component_args+=("--ai" "$_arg_ai")
 fi
 
 # Pages should be default exported

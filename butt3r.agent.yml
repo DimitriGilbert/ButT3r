@@ -3,7 +3,7 @@ description: "Butt3r agent"
 
 model:
   provider: openrouter
-  name: meta-llama/llama-3.2-3b-instruct
+  name: qwen/qwen-2.5-coder-32b-instruct
   temperature: 0.7
 
 system:
@@ -75,17 +75,20 @@ tasks:
         butt3r component <path> [--component-name <component-name> --props <props> --import <import> --emmet <emmet> --template <template> --server|--client --dry-run|--no-dry-run --prettier|--no-prettier --export-default|--no-export-default]
   component_emmet:
     description: "Create a component emmet abbreviation"
+    temperature: 0.5
     prompt: |
       Please output a **valid emmet abbreviation** that can describe the react component from the user input.
       Use tailwind classes for styling.
       only output the **valid emmet abbreviation** in a codeblock, nothing else.
   component_ai:
     description: "Create/Adapt a component"
+    temperature: 0.4
     prompt: |
       Please adapt the provided react component to the user input.
       Use tailwind classes for styling and typescript.
       Add remarks and explanation in comments in the relevant places in the code if needed.
-      Only output the **complete valid react typescript code** in a codeblock, nothing else.
+      Only output the **react typescript code** in a codeblock, nothing else.
+      **KEEP EXISTING IMPORTS without modifications** the user specified them, **they are correct!**.only add imports if needed.
   page:
     description: "Create a new page"
     prompt: |

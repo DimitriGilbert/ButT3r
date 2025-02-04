@@ -17,6 +17,10 @@ fi
 # @parseArger opt props "property definition (name:type)" --repeat
 # @parseArger opt import "import statement (from:what)" --repeat
 # @parseArger opt emmet "emmet pattern for the component" --repeat
+# @parseArger opt ai-emmet "description for the ai generated emmet string"
+# @parseArger opt ai-provider "ai provider"
+# @parseArger opt ai-model "ai model"
+# @parseArger opt ai "get the ai to do something with the generated code"
 # @parseArger flag server "is server component" --on
 # @parseArger flag client "is client component"
 # @parseArger flag root "is root layout"
@@ -62,6 +66,10 @@ _arg_component_name=
 _arg_props=()
 _arg_import=()
 _arg_emmet=()
+_arg_ai_emmet=
+_arg_ai_provider=
+_arg_ai_model=
+_arg_ai=
 # FLAGS
 _arg_server="on"
 _arg_client="off"
@@ -86,13 +94,17 @@ print_help()
 	echo -e "	--props <props>: property definition (name:type), repeatable"
 	echo -e "	--import <import>: import statement (from:what), repeatable"
 	echo -e "	--emmet <emmet>: emmet pattern for the component, repeatable"
+	echo -e "	--ai-emmet <ai-emmet>: description for the ai generated emmet string"
+	echo -e "	--ai-provider <ai-provider>: ai provider"
+	echo -e "	--ai-model <ai-model>: ai model"
+	echo -e "	--ai <ai>: get the ai to do something with the generated code"
 	echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
 	echo -e "	--client|--no-client: is client component"
 	echo -e "	--root|--no-root: is root layout"
 	echo -e "	--prettier|--no-prettier:  run prettier before output"
 	echo -e "	--dry-run|--no-dry-run: output to stdout"
 	echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--[no-]server] [--[no-]client] [--[no-]root] [--[no-]prettier] [--[no-]dry-run]";
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--[no-]server] [--[no-]client] [--[no-]root] [--[no-]prettier] [--[no-]dry-run]";
 	fi
 
 }
@@ -182,6 +194,42 @@ parse_commandline()
 				;;
 			--emmet=*)
 				_arg_emmet+=("${_key##--emmet=}")
+				;;
+			
+			--ai-emmet)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_emmet="$2"
+				shift
+				;;
+			--ai-emmet=*)
+				_arg_ai_emmet="${_key##--ai-emmet=}"
+				;;
+			
+			--ai-provider)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_provider="$2"
+				shift
+				;;
+			--ai-provider=*)
+				_arg_ai_provider="${_key##--ai-provider=}"
+				;;
+			
+			--ai-model)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_model="$2"
+				shift
+				;;
+			--ai-model=*)
+				_arg_ai_model="${_key##--ai-model=}"
+				;;
+			
+			--ai)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai="$2"
+				shift
+				;;
+			--ai=*)
+				_arg_ai="${_key##--ai=}"
 				;;
 			
 			--server)
@@ -296,6 +344,10 @@ print_debug()
 	echo -e "	props: ${_arg_props[*]}";
 	echo -e "	import: ${_arg_import[*]}";
 	echo -e "	emmet: ${_arg_emmet[*]}";
+	echo -e "	ai-emmet: ${_arg_ai_emmet}";
+	echo -e "	ai-provider: ${_arg_ai_provider}";
+	echo -e "	ai-model: ${_arg_ai_model}";
+	echo -e "	ai: ${_arg_ai}";
 	echo -e "	server: ${_arg_server}";
 	echo -e "	client: ${_arg_client}";
 	echo -e "	root: ${_arg_root}";
@@ -343,6 +395,19 @@ component_args+=("${_arg_path}/layout")
 # Add children prop to the props array
 _arg_props+=("children:React.ReactNode")
 
+# Check if children prop exists and add if not
+_ly_has_children=0
+for prop in "${_arg_props[@]}"; do
+  if [[ "$prop" == *"children"* ]]; then
+    _ly_has_children=1
+    break
+  fi
+done
+
+if [ "$_ly_has_children" -eq 0 ]; then
+  _arg_props+=("children:React.ReactNode")
+fi
+
 # Pass through props and other arguments
 for prop in "${_arg_props[@]}"; do
   component_args+=("--props" "$prop")
@@ -357,6 +422,26 @@ done
 # Handle server/client component flags
 if [ "$_arg_client" = "on" ]; then
   component_args+=("--client")
+fi
+
+# Handle AI emmet generation
+if [ "$_arg_ai_emmet" != "" ]; then
+  component_args+=("--ai-emmet" "$_arg_ai_emmet")
+fi
+
+# Handle AI provider
+if [ "$_arg_ai_provider" != "" ]; then
+  component_args+=("--ai-provider" "$_arg_ai_provider")
+fi
+
+# Handle AI model
+if [ "$_arg_ai_model" != "" ]; then
+  component_args+=("--ai-model" "$_arg_ai_model")
+fi
+
+# Handle AI
+if [ "$_arg_ai" != "" ]; then
+  component_args+=("--ai" "$_arg_ai")
 fi
 
 # Layouts should be default exported
