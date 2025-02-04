@@ -22,6 +22,7 @@ fi
 # @parseArger opt ai-model "ai model"
 # @parseArger opt ai "get the ai to do something with the generated code"
 # @parseArger opt ai-example "example output to give to the AI" --repeat --alias eg
+# @parseArger opt ai-log "log file for the ai output"
 # @parseArger flag server "is server component" --on
 # @parseArger flag client "is client component"
 # @parseArger flag root "is root layout"
@@ -72,6 +73,7 @@ _arg_ai_provider=
 _arg_ai_model=
 _arg_ai=
 _arg_ai_example=()
+_arg_ai_log=
 # FLAGS
 _arg_server="on"
 _arg_client="off"
@@ -101,13 +103,14 @@ print_help()
 	echo -e "	--ai-model <ai-model>: ai model"
 	echo -e "	--ai <ai>: get the ai to do something with the generated code"
 	echo -e "	--ai-example|--eg <ai-example>: example output to give to the AI, repeatable"
+	echo -e "	--ai-log <ai-log>: log file for the ai output"
 	echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
 	echo -e "	--client|--no-client: is client component"
 	echo -e "	--root|--no-root: is root layout"
 	echo -e "	--prettier|--no-prettier:  run prettier before output"
 	echo -e "	--dry-run|--no-dry-run: output to stdout"
 	echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--[no-]server] [--[no-]client] [--[no-]root] [--[no-]prettier] [--[no-]dry-run]";
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--ai-log <value>] [--[no-]server] [--[no-]client] [--[no-]root] [--[no-]prettier] [--[no-]dry-run]";
 	fi
 
 }
@@ -247,6 +250,15 @@ parse_commandline()
 				_arg_ai_example+=("${_key##--eg=}")
 				;;
 			
+			--ai-log)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_log="$2"
+				shift
+				;;
+			--ai-log=*)
+				_arg_ai_log="${_key##--ai-log=}"
+				;;
+			
 			--server)
 				_arg_server="on"
 				;;
@@ -364,6 +376,7 @@ print_debug()
 	echo -e "	ai-model: ${_arg_ai_model}";
 	echo -e "	ai: ${_arg_ai}";
 	echo -e "	ai-example: ${_arg_ai_example[*]}";
+	echo -e "	ai-log: ${_arg_ai_log}";
 	echo -e "	server: ${_arg_server}";
 	echo -e "	client: ${_arg_client}";
 	echo -e "	root: ${_arg_root}";
@@ -465,6 +478,11 @@ fi
 # Handle AI
 if [ "$_arg_ai" != "" ]; then
   component_args+=("--ai" "$_arg_ai")
+fi
+
+# Handle AI log
+if [ "$_arg_ai_log" != "" ]; then
+  component_args+=("--ai-log" "$_arg_ai_log")
 fi
 
 # Layouts should be default exported

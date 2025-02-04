@@ -23,6 +23,7 @@ fi
 # @parseArger opt ai-model "ai model"
 # @parseArger opt ai "get the ai to do something with the generated code"
 # @parseArger opt ai-example "example output to give to the AI" --repeat --alias eg
+# @parseArger opt ai-log "log file for the ai output"
 # @parseArger flag server "is server component" --on --no-name client
 # @parseArger flag dry-run "output to stdout"
 # @parseArger flag prettier "run prettier before output" --on
@@ -74,6 +75,7 @@ _arg_ai_provider=
 _arg_ai_model=
 _arg_ai=
 _arg_ai_example=()
+_arg_ai_log=
 # FLAGS
 _arg_server="on"
 _arg_dry_run="off"
@@ -103,12 +105,13 @@ print_help()
 	echo -e "	--ai-model <ai-model>: ai model"
 	echo -e "	--ai <ai>: get the ai to do something with the generated code"
 	echo -e "	--ai-example|--eg <ai-example>: example output to give to the AI, repeatable"
+	echo -e "	--ai-log <ai-log>: log file for the ai output"
 	echo -e "	--server|--client: is server component, on by default (use --client to turn it off)"
 	echo -e "	--dry-run|--no-dry-run: output to stdout"
 	echo -e "	--prettier|--no-prettier: run prettier before output, on by default (use --no-prettier to turn it off)"
 	echo -e "	--export-default|--no-export-default: export component as default"
 	echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--[no-]server] [--[no-]dry-run] [--[no-]prettier] [--[no-]export-default]";
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--ai-log <value>] [--[no-]server] [--[no-]dry-run] [--[no-]prettier] [--[no-]export-default]";
 	fi
 
 }
@@ -259,6 +262,15 @@ parse_commandline()
 				_arg_ai_example+=("${_key##--eg=}")
 				;;
 			
+			--ai-log)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_log="$2"
+				shift
+				;;
+			--ai-log=*)
+				_arg_ai_log="${_key##--ai-log=}"
+				;;
+			
 			--server)
 				_arg_server="on"
 				;;
@@ -371,6 +383,7 @@ print_debug()
 	echo -e "	ai-model: ${_arg_ai_model}";
 	echo -e "	ai: ${_arg_ai}";
 	echo -e "	ai-example: ${_arg_ai_example[*]}";
+	echo -e "	ai-log: ${_arg_ai_log}";
 	echo -e "	server: ${_arg_server}";
 	echo -e "	dry-run: ${_arg_dry_run}";
 	echo -e "	prettier: ${_arg_prettier}";
@@ -504,6 +517,10 @@ if [ "$_arg_ai" != "" ]; then
 			if [ "$_egstr" != "" ]; then
 				_ask_cmd+=("--system" "Follow coding style and conventions from the following example: $_egstr")
 			fi
+		fi
+
+		if [ "$_arg_ai_log" != "" ]; then
+			_ask_cmd+=("--log" "$_arg_ai_log")
 		fi
 
 		# Run AI request synchronously with the generated component and ensure we get the full response
