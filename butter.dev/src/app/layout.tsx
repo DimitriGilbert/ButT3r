@@ -132,7 +132,7 @@ export default function RootLayout({
             </NavigationMenu>
           </div>
         </nav>
-        {children}
+        <div className="mc">{children}</div>
       </ThemeProvider>
     </html>
   );

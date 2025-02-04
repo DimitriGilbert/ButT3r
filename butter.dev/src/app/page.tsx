@@ -124,6 +124,8 @@ export default function HomePage() {
         <section className="grid w-full grid-cols-1 gap-8 py-8 sm:grid-cols-2">
           <div className="flex flex-col gap-4">
             <TerminalSimulator
+              title="I haz fear dark"
+              width="w-full"
               startLine="# terminalophobic and other terminal-impared individuals rejoice !"
               defaultTypingRandom={250}
               defaultTypingSpeed={10}
@@ -220,6 +222,17 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col gap-4">
             <TerminalSimulator
+              title={
+                <HoverCard>
+                  <HoverCardTrigger className="text-gray-900 dark:text-white">
+                    AI cannot center laaahhh
+                  </HoverCardTrigger>
+                  <HoverCardContent className="bg-white dark:bg-gray-800">
+                    Really, how infuriating is that ? ^^'
+                  </HoverCardContent>
+                </HoverCard>
+              }
+              width="w-full"
               startLine="# terminalophobic and other terminal-impared individuals rejoice !"
               defaultTypingRandom={250}
               defaultTypingSpeed={10}

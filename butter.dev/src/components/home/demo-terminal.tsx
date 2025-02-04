@@ -3,6 +3,7 @@ import TerminalSimulator from "../terminal-simulator";
 export function DemoTerminal() {
   return (
     <TerminalSimulator
+      title="A ButT3r Demo"
       startLine="# How do I install butter.... this is a scarry place... the terminal..."
       defaultTypingRandom={75}
       defaultTypingSpeed={75}
