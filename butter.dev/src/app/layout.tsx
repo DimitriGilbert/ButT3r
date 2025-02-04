@@ -26,55 +26,85 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <body className="bg-gradient-to-b from-[#57aed1] to-[#2e026d] dark:from-[#2e026d] dark:to-[#57aed1]">
-        <ThemeProvider>
-          <nav className="fixed top-0 left-0 right-0 bg-white/10 backdrop-blur-md p-4">
+      <ThemeProvider className="bg-gradient-to-b from-[#57aed1] to-[#2e026d] dark:from-[#2e026d] dark:to-[#57aed1]">
+        <nav className="fixed left-0 right-0 top-0 bg-white/10 p-4 backdrop-blur-md">
+          <div className="mx-auto max-w-7xl">
             <NavigationMenu>
-              <NavigationMenuList>
+              <NavigationMenuList className="flex justify-center">
                 <NavigationMenuItem>
                   <Link href="/" legacyBehavior passHref>
-                    <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300`}>
+                    <NavigationMenuLink
+                      className={`${navigationMenuTriggerStyle()} text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300`}
+                    >
                       BT3r
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300`}>
+                  <NavigationMenuTrigger
+                    className={`${navigationMenuTriggerStyle()} text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300`}
+                  >
                     Docs
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md">
+                  <NavigationMenuContent className="bg-white/90 backdrop-blur-md dark:bg-gray-800/90">
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                       <li>
-                        <Link href="https://create.t3.gg/docs" legacyBehavior passHref>
-                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                        <Link
+                          href="https://create.t3.gg/docs"
+                          legacyBehavior
+                          passHref
+                        >
+                          <NavigationMenuLink
+                            className={`${navigationMenuTriggerStyle()} text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700`}
+                          >
                             T3 Docs
                           </NavigationMenuLink>
                         </Link>
                       </li>
                       <li>
-                        <Link href="https://nextjs.org/docs" legacyBehavior passHref>
-                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                        <Link
+                          href="https://nextjs.org/docs"
+                          legacyBehavior
+                          passHref
+                        >
+                          <NavigationMenuLink
+                            className={`${navigationMenuTriggerStyle()} text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700`}
+                          >
                             Next.js Docs
                           </NavigationMenuLink>
                         </Link>
                       </li>
                       <li>
-                        <Link href="https://tailwindcss.com/docs" legacyBehavior passHref>
-                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                        <Link
+                          href="https://tailwindcss.com/docs"
+                          legacyBehavior
+                          passHref
+                        >
+                          <NavigationMenuLink
+                            className={`${navigationMenuTriggerStyle()} text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700`}
+                          >
                             Tailwind Docs
                           </NavigationMenuLink>
                         </Link>
                       </li>
                       <li>
-                        <Link href="https://ui.shadcn.com/docs" legacyBehavior passHref>
-                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                        <Link
+                          href="https://ui.shadcn.com/docs"
+                          legacyBehavior
+                          passHref
+                        >
+                          <NavigationMenuLink
+                            className={`${navigationMenuTriggerStyle()} text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700`}
+                          >
                             Shadcn Docs
                           </NavigationMenuLink>
                         </Link>
                       </li>
                       <li>
                         <Link href="/docs" legacyBehavior passHref>
-                          <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700`}>
+                          <NavigationMenuLink
+                            className={`${navigationMenuTriggerStyle()} text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700`}
+                          >
                             ButT3r Docs
                           </NavigationMenuLink>
                         </Link>
@@ -83,8 +113,14 @@ export default function RootLayout({
                   </NavigationMenuContent>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link href="https://github.com/your-repo" legacyBehavior passHref>
-                    <NavigationMenuLink className={`${navigationMenuTriggerStyle()} text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300`}>
+                  <Link
+                    href="https://github.com/your-repo"
+                    legacyBehavior
+                    passHref
+                  >
+                    <NavigationMenuLink
+                      className={`${navigationMenuTriggerStyle()} text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300`}
+                    >
                       GitHub
                     </NavigationMenuLink>
                   </Link>
@@ -94,10 +130,10 @@ export default function RootLayout({
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
-          </nav>
-          {children}
-        </ThemeProvider>
-      </body>
+          </div>
+        </nav>
+        {children}
+      </ThemeProvider>
     </html>
   );
 }

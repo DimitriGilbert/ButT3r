@@ -25,9 +25,9 @@ export default function HomePage() {
   };
 
   return (
-    <main className="mt-12 flex min-h-screen flex-col items-center text-white">
+    <main className="flex min-h-screen flex-col items-center pt-8 text-white">
       <Hero />
-      <div className="container flex flex-col items-center gap-8 px-4 py-8">
+      <div className="container flex flex-col items-center gap-8 px-4 py-8 pt-8">
         <section className="grid grid-cols-1 gap-4 py-8 sm:grid-cols-2 md:gap-8">
           <OutgoingLink
             href="https://github.com/DimitriGilbert/ButT3r"
@@ -43,23 +43,27 @@ export default function HomePage() {
           </OutgoingLink>
         </section>
         <section className="grid w-full grid-cols-1 items-center gap-8 py-8 lg:grid lg:gap-x-2 xl:grid-cols-2 xl:gap-x-6">
-          <div className="flex flex-col gap-4">
-            <h2 className="text-3xl font-bold text-white md:text-5xl">
+          <div className="flex flex-col gap-4 p-6 rounded-lg bg-white/60 dark:bg-gray-800/90">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
               But
               <T3Link />r removes friction!
             </h2>
-            <p className="text-base text-gray-300 md:text-xl">
+            <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               But
               <T3Link />r refined the extreme lubrication properties of bash, in
               order to offer you the But
-              <T3Link />r way to create full-stack web app, Fast as a sausage on
-              a well oiled pan !
+              <T3Link />r way to create full-stack web apps, Fast as a sausage
+              on a well oiled pan !{" "}
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                both the creation And the app !{" "}
+                <span className="text-muted">wiiiiiizzzzz</span>
+              </span>
             </p>
-            <div className="text-base text-gray-300 md:text-xl">
+            <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               After a 7 years{" "}
               <HoverCard>
-                <HoverCardTrigger>professional</HoverCardTrigger>
-                <HoverCardContent className="bg-gray-800 text-white">
+                <HoverCardTrigger className="text-gray-900 dark:text-white">professional</HoverCardTrigger>
+                <HoverCardContent className="bg-white dark:bg-gray-800">
                   8 years as mostly a :
                   <ul>
                     <li>PHP dev (#noRagrets)</li>
@@ -71,28 +75,41 @@ export default function HomePage() {
                   </ul>
                 </HoverCardContent>
               </HoverCard>{" "}
-              hiatus, I have lots of opinions and absolutly no insights ! So,
-              I've done my best to steal others work's and shove it into this
-              CLI tool !
-            </div>
-            <div className="text-base text-gray-300 md:text-xl">
-              It is written in bash (arguably the most amazing programming
-              language !) and using the most definitly greatest{" "}
               <HoverCard>
-                <HoverCardTrigger>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">hiatus</HoverCardTrigger>
+                <HoverCardContent className="bg-white dark:bg-gray-800">
+                  Auto-immune diseases sux donkey ballz, dude !
+                </HoverCardContent>
+              </HoverCard>
+              , I have lots of opinions and absolutly no insights ! So, I've
+              done my best to steal others work's and shove it into this CLI
+              tool !
+            </div>
+            <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
+              It is written in bash (arguably the most amazing programming
+              language !) and using the{" "}
+              <HoverCard>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">most definitly greatest</HoverCardTrigger>
+                <HoverCardContent className="bg-white dark:bg-gray-800">
+                  the only thing that could make it better would be that it'd be
+                  in French !
+                </HoverCardContent>
+              </HoverCard>{" "}
+              <HoverCard>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">
                   pure bash standalone argument parsing generator CLI tool :
                 </HoverCardTrigger>
-                <HoverCardContent className="bg-gray-800 text-white">
-                  Try saying That 10 times fast, rolls of the tongue ! XD <br />
+                <HoverCardContent className="bg-white dark:bg-gray-800">
+                  Try saying That 10 times fast, rolls of the tongue ! XD <br />
                   A ? shameless plug ? yes, yes it is !
                 </HoverCardContent>
               </HoverCard>{" "}
-              <a href="https://github.com/DimitriGilbert/parseArger">
+              <a href="https://github.com/DimitriGilbert/parseArger" className="text-blue-600 dark:text-blue-400 hover:underline">
                 parseArger
               </a>{" "}
               !
             </div>
-            <p className="text-base text-gray-300 md:text-xl">
+            <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               The main goal is to work smar
               <T3Link />
               r, not harder ! Get to start your project in 10 seconds, and
@@ -119,76 +136,82 @@ export default function HomePage() {
               ]}
             />
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 p-6 rounded-lg bg-white/60 dark:bg-gray-800/90">
+            <h2 className="text-right text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
+              But
+              <T3Link />r is accessible !
+            </h2>
             <Clickodrome onSubmit={handleSubmit} />
           </div>
         </section>
         <section className="grid w-full grid-cols-1 gap-8 py-8 sm:grid-cols-2">
-          <div className="flex flex-col gap-4">
-            <h2 className="text-3xl font-bold text-white md:text-5xl">
+          <div className="flex flex-col gap-4 p-6 rounded-lg bg-white/60 dark:bg-gray-800/90">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
               But
               <T3Link />r haz --ai !
             </h2>
-            <div className="text-base text-gray-300 md:text-xl">
+            <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               In case you were wondering, or not tired of everyone shoving AI in
               everything and{" "}
               <HoverCard>
-                <HoverCardTrigger>absolutly anything</HoverCardTrigger>
-                <HoverCardContent className="bg-gray-800 text-white">
+                <HoverCardTrigger className="text-gray-900 dark:text-white">absolutly anything</HoverCardTrigger>
+                <HoverCardContent className="bg-white dark:bg-gray-800">
                   And I trully mean,{" "}
-                  <Link href="https://buttplug.io/">ANYTHING !</Link>
+                  <Link href="https://buttplug.io/" className="text-blue-600 dark:text-blue-400 hover:underline">
+                    ANYTHING !
+                  </Link>
                 </HoverCardContent>
               </HoverCard>
               , you'll be happy to learn that, But
               <T3Link />r also comes with AI !
             </div>
-            <div className="text-base text-gray-300 md:text-xl">
+            <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               Waaaiiiit, WUUUUUT ? But
               <T3Link />r can do AI ? ooooh yeah baby, and it can do it gooooood
               !
             </div>
-            <div className="text-base text-gray-300 md:text-xl">
+            <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               A new component ? --ai ! A new Page ? --ai ! A new Layout ? --AI
               !! Easy as saying AI !
             </div>
-            <div className="text-base text-gray-300 md:text-xl">
+            <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               How do you use it ? Easy !
               <ol className="list-inside list-decimal space-y-4">
-                <li className="text-gray-300">
+                <li className="text-gray-700 dark:text-gray-300">
                   Use <span className="font-mono text-purple-400">--ai</span>{" "}
                   when installing But
                   <T3Link />
                   r, this will install the{" "}
                   <GlowLink
                     href="https://github.com/DimitriGilbert/ai-gents"
-                    className="text-blue-400 hover:text-blue-300"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
                     target="_blank"
                   >
                     AI-Gents
                   </GlowLink>{" "}
                   CLI tool
-                  <span className="text-sm text-gray-400">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
                     {" "}
                     (you can configure providers and models also{" "}
                     <span className="font-mono">--ai-provider</span> and{" "}
                     <span className="font-mono">--ai-model</span> ;))
                   </span>
                 </li>
-                <li className="text-gray-300">
+                <li className="text-gray-700 dark:text-gray-300">
                   Use{" "}
                   <span className="font-mono text-purple-400">
                     --ai "a description for the stuff you want to create"
                   </span>{" "}
                   when creating a new component, page or layout.{" "}
-                  <span className="text-gray-400">
+                  <span className="text-gray-600 dark:text-gray-400">
                     Remember, output is only as good as the prompt!
                   </span>
                 </li>
-                <li className="text-gray-300">
+                <li className="text-gray-700 dark:text-gray-300">
                   <span className="font-bold text-green-400">
                     "Instant" AI code!
                   </span>{" "}
-                  <span className="text-gray-400">
+                  <span className="text-gray-600 dark:text-gray-400">
                     (What do you mean buttery slop?!)
                   </span>
                 </li>
@@ -496,13 +519,13 @@ Usage :
     </div>
   );
 }`,
+                    },
                   },
-                },
-                {
-                  prompt:
-                    "butt3r page docs --ai 'use the provided documentation to create a nice looking nextjs page containing all necessary informations about my CLI. For each command, I want a small description, the full help and a set of example. Do not just import the md, I want a full page \! \n#\!/cat documentation.md;' --ai-provider lmstudio --ai-model hermes-3-llama-3.2-3b",
-                  output: {
-                    content:`Extracted Code Blocks: 11
+                  {
+                    prompt:
+                      "butt3r page docs --ai 'use the provided documentation to create a nice looking nextjs page containing all necessary informations about my CLI. For each command, I want a small description, the full help and a set of example. Do not just import the md, I want a full page \! \n#\!/cat documentation.md;' --ai-provider lmstudio --ai-model hermes-3-llama-3.2-3b",
+                    output: {
+                      content: `Extracted Code Blocks: 11
 src/app/docs/page.tsx
 import React from "react";
 

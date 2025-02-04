@@ -4,7 +4,6 @@ import { createContext, useContext, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { FaMoon, FaSun } from "react-icons/fa";
 
-
 type Theme = "light" | "dark";
 type ThemeContextType = {
   theme: Theme;
@@ -13,18 +12,18 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children, className }: { children: React.ReactNode, className?: string }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
   const toggleTheme = () => {
-    setTheme(prev => prev === "light" ? "dark" : "light");
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div className={theme === "dark" ? "dark" : ""}>
-        {children}
-      </div>
+      <body className={theme === "dark" ? "dark" : ""}>
+        <div className={className}>{children}</div>
+      </body>
     </ThemeContext.Provider>
   );
 }
@@ -39,7 +38,7 @@ export function useTheme() {
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
-  
+
   return (
     <Button
       variant="ghost"
@@ -48,11 +47,11 @@ export function ThemeToggle() {
       className="hover:bg-white/20"
     >
       {theme === "dark" ? (
-        <FaMoon className="h-[1.2rem] w-[1.2rem]" />
-      ) : (
         <FaSun className="h-[1.2rem] w-[1.2rem]" />
+      ) : (
+        <FaMoon className="h-[1.2rem] w-[1.2rem]" />
       )}
       <span className="sr-only">Toggle theme</span>
     </Button>
   );
-} 
+}

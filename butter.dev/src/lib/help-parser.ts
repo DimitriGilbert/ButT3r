@@ -6,6 +6,7 @@ type FormField = {
   defaultValue?: string | boolean | string[];
   choices?: string[];
   isPositional?: boolean;
+  description?: string;
 };
 
 export function parseHelp(helpText: string): FormField[] {
@@ -20,6 +21,15 @@ export function parseHelp(helpText: string): FormField[] {
     // Skip if this is an alias definition or the no-aliases case
     if (line.includes("no-aliases")) {
       continue;
+    }
+
+    // Extract description from the line
+    const description = line.split(":").slice(1).join(":").trim();
+    if (description) {
+      field.description = description
+        .replace(/\[default: '[^']+'\]/, '') // Remove default value
+        .replace(/\(use --[^)]+\)/, '') // Remove boolean usage hints
+        .trim();
     }
 
     // Add this condition at the very beginning of the loop

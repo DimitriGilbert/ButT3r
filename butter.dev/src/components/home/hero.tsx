@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { T3Link } from "../ui/t3-link";
+import { GlowLink } from "../ui/glow-link";
 
 export function Hero() {
   return (
@@ -9,12 +11,16 @@ export function Hero() {
             <div className="flex flex-col items-start justify-between">
               <h1 className="text-center text-4xl font-bold tracking-tight text-white sm:text-6xl sm:tracking-tight lg:text-[4rem] xl:text-[6rem] xl:tracking-tight 2xl:text-[6.5rem]">
                 <div>
-                  The But<span className="text-[hsl(280,100%,50%)]"><Link href="https://create.t3.gg" target="_blank">T3</Link></span>r way to create your{" "}
-                  <span className="text-[hsl(120,100%,50%)]"><Link href="https://roadmap.sh/full-stack" target="_blank">full-stack,</Link></span>{" "}
-                  <span className="whitespace-nowrap text-[hsl(60,100%,50%)]">
-                    <Link href="https://en.wikipedia.org/wiki/Type_safety" target="_blank">typesafe,</Link>
-                  </span>{" "}
-                  <span className="text-[hsl(0,100%,60%)]"><Link href="https://nextjs.org/docs" target="_blank">Next.js</Link></span> App
+                  The But<T3Link />r way to create your{" "}
+                  <GlowLink href="https://roadmap.sh/full-stack" target="_blank" color="hsl(120, 100%, 50%)" className="text-[hsl(120,100%,50%)]">
+                    full-stack,
+                  </GlowLink>{" "}
+                  <GlowLink href="https://en.wikipedia.org/wiki/Type_safety" target="_blank" color="hsl(60, 100%, 50%)" className="whitespace-nowrap text-[hsl(60,100%,50%)]">
+                    typesafe,
+                  </GlowLink>{" "}
+                  <GlowLink href="https://nextjs.org/docs" target="_blank" color="hsl(0, 100%, 60%)" className="text-[hsl(0,100%,60%)]">
+                    Next.js
+                  </GlowLink> App
                 </div>
               </h1>
             </div>

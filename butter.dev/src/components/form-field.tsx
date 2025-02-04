@@ -19,11 +19,15 @@ interface FormFieldType {
   required?: boolean;
   defaultValue?: any;
   isPositional?: boolean;
+  className?: string;
+  description?: string;
 }
 
-export function FormFieldComponent({ field, control }: {
+export function FormFieldComponent({ field, control, className, description }: {
   field: FormFieldType;  // Changed from FormField to FormFieldType
   control: any;
+  className?: string;
+  description?: string;
 }) {
   let frmLabel = field.label || field.name;
   if (field.type === 'array') {
@@ -34,8 +38,8 @@ export function FormFieldComponent({ field, control }: {
       control={control}
       name={field.name}
       render={({ field: formField }) => (
-        <FormItem>
-          <FormLabel>{frmLabel}</FormLabel>
+        <FormItem className={className}>
+          <FormLabel className='px-2'>{frmLabel}</FormLabel>
           {field.type === 'boolean' ? (
             <FormControl>
               <Switch
@@ -72,9 +76,10 @@ export function FormFieldComponent({ field, control }: {
           ) : (
             <Input {...formField} />
           )}
-          <FormDescription>
-            {field.required && 'Required'}
-            {field.choices && `Options: ${field.choices.join(', ')}`}
+          <FormDescription className='px-2'>
+            {field.required && 'Required, '}
+            {field.choices && `Options: ${field.choices.join(', ')}.`}
+            {description && description}
           </FormDescription>
         </FormItem>
       )}

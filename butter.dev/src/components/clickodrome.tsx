@@ -85,11 +85,12 @@ export function Clickodrome({ onSubmit }: ClickodromeProps) {
 
   return (
     <Tabs defaultValue="install">
-      <TabsList>
+      <TabsList className="flex justify-center">
         {Object.keys(commands).map((cmd) => (
           <TabsTrigger
             key={cmd}
             value={cmd}
+            className="mx-2"
           >
             {cmd}
           </TabsTrigger>
@@ -102,6 +103,7 @@ export function Clickodrome({ onSubmit }: ClickodromeProps) {
             baseCmd={cmd === 'install' ? 'utils/install' : `butt3r ${cmd}`}
             onSubmit={onSubmit}
             columns={cmd === 'install' ? 1 : 2}
+            fieldClassName="dark:bg-gray-800/90 backdrop-blur-md"
           />
         </TabsContent>
       ))}

@@ -12,9 +12,10 @@ interface CliFormProps {
   baseCmd?: string;
   columns?: number;
   maxHeight?: string | number;
+  fieldClassName?: string;
 }
 
-export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight }: CliFormProps) {
+export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight, fieldClassName }: CliFormProps) {
   const fields = parseHelp(helpText);
   const form = useForm({
     defaultValues: fields.reduce((acc, field) => ({
@@ -87,7 +88,13 @@ export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight }:
       >
           <Button type="submit">as command</Button>
         {sortedFields.map((field) => (
-          <FormFieldComponent key={field.name} field={field} control={form.control} />
+          <FormFieldComponent 
+            key={field.name} 
+            field={field} 
+            control={form.control} 
+            className={fieldClassName}
+            description={field.description}
+          />
         ))}
         <div className={cn(
           "col-span-full",
