@@ -11,203 +11,259 @@ if [ -t 1 ]; then # Check if stdout is a terminal
 fi
 # @parseArger-declarations
 # @parseArger opt shell-rc-file "where to put the source directive" --default-value "/home/didi/.bashrc" --repeat --alias install-file
+# @parseArger opt ai-provider "<provider>:<credential> to add provider and its credential" --short p --repeat
+# @parseArger opt ai-default-provider "default provider, first added if none"
 # @parseArger flag comment "add parsearger comment" --on
 # @parseArger flag install-dependencies "install dependencies" --on --no-alias no-deps
+# @parseArger flag ai "install ai-gents" --short a
 # @parseArger-declarations-end
 
 # @parseArger-utils
-_helpHasBeenPrinted=1
-_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+_helpHasBeenPrinted=1;
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)";
 # @parseArger-utils-end
 
 # @parseArger-parsing
 
-__cli_arg_count=$#
+__cli_arg_count=$#;
 
-die() {
+die()
+{
 	local _ret=1
-	if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
-		_ret="$2"
-	fi
+    if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9]+$ ]]; then
+   	_ret="$2"
+    fi
 	test "${_PRINT_HELP:-no}" = yes && print_help >&2
 	log "$1" -3 >&2
 	exit "${_ret}"
 }
 
-begins_with_short_option() {
+
+begins_with_short_option()
+{
 	local first_option all_short_options=''
 	first_option="${1:0:1}"
 	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
 }
 
 # POSITIONALS ARGUMENTS
-_positionals=()
-_optional_positionals=()
+_positionals=();
+_optional_positionals=();
 # OPTIONALS ARGUMENTS
-_arg_shell_rc_file=("/home/didi/.bashrc")
+_arg_shell_rc_file=("/home/didi/.bashrc" )
+_arg_ai_provider=()
+_arg_ai_default_provider=
 # FLAGS
 _arg_comment="on"
 _arg_install_dependencies="on"
+_arg_ai="off"
 # NESTED
-_verbose_level="0"
+_verbose_level="0";
 
-print_help() {
-	_triggerSCHelp=1
+
+
+print_help()
+{
+	_triggerSCHelp=1;
 
 	if [[ "$_helpHasBeenPrinted" == "1" ]]; then
-		_helpHasBeenPrinted=0
+		_helpHasBeenPrinted=0;
 		echo -e "Install butt3r:"
-		echo -e "	--shell-rc-file|--install-file <shell-rc-file>: where to put the source directive, repeatable [default: '( /home/didi/.bashrc )']"
-		echo -e "	--comment|--no-comment: add parsearger comment, on by default (use --no-comment to turn it off)"
-		echo -e "	--install-dependencies|--no-install-dependencies: install dependencies, on by default (use --no-install-dependencies to turn it off)
+	echo -e "	--shell-rc-file|--install-file <shell-rc-file>: where to put the source directive, repeatable [default: '( /home/didi/.bashrc )']"
+	echo -e "	-p, --ai-provider <ai-provider>: <provider>:<credential> to add provider and its credential, repeatable"
+	echo -e "	--ai-default-provider <ai-default-provider>: default provider, first added if none"
+	echo -e "	--comment|--no-comment: add parsearger comment, on by default (use --no-comment to turn it off)"
+	echo -e "	--install-dependencies|--no-install-dependencies: install dependencies, on by default (use --no-install-dependencies to turn it off)
 		no-aliases: --no-deps,"
-		echo -e "Usage :
-	$0 [--shell-rc-file <value>] [--[no-]comment] [--[no-]install-dependencies]"
+	echo -e "	-a|--ai|--no-ai: install ai-gents"
+	echo -e "Usage :
+	$0 [--shell-rc-file <value>] [--ai-provider <value>] [--ai-default-provider <value>] [--[no-]comment] [--[no-]install-dependencies] [--[no-]ai]";
 	fi
 
 }
 
 log() {
-	local _arg_msg="${1}"
-	local _arg_level="${2:-0}"
+	local _arg_msg="${1}";
+	local _arg_level="${2:-0}";
 	if [ "${_arg_level}" -le "${_verbose_level}" ]; then
 		case "$_arg_level" in
-		-3)
-			_arg_COLOR="\033[0;31m"
-			;;
-		-2)
-			_arg_COLOR="\033[0;33m"
-			;;
-		-1)
-			_arg_COLOR="\033[1;33m"
-			;;
-		1)
-			_arg_COLOR="\033[0;32m"
-			;;
-		2)
-			_arg_COLOR="\033[1;36m"
-			;;
-		3)
-			_arg_COLOR="\033[0;36m"
-			;;
-		*)
-			_arg_COLOR="\033[0m"
-			;;
+			-3)
+				_arg_COLOR="\033[0;31m";
+				;;
+			-2)
+				_arg_COLOR="\033[0;33m";
+				;;
+			-1)
+				_arg_COLOR="\033[1;33m";
+				;;
+			1)
+				_arg_COLOR="\033[0;32m";
+				;;
+			2)
+				_arg_COLOR="\033[1;36m";
+				;;
+			3)
+				_arg_COLOR="\033[0;36m";
+				;;
+			*)
+				_arg_COLOR="\033[0m";
+				;;
 		esac
 		if [ "${_has_colors}" == "1" ]; then
-			echo -e "${_arg_COLOR}${_arg_msg}\033[0m"
+			echo -e "${_arg_COLOR}${_arg_msg}\033[0m";
 		else
-			echo "${_arg_msg}"
+			echo "${_arg_msg}";
 		fi
 	fi
 }
 
-parse_commandline() {
+parse_commandline()
+{
 	_positionals_count=0
-	while test $# -gt 0; do
+	while test $# -gt 0
+	do
 		_key="$1"
 		case "$_key" in
-		--install-file | --shell-rc-file)
-			test $# -lt 2 && die "Missing value for the option: '$_key'" 1
-			_arg_shell_rc_file+=("$2")
-			shift
-			;;
-		--shell-rc-file=*)
-			_arg_shell_rc_file+=("${_key##--shell-rc-file=}")
-			;;
-		--install-file=*)
-			_arg_shell_rc_file+=("${_key##--install-file=}")
-			;;
-
-		--comment)
-			_arg_comment="on"
-			;;
-		--no-comment)
-			_arg_comment="off"
-			;;
-		--install-dependencies)
-			_arg_install_dependencies="on"
-			;;
-		--no-install-dependencies | --no-deps)
-			_arg_install_dependencies="off"
-			;;
-		-h | --help)
-			print_help
-			exit 0
-			;;
-		-h*)
-			print_help
-			exit 0
-			;;
-		--verbose)
-			if [ $# -lt 2 ]; then
-				_verbose_level="$((_verbose_level + 1))"
-			else
-				_verbose_level="$2"
+			--install-file|--shell-rc-file)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_shell_rc_file+=("$2")
 				shift
-			fi
-			;;
-		--quiet)
-			if [ $# -lt 2 ]; then
-				_verbose_level="$((_verbose_level - 1))"
-			else
-				_verbose_level="-$2"
+				;;
+			--shell-rc-file=*)
+				_arg_shell_rc_file+=("${_key##--shell-rc-file=}")
+				;;
+			--install-file=*)
+				_arg_shell_rc_file+=("${_key##--install-file=}")
+				;;
+			
+			-p|--ai-provider)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_provider+=("$2")
 				shift
-			fi
-			;;
-
-		*)
-			_last_positional="$1"
-			_positionals+=("$_last_positional")
-			_positionals_count=$((_positionals_count + 1))
-			;;
+				;;
+			--ai-provider=*)
+				_arg_ai_provider+=("${_key##--ai-provider=}")
+				;;
+			-p*)
+				_arg_ai_provider+=("${_key##-p}")
+				;;
+			
+			--ai-default-provider)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_default_provider="$2"
+				shift
+				;;
+			--ai-default-provider=*)
+				_arg_ai_default_provider="${_key##--ai-default-provider=}"
+				;;
+			
+			--comment)
+				_arg_comment="on"
+				;;
+			--no-comment)
+				_arg_comment="off"
+				;;
+			--install-dependencies)
+				_arg_install_dependencies="on"
+				;;
+			--no-install-dependencies|--no-deps)
+				_arg_install_dependencies="off"
+				;;
+			-a|--ai)
+				_arg_ai="on"
+				;;
+			--no-ai)
+				_arg_ai="off"
+				;;
+			-h|--help)
+				print_help;
+				exit 0;
+				;;
+			-h*)
+				print_help;
+				exit 0;
+				;;
+			--verbose)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level + 1))";
+					else
+						_verbose_level="$2";
+						shift;
+					fi
+					;;
+				--quiet)
+					if [ $# -lt 2 ];then
+						_verbose_level="$((_verbose_level - 1))";
+					else
+						_verbose_level="-$2";
+						shift;
+					fi
+					;;
+				
+				*)
+				_last_positional="$1"
+				_positionals+=("$_last_positional")
+				_positionals_count=$((_positionals_count + 1))
+				;;
 		esac
 		shift
 	done
 }
 
-handle_passed_args_count() {
+
+handle_passed_args_count()
+{
 	local _required_args_string=""
-	if [ "${_positionals_count}" -gt 0 ] && [ "$_helpHasBeenPrinted" == "1" ]; then
+	if [ "${_positionals_count}" -gt 0 ] && [ "$_helpHasBeenPrinted" == "1" ];then
 		_PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect at most 0 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}').\n\t${_positionals[*]}" 1
 	fi
-	if [ "${_positionals_count}" -lt 0 ] && [ "$_helpHasBeenPrinted" == "1" ]; then
+	if [ "${_positionals_count}" -lt 0 ] && [ "$_helpHasBeenPrinted" == "1" ];then
 		_PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require at least 0 (namely: $_required_args_string), but got only ${_positionals_count}.
-	${_positionals[*]}" 1
+	${_positionals[*]}" 1;
 	fi
 }
 
-assign_positional_args() {
-	local _positional_name _shift_for=$1
-	_positional_names=""
+
+assign_positional_args()
+{
+	local _positional_name _shift_for=$1;
+	_positional_names="";
 	shift "$_shift_for"
-	for _positional_name in ${_positional_names}; do
-		test $# -gt 0 || break
-		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1
-		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1
-		shift
+	for _positional_name in ${_positional_names};do
+		test $# -gt 0 || break;
+		eval "if [ \"\$_one_of${_positional_name}\" != \"\" ];then [[ \"\${_one_of${_positional_name}[*]}\" =~ \"\${1}\" ]];fi" || die "${_positional_name} must be one of: $(eval "echo \"\${_one_of${_positional_name}[*]}\"")" 1;
+		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an ParseArger bug." 1;
+		shift;
 	done
 }
 
-print_debug() {
+print_debug()
+{
 	print_help
 	# shellcheck disable=SC2145
-	echo "DEBUG: $0 $@"
-
-	echo -e "	shell-rc-file: ${_arg_shell_rc_file[*]}"
-	echo -e "	comment: ${_arg_comment}"
-	echo -e "	install-dependencies: ${_arg_install_dependencies}"
+	echo "DEBUG: $0 $@";
+	
+	echo -e "	shell-rc-file: ${_arg_shell_rc_file[*]}";
+	echo -e "	ai-provider: ${_arg_ai_provider[*]}";
+	echo -e "	ai-default-provider: ${_arg_ai_default_provider}";
+	echo -e "	comment: ${_arg_comment}";
+	echo -e "	install-dependencies: ${_arg_install_dependencies}";
+	echo -e "	ai: ${_arg_ai}";
 
 }
+
 
 on_interrupt() {
-	die Process aborted! 130
+	die Process aborted! 130;
 }
 
-parse_commandline "$@"
-handle_passed_args_count
-assign_positional_args 1 "${_positionals[@]}"
-trap on_interrupt INT
+
+parse_commandline "$@";
+handle_passed_args_count;
+assign_positional_args 1 "${_positionals[@]}";
+trap on_interrupt INT;
+
+
 
 # @parseArger-parsing-end
 # print_debug "$@"
@@ -254,6 +310,45 @@ for _file in "${_arg_shell_rc_file[@]}"; do
 		log "File $_file not found" -1
 	fi
 done
+
+# install ai-gents
+if [ "$_arg_ai" == "on" ]; then
+	_tmpAiInstall="$(mktemp)"
+	curl -s https://raw.githubusercontent.com/DimitriGilbert/AI-gents/main/utils/install -o "$_tmpAiInstall"
+	chmod +x "$_tmpAiInstall"
+	_ai_in_cmd=("$_tmpAiInstall")
+
+	if [ "${#_arg_ai_provider[@]}" -gt 0 ]; then
+		for _ai_provider in "${_arg_ai_provider[@]}"; do
+			_ai_in_cmd+=("--credential" "${_ai_provider}")
+		done
+
+		if [ "${_arg_ai_default_provider}" = "" ]; then
+			_arg_ai_default_provider="${_arg_ai_provider[0]}"
+		fi
+	fi
+
+	if [ "${_arg_ai_default_provider}" != "" ]; then
+		_ai_in_cmd+=("--default-provider" "${_arg_ai_default_provider}")
+	fi
+
+	if [ "${_arg_shell_rc_file[-1]}" != "" ]; then
+		_ai_in_cmd+=("--install-file" "${_arg_shell_rc_file[-1]}")
+	fi
+
+	if [ "${_arg_install_dependencies}" != "on" ]; then
+		_ai_in_cmd+=("--no-deps")
+	fi
+
+	# verbose
+	if [ "${_verbose_level}" -gt 0 ]; then
+		_ai_in_cmd+=("--verbose" "${_verbose_level}")
+	fi
+	
+	"${_ai_in_cmd[@]}";
+
+	rm "$_tmpAiInstall";
+fi
 
 # .rc
 if [ ! -f "${_dir}/butt3r.rc" ]; then
