@@ -158,7 +158,7 @@ export default function HomePage() {
                     Use <span className="font-mono text-purple-400">--ai</span> when installing But
                     <T3Link />
                     r, this will install the{" "}
-                    <GlowLink href="https://github.com/DimitriGilbert/ai-gents" className="text-blue-400 hover:text-blue-300">
+                    <GlowLink href="https://github.com/DimitriGilbert/ai-gents" className="text-blue-400 hover:text-blue-300" target="_blank">
                       AI-Gents
                     </GlowLink>{" "}CLI tool
                     <span className="text-sm text-gray-400"> (you can configure providers and models also <span className="font-mono">--ai-provider</span> and <span className="font-mono">--ai-model</span> ;))</span>

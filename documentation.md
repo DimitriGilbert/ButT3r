@@ -60,10 +60,15 @@ create/update a component:
 	--import <import>: import statement (from:what), repeatable
 	--emmet <emmet>: emmet pattern for the component, repeatable
 	--template <template>: template to use (page|layout|form|table) [one of 'page' 'layout' 'form' 'table']
+	--ai-emmet <ai-emmet>: description for the ai generated emmet string
+	--ai-provider <ai-provider>: ai provider
+	--ai-model <ai-model>: ai model
+	--ai <ai>: get the ai to do something with the generated code
+	--ai-example|--eg <ai-example>: example output to give to the AI, repeatable
 	--server|--no-server: is server component, on by default (use --no-server to turn it off)
 	--client|--no-client: is client component
 Usage :
-	butt3r component <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--[no-]server] [--[no-]client]
+	butt3r component <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--[no-]server] [--[no-]client]
 ```
 
 ## butt3r api-route
@@ -107,11 +112,16 @@ create/update a layout:
 	--component-name <component-name>: component name
 	--props <props>: property definition (name:type), repeatable
 	--import <import>: import statement (from:what), repeatable
+	--ai-emmet <ai-emmet>: description for the ai generated emmet string
+	--ai-provider <ai-provider>: ai provider
+	--ai-model <ai-model>: ai model
+	--ai <ai>: get the ai to do something with the generated code
+	--ai-example|--eg <ai-example>: example output to give to the AI, repeatable
 	--server|--no-server: is server component, on by default (use --no-server to turn it off)
 	--client|--no-client: is client component
 	--root|--no-root: is root layout
 Usage :
-	butt3r layout <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--[no-]server] [--[no-]client] [--[no-]root]
+	butt3r layout <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--[no-]server] [--[no-]client] [--[no-]root]
 ```
 
 ## butt3r page
@@ -123,10 +133,15 @@ create/update a page:
 	--component-name <component-name>: component name
 	--props <props>: property definition (name:type), repeatable
 	--import <import>: import statement (from:what), repeatable
+	--ai-emmet <ai-emmet>: description for the ai generated emmet string
+	--ai-provider <ai-provider>: ai provider
+	--ai-model <ai-model>: ai model
+	--ai <ai>: get the ai to do something with the generated code
+	--ai-example|--eg <ai-example>: example output to give to the AI, repeatable
 	--server|--no-server: is server component, on by default (use --no-server to turn it off)
 	--client|--no-client: is client component
 Usage :
-	butt3r page <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--[no-]server] [--[no-]client]
+	butt3r page <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--[no-]server] [--[no-]client]
 ```
 
 ## butt3r start

@@ -161,35 +161,37 @@ butt3r ts-edit export-function getUser --props "id:string" --return-type "Promis
 
 ## Advanced Features
 
-### Component Templates
-Create components with advanced features:
+### AI
+
 ```bash
-# Page with error boundaries
-butt3r component create MyPage --template page
-
-# Form with validation
-butt3r component create LoginForm --template form --schema form
-
-# Data table with pagination
-butt3r component create UserTable --template table
+# Create a component with AI
+butt3r component MyComponent --ai "Create a button component"
+# set an ai provider
+butt3r component MyComponent --ai "Create a button component" --ai-provider "openai"
+# set an ai model
+butt3r component MyComponent --ai "Create a button component" --ai-provider "openai" --ai-model "gpt-4o"
+# set an ai example
+butt3r component MyComponent --ai "Create a button component" --ai-provider "openai" --ai-model "gpt-4o" --ai-example "./components/ui/button.tsx"
 ```
+
+Same for page and layout.
 
 ### API Integration
 ```bash
 # REST API routes
-butt3r component create userApi --api-route "GET,POST,PUT"
+butt3r component userApi --api-route "GET,POST,PUT"
 
 # tRPC procedures
-butt3r component create users --trpc-router "users" --trpc-procedure "getUsers"
+butt3r component users --trpc-router "users" --trpc-procedure "getUsers"
 ```
 
 ### Testing
 ```bash
 # Unit tests
-butt3r component create Header --test "unit"
+butt3r component Header --test "unit"
 
 # E2E tests
-butt3r component create LoginFlow --test "e2e"
+butt3r component LoginFlow --test "e2e"
 ```
 
 For detailed documentation of all features and functions, see [documentation.md](documentation.md).
