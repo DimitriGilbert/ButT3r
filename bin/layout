@@ -21,6 +21,7 @@ fi
 # @parseArger opt ai-provider "ai provider"
 # @parseArger opt ai-model "ai model"
 # @parseArger opt ai "get the ai to do something with the generated code"
+# @parseArger opt ai-example "example output to give to the AI" --repeat --alias eg
 # @parseArger flag server "is server component" --on
 # @parseArger flag client "is client component"
 # @parseArger flag root "is root layout"
@@ -70,6 +71,7 @@ _arg_ai_emmet=
 _arg_ai_provider=
 _arg_ai_model=
 _arg_ai=
+_arg_ai_example=()
 # FLAGS
 _arg_server="on"
 _arg_client="off"
@@ -98,13 +100,14 @@ print_help()
 	echo -e "	--ai-provider <ai-provider>: ai provider"
 	echo -e "	--ai-model <ai-model>: ai model"
 	echo -e "	--ai <ai>: get the ai to do something with the generated code"
+	echo -e "	--ai-example|--eg <ai-example>: example output to give to the AI, repeatable"
 	echo -e "	--server|--no-server: is server component, on by default (use --no-server to turn it off)"
 	echo -e "	--client|--no-client: is client component"
 	echo -e "	--root|--no-root: is root layout"
 	echo -e "	--prettier|--no-prettier:  run prettier before output"
 	echo -e "	--dry-run|--no-dry-run: output to stdout"
 	echo -e "Usage :
-	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--[no-]server] [--[no-]client] [--[no-]root] [--[no-]prettier] [--[no-]dry-run]";
+	$0 <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--[no-]server] [--[no-]client] [--[no-]root] [--[no-]prettier] [--[no-]dry-run]";
 	fi
 
 }
@@ -232,6 +235,18 @@ parse_commandline()
 				_arg_ai="${_key##--ai=}"
 				;;
 			
+			--eg|--ai-example)
+				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
+				_arg_ai_example+=("$2")
+				shift
+				;;
+			--ai-example=*)
+				_arg_ai_example+=("${_key##--ai-example=}")
+				;;
+			--eg=*)
+				_arg_ai_example+=("${_key##--eg=}")
+				;;
+			
 			--server)
 				_arg_server="on"
 				;;
@@ -348,6 +363,7 @@ print_debug()
 	echo -e "	ai-provider: ${_arg_ai_provider}";
 	echo -e "	ai-model: ${_arg_ai_model}";
 	echo -e "	ai: ${_arg_ai}";
+	echo -e "	ai-example: ${_arg_ai_example[*]}";
 	echo -e "	server: ${_arg_server}";
 	echo -e "	client: ${_arg_client}";
 	echo -e "	root: ${_arg_root}";
@@ -437,6 +453,13 @@ fi
 # Handle AI model
 if [ "$_arg_ai_model" != "" ]; then
   component_args+=("--ai-model" "$_arg_ai_model")
+fi
+
+# Handle AI example
+if [ "${#_arg_ai_example[@]}" -gt 0 ]; then
+  for example in "${_arg_ai_example[@]}"; do
+    component_args+=("--ai-example" "$example")
+  done
 fi
 
 # Handle AI
