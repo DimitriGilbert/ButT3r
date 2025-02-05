@@ -5,6 +5,7 @@ import {
   MenubarTrigger,
   MenubarContent,
 } from "~/components/ui/menubar";
+import { toast } from "sonner";
 
 type OutputContent = {
   delay?: number;
@@ -41,6 +42,7 @@ interface TerminalSimulatorProps {
   yellowMenu?: React.ReactNode;
   redMenu?: React.ReactNode;
   title?: string | React.ReactNode;
+  commandDelay?: number; // New prop for delay between commands
 }
 
 export default function TerminalSimulator({
@@ -60,6 +62,7 @@ export default function TerminalSimulator({
   yellowMenu,
   redMenu,
   title,
+  commandDelay = 1000, // Default delay of 1000ms (1 second)
 }: TerminalSimulatorProps) {
   const [display, setDisplay] = useState<DisplayEntry[]>([
     { type: "output", content: startLine },
@@ -95,7 +98,7 @@ export default function TerminalSimulator({
 
       // Add delay before next command (except first)
       if (commandIndexRef.current > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, commandDelay));
       }
 
       // Add the command prompt line
@@ -215,7 +218,7 @@ export default function TerminalSimulator({
 
       commandIndexRef.current += 1;
     },
-    [defaultOutputSpeed, defaultTypingSpeed, defaultTypingRandom],
+    [defaultOutputSpeed, defaultTypingSpeed, defaultTypingRandom, commandDelay],
   );
 
   useEffect(() => {
@@ -276,6 +279,9 @@ export default function TerminalSimulator({
                   onClick={() => {
                     if (entry.done && typeof entry.content === "string") {
                       navigator.clipboard.writeText(entry.content);
+                      toast.success("Copied to clipboard", {
+                        duration: 1000,
+                      });
                     }
                   }}
                 >

@@ -103,7 +103,7 @@ export function Clickodrome({ onSubmit }: ClickodromeProps) {
             baseCmd={cmd === 'install' ? 'utils/install' : `butt3r ${cmd}`}
             onSubmit={onSubmit}
             columns={cmd === 'install' ? 1 : 2}
-            fieldClassName="dark:bg-gray-800/90 backdrop-blur-md"
+            fieldClassName="dark:bg-gray-800/90"
           />
         </TabsContent>
       ))}

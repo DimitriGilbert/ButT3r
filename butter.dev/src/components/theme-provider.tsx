@@ -3,7 +3,7 @@
 import { createContext, useContext, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { FaMoon, FaSun } from "react-icons/fa";
-
+import { Toaster } from "~/components/ui/sonner";
 type Theme = "light" | "dark";
 type ThemeContextType = {
   theme: Theme;
@@ -23,6 +23,7 @@ export function ThemeProvider({ children, className }: { children: React.ReactNo
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       <body className={theme === "dark" ? "dark" : ""}>
         <div className={className}>{children}</div>
+        <Toaster />
       </body>
     </ThemeContext.Provider>
   );

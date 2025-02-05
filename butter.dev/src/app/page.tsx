@@ -43,7 +43,7 @@ export default function HomePage() {
           </OutgoingLink>
         </section>
         <section className="grid w-full grid-cols-1 items-center gap-8 py-8 lg:grid lg:gap-x-2 xl:grid-cols-2 xl:gap-x-6">
-          <div className="flex flex-col gap-4 p-6 rounded-lg bg-white/60 dark:bg-gray-800/90">
+          <div className="flex flex-col gap-4 rounded-lg bg-white/60 p-6 dark:bg-gray-800/90">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
               But
               <T3Link />r removes friction!
@@ -62,7 +62,9 @@ export default function HomePage() {
             <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               After a 7 years{" "}
               <HoverCard>
-                <HoverCardTrigger className="text-gray-900 dark:text-white">professional</HoverCardTrigger>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">
+                  professional
+                </HoverCardTrigger>
                 <HoverCardContent className="bg-white dark:bg-gray-800">
                   8 years as mostly a :
                   <ul>
@@ -76,7 +78,9 @@ export default function HomePage() {
                 </HoverCardContent>
               </HoverCard>{" "}
               <HoverCard>
-                <HoverCardTrigger className="text-gray-900 dark:text-white">hiatus</HoverCardTrigger>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">
+                  hiatus
+                </HoverCardTrigger>
                 <HoverCardContent className="bg-white dark:bg-gray-800">
                   Auto-immune diseases sux donkey ballz, dude !
                 </HoverCardContent>
@@ -89,10 +93,11 @@ export default function HomePage() {
               It is written in bash (arguably the most amazing programming
               language !) and using the{" "}
               <HoverCard>
-                <HoverCardTrigger className="text-gray-900 dark:text-white">most definitly greatest</HoverCardTrigger>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">
+                  most definitly greatest
+                </HoverCardTrigger>
                 <HoverCardContent className="bg-white dark:bg-gray-800">
-                  the only thing that could make it better would be that it'd be
-                  in French !
+                  such syntax ! Much a clean ! AWE !
                 </HoverCardContent>
               </HoverCard>{" "}
               <HoverCard>
@@ -104,7 +109,10 @@ export default function HomePage() {
                   A ? shameless plug ? yes, yes it is !
                 </HoverCardContent>
               </HoverCard>{" "}
-              <a href="https://github.com/DimitriGilbert/parseArger" className="text-blue-600 dark:text-blue-400 hover:underline">
+              <a
+                href="https://github.com/DimitriGilbert/parseArger"
+                className="text-blue-600 hover:underline dark:text-blue-400"
+              >
                 parseArger
               </a>{" "}
               !
@@ -116,6 +124,15 @@ export default function HomePage() {
               revolutionnize the WORLD (The same thing we do every night, Pinky
               ! tadatadatada tadatadatada ...)
             </p>
+            <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
+              What does it do ? It installs and configures everything, create
+              all the files, and even create a docker stack for you ! (if you
+              want), starts, stops, cleans and exports your database !
+            </p>
+            <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
+              Ooh Ooooh, and create components, pages and layouts boilerplates
+              (imports, props and all that !)
+            </p>
           </div>
           <div className="flex flex-col gap-4">
             <DemoTerminal />
@@ -125,20 +142,23 @@ export default function HomePage() {
           <div className="flex flex-col gap-4">
             <TerminalSimulator
               title="I haz fear dark"
+              commandDelay={10}
               width="w-full"
               startLine="# terminalophobic and other terminal-impared individuals rejoice !"
               defaultTypingRandom={250}
-              defaultTypingSpeed={10}
+              defaultTypingSpeed={1}
               commands={[
                 {
                   prompt:
-                    "# use the form on the right to create your CLI commands !",
+                    `# use the form on the right to create your CLI commands !
+# and then click on the generated command,
+# it will copy to your clipboard !`,
                 },
                 ...terminalCommands,
               ]}
             />
           </div>
-          <div className="flex flex-col gap-4 p-6 rounded-lg bg-white/60 dark:bg-gray-800/90">
+          <div className="flex flex-col gap-4 rounded-lg bg-white/60 p-6 dark:bg-gray-800/90">
             <h2 className="text-right text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
               But
               <T3Link />r is accessible !
@@ -147,7 +167,7 @@ export default function HomePage() {
           </div>
         </section>
         <section className="grid w-full grid-cols-1 gap-8 py-8 sm:grid-cols-2">
-          <div className="flex flex-col gap-4 p-6 rounded-lg bg-white/60 dark:bg-gray-800/90">
+          <div className="flex flex-col gap-4 rounded-lg bg-white/60 p-6 dark:bg-gray-800/90">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
               But
               <T3Link />r haz --ai !
@@ -156,10 +176,15 @@ export default function HomePage() {
               In case you were wondering, or not tired of everyone shoving AI in
               everything and{" "}
               <HoverCard>
-                <HoverCardTrigger className="text-gray-900 dark:text-white">absolutly anything</HoverCardTrigger>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">
+                  absolutly anything
+                </HoverCardTrigger>
                 <HoverCardContent className="bg-white dark:bg-gray-800">
                   And I trully mean,{" "}
-                  <Link href="https://buttplug.io/" className="text-blue-600 dark:text-blue-400 hover:underline">
+                  <Link
+                    href="https://buttplug.io/"
+                    className="text-blue-600 hover:underline dark:text-blue-400"
+                  >
                     ANYTHING !
                   </Link>
                 </HoverCardContent>
@@ -186,7 +211,7 @@ export default function HomePage() {
                   r, this will install the{" "}
                   <GlowLink
                     href="https://github.com/DimitriGilbert/ai-gents"
-                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                    className="text-blue-600 hover:underline dark:text-blue-400"
                     target="_blank"
                   >
                     AI-Gents
@@ -532,13 +557,13 @@ Usage :
     </div>
   );
 }`,
-                    },
                   },
-                  {
-                    prompt:
-                      "butt3r page docs --ai 'use the provided documentation to create a nice looking nextjs page containing all necessary informations about my CLI. For each command, I want a small description, the full help and a set of example. Do not just import the md, I want a full page \! \n#\!/cat documentation.md;' --ai-provider lmstudio --ai-model hermes-3-llama-3.2-3b",
-                    output: {
-                      content: `Extracted Code Blocks: 11
+                },
+                {
+                  prompt:
+                    "butt3r page docs --ai 'use the provided documentation to create a nice looking nextjs page containing all necessary informations about my CLI. For each command, I want a small description, the full help and a set of example. Do not just import the md, I want a full page \! \n#\!/cat documentation.md;' --ai-provider lmstudio --ai-model hermes-3-llama-3.2-3b",
+                  output: {
+                    content: `Extracted Code Blocks: 11
 src/app/docs/page.tsx
 import React from "react";
 
