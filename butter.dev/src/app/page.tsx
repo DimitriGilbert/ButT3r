@@ -15,6 +15,7 @@ import { OutgoingLink } from "~/components/ui/outgoing-link";
 import Link from "next/link";
 import { GlowLink } from "~/components/ui/glow-link";
 import Butt3r from "~/components/ui/butt3r";
+import { motion } from "motion/react";
 
 export default function HomePage() {
   const [terminalCommands, setTerminalCommands] = useState<
@@ -32,15 +33,43 @@ export default function HomePage() {
         <section className="grid grid-cols-1 gap-4 py-8 sm:grid-cols-2 md:gap-8">
           <OutgoingLink
             href="https://github.com/DimitriGilbert/ButT3r"
-            className="rounded-xl bg-white/10 text-white hover:bg-white/20"
+            className="rounded-xl bg-white/25 text-white hover:bg-white/40"
           >
-            <span className="text-xl font-bold">ButT3r Github</span>
+            <motion.span
+              className="text-xl font-bold"
+              whileHover={{
+                scale: 1.15,
+                color: "rgb(0, 255, 0)",
+                textShadow: "2px 2px black",
+                transition: {
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 10,
+                },
+              }}
+            >
+              ButT3r Github
+            </motion.span>
           </OutgoingLink>
           <OutgoingLink
             href="https://create.t3.gg"
-            className="rounded-xl bg-white/10 text-white hover:bg-white/20"
+            className="rounded-xl bg-white/25 text-white hover:bg-white/40"
           >
-            <span className="text-xl font-bold">T3 Stack</span>
+            <motion.span
+              className="text-xl font-bold"
+              whileHover={{
+                scale: 1.15,
+                color: "rgb(168, 85, 247)",
+                textShadow: "2px 2px black",
+                transition: {
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 10,
+                },
+              }}
+            >
+              T3 Stack
+            </motion.span>
           </OutgoingLink>
         </section>
         <section className="grid w-full grid-cols-1 items-center gap-8 py-8 lg:grid lg:gap-x-2 xl:grid-cols-2 xl:gap-x-6">
@@ -49,9 +78,9 @@ export default function HomePage() {
               <Butt3r /> removes friction!
             </h2>
             <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
-            <Butt3r /> refined the extreme lubrication properties of bash, in
-              order to offer you the <Butt3r /> way to create full-stack web apps, Fast as a sausage
-              on a well oiled pan !{" "}
+              <Butt3r /> refined the extreme lubrication properties of bash, in
+              order to offer you the <Butt3r /> way to create full-stack web
+              apps, Fast as a sausage on a well oiled pan !{" "}
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 both the creation And the app !{" "}
                 <span className="text-muted">wiiiiiizzzzz</span>
@@ -123,11 +152,48 @@ export default function HomePage() {
               revolutionnize the WORLD (The same thing we do every night, Pinky
               ! tadatadatada tadatadatada ...)
             </p>
-            <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
-              What does it do ? It installs and configures everything, create
-              all the files, and even create a docker stack for you ! (if you
-              want), starts, stops, cleans and exports your database !
-            </p>
+            <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
+              What does it do ?{" "}
+              <HoverCard>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">
+                  It installs
+                </HoverCardTrigger>
+                <HoverCardContent className="bg-white dark:bg-gray-800">
+                  It run{" "}
+                  <GlowLink href="https://create.t3.gg">create-t3-app</GlowLink>{" "}
+                  with a set of default you can override ! As well as install your dependencies !
+                </HoverCardContent>
+              </HoverCard>{" "}
+              and{" "}
+              <HoverCard>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">
+                  configures everything
+                </HoverCardTrigger>
+                <HoverCardContent className="bg-white dark:bg-gray-800">
+                  adds shadcn support, (remote) mdx
+                </HoverCardContent>
+              </HoverCard>
+              , create all the files, and even{" "}
+              <HoverCard>
+                <HoverCardTrigger className="text-gray-900 dark:text-white">
+                  create a docker stack
+                </HoverCardTrigger>
+                <HoverCardContent className="bg-white dark:bg-gray-800">
+                  Dockerfile and docker-compose for dev (for now)
+                </HoverCardContent>
+              </HoverCard>
+              for you ! (if you want !), starts, stops, cleans and exports your
+              database !{" "}
+              <HoverCard>
+                <HoverCardTrigger className="text-sm text-muted-foreground">
+                  Soon™
+                </HoverCardTrigger>
+                <HoverCardContent className="bg-white dark:bg-gray-800">
+                  At some point it will be the next shinny thing, what you miss
+                  on this list.... Soon™ !
+                </HoverCardContent>
+              </HoverCard>
+            </div>
             <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               Ooh Ooooh, and create components, and pages, and layouts
               boilerplates (imports, props and all that !)
@@ -188,8 +254,8 @@ export default function HomePage() {
               , you'll be happy to learn that, <Butt3r /> also comes with AI !
             </div>
             <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
-              Waaaiiiit, WUUUUUT ? <Butt3r /> can do AI ? ooooh yeah baby, and it can do it gooooood
-              !
+              Waaaiiiit, WUUUUUT ? <Butt3r /> can do AI ? ooooh yeah baby, and
+              it can do it gooooood !
             </div>
             <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               <p>A new component ? --ai !</p>

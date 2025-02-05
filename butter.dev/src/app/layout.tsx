@@ -14,6 +14,7 @@ import {
 } from "~/components/ui/navigation-menu";
 import Link from "next/link";
 import { ThemeToggle } from "~/components/theme-provider";
+// import { CircuitBackground } from "~/components/circuit-background";
 
 export const metadata: Metadata = {
   title: "Create ButT3r App",
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <ThemeProvider className="bg-gradient-to-b from-[#57aed1] to-[#2e026d] dark:from-[#2e026d] dark:to-[#57aed1]">
+        {/* <CircuitBackground /> */}
         <nav className="fixed left-0 right-0 top-0 bg-white/10 p-4 backdrop-blur-md">
           <div className="mx-auto max-w-7xl">
             <NavigationMenu>
