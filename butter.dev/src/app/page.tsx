@@ -14,6 +14,7 @@ import { Clickodrome } from "~/components/clickodrome";
 import { OutgoingLink } from "~/components/ui/outgoing-link";
 import Link from "next/link";
 import { GlowLink } from "~/components/ui/glow-link";
+import Butt3r from "~/components/ui/butt3r";
 
 export default function HomePage() {
   const [terminalCommands, setTerminalCommands] = useState<
@@ -45,14 +46,11 @@ export default function HomePage() {
         <section className="grid w-full grid-cols-1 items-center gap-8 py-8 lg:grid lg:gap-x-2 xl:grid-cols-2 xl:gap-x-6">
           <div className="flex flex-col gap-4 rounded-lg bg-white/60 p-6 dark:bg-gray-800/90">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
-              But
-              <T3Link />r removes friction!
+              <Butt3r /> removes friction!
             </h2>
             <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
-              But
-              <T3Link />r refined the extreme lubrication properties of bash, in
-              order to offer you the But
-              <T3Link />r way to create full-stack web apps, Fast as a sausage
+            <Butt3r /> refined the extreme lubrication properties of bash, in
+              order to offer you the <Butt3r /> way to create full-stack web apps, Fast as a sausage
               on a well oiled pan !{" "}
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 both the creation And the app !{" "}
@@ -109,12 +107,13 @@ export default function HomePage() {
                   A ? shameless plug ? yes, yes it is !
                 </HoverCardContent>
               </HoverCard>{" "}
-              <a
+              <GlowLink
                 href="https://github.com/DimitriGilbert/parseArger"
-                className="text-blue-600 hover:underline dark:text-blue-400"
+                color="rgba(59, 130, 246, 0.8)"
+                className="text-blue-600 dark:text-blue-400"
               >
                 parseArger
-              </a>{" "}
+              </GlowLink>{" "}
               !
             </div>
             <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
@@ -130,8 +129,8 @@ export default function HomePage() {
               want), starts, stops, cleans and exports your database !
             </p>
             <p className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
-              Ooh Ooooh, and create components, pages and layouts boilerplates
-              (imports, props and all that !)
+              Ooh Ooooh, and create components, and pages, and layouts
+              boilerplates (imports, props and all that !)
             </p>
           </div>
           <div className="flex flex-col gap-4">
@@ -149,8 +148,7 @@ export default function HomePage() {
               defaultTypingSpeed={1}
               commands={[
                 {
-                  prompt:
-                    `# use the form on the right to create your CLI commands !
+                  prompt: `# use the form on the right to create your CLI commands !
 # and then click on the generated command,
 # it will copy to your clipboard !`,
                 },
@@ -160,8 +158,7 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col gap-4 rounded-lg bg-white/60 p-6 dark:bg-gray-800/90">
             <h2 className="text-right text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
-              But
-              <T3Link />r is accessible !
+              <Butt3r /> is accessible !
             </h2>
             <Clickodrome onSubmit={handleSubmit} />
           </div>
@@ -169,8 +166,7 @@ export default function HomePage() {
         <section className="grid w-full grid-cols-1 gap-8 py-8 sm:grid-cols-2">
           <div className="flex flex-col gap-4 rounded-lg bg-white/60 p-6 dark:bg-gray-800/90">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
-              But
-              <T3Link />r haz --ai !
+              <Butt3r /> haz --ai !
             </h2>
             <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               In case you were wondering, or not tired of everyone shoving AI in
@@ -189,26 +185,24 @@ export default function HomePage() {
                   </Link>
                 </HoverCardContent>
               </HoverCard>
-              , you'll be happy to learn that, But
-              <T3Link />r also comes with AI !
+              , you'll be happy to learn that, <Butt3r /> also comes with AI !
             </div>
             <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
-              Waaaiiiit, WUUUUUT ? But
-              <T3Link />r can do AI ? ooooh yeah baby, and it can do it gooooood
+              Waaaiiiit, WUUUUUT ? <Butt3r /> can do AI ? ooooh yeah baby, and it can do it gooooood
               !
             </div>
             <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
-              A new component ? --ai ! A new Page ? --ai ! A new Layout ? --AI
-              !! Easy as saying AI !
+              <p>A new component ? --ai !</p>
+              <p>A new Page ? --ai !</p>
+              <p>A new LAYOUT ?!? --AI !!</p>
+              <p>Easy as p(A)Ie !</p>
             </div>
             <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
-              How do you use it ? Easy !
+              How do you use it ? Easy I sAId !
               <ol className="list-inside list-decimal space-y-4">
                 <li className="text-gray-700 dark:text-gray-300">
                   Use <span className="font-mono text-purple-400">--ai</span>{" "}
-                  when installing But
-                  <T3Link />
-                  r, this will install the{" "}
+                  when installing <Butt3r />, this will install the{" "}
                   <GlowLink
                     href="https://github.com/DimitriGilbert/ai-gents"
                     className="text-blue-600 hover:underline dark:text-blue-400"
@@ -239,7 +233,11 @@ export default function HomePage() {
                     "Instant" AI code!
                   </span>{" "}
                   <span className="text-gray-600 dark:text-gray-400">
-                    (What do you mean buttery slop?!)
+                    (What do you mean buttery slop?! I already told you, it is a
+                    well oiled pan, and{" "}
+                    <span className="line-through">you are</span>{" "}
+                    <span className="font-bold">the project is</span> the
+                    sausage !)
                   </span>
                 </li>
               </ol>
@@ -250,15 +248,14 @@ export default function HomePage() {
               title={
                 <HoverCard>
                   <HoverCardTrigger className="text-gray-900 dark:text-white">
-                    AI cannot center laaahhh
+                    (A)I cannot center laaahhh
                   </HoverCardTrigger>
                   <HoverCardContent className="bg-white dark:bg-gray-800">
-                    Really, how infuriating is that ? ^^'
+                    Really..., how infuriating is that ? ^^'
                   </HoverCardContent>
                 </HoverCard>
               }
               width="w-full"
-              startLine="# terminalophobic and other terminal-impared individuals rejoice !"
               defaultTypingRandom={250}
               defaultTypingSpeed={10}
               commands={[
