@@ -54,7 +54,6 @@ export default function TerminalSimulator({
   height = "min-h-[300px] max-h-[500px]", // Default height
   termPrompt = "$ ",
   startLine = "__________", // Default start line
-  defaultTypingRandom = 20,
   backgroundColor = "bg-[#1a1a1a]", // Default dark background
   promptColor = "text-[#00ff00]", // Default green prompt
   outputColor = "text-white", // Default white output
@@ -125,9 +124,12 @@ export default function TerminalSimulator({
           return prev;
         });
       } else {
-        // Type the command (original string typing logic)
+        // Type the command
         const trimmedPrompt = cmd.prompt.trim();
+        let currentContent = "";
+
         for (const char of trimmedPrompt) {
+          currentContent += char;
           setDisplay((prev) => {
             const lastEntry = prev[prev.length - 1];
             if (lastEntry?.type === "command") {
@@ -135,7 +137,7 @@ export default function TerminalSimulator({
                 ...prev.slice(0, -1),
                 {
                   ...lastEntry,
-                  content: lastEntry.content + char,
+                  content: currentContent,
                   type: "command",
                 },
               ];
@@ -143,8 +145,8 @@ export default function TerminalSimulator({
             return prev;
           });
 
-          const baseSpeed = cmd.typingSpeed || defaultTypingSpeed;
-          const randomFactor = cmd.typingRandom || 0;
+          const baseSpeed = cmd.typingSpeed ?? defaultTypingSpeed;
+          const randomFactor = cmd.typingRandom ?? 0;
           const randomVariation =
             Math.random() * (baseSpeed * (randomFactor / 100));
           const delay =
@@ -193,7 +195,7 @@ export default function TerminalSimulator({
                 ...prev,
                 {
                   type: "output",
-                  content: line.placeholder || "",
+                  content: line.placeholder ?? "",
                 },
               ]);
 
@@ -218,7 +220,7 @@ export default function TerminalSimulator({
 
       commandIndexRef.current += 1;
     },
-    [defaultOutputSpeed, defaultTypingSpeed, defaultTypingRandom, commandDelay],
+    [defaultOutputSpeed, defaultTypingSpeed, commandDelay],
   );
 
   useEffect(() => {
@@ -226,13 +228,19 @@ export default function TerminalSimulator({
 
     const processCommands = async () => {
       processingRef.current = true;
-      while (commandIndexRef.current < commands.length) {
-        await processCommand(commands[commandIndexRef.current]);
+      try {
+        while (commandIndexRef.current < commands.length) {
+          await processCommand(commands[commandIndexRef.current]);
+        }
+      } catch (error) {
+        console.error('Error processing commands:', error);
+        toast.error(`Error processing commands: ${error}`, { duration: 2000 }); // Display error to user
+      } finally {
+        processingRef.current = false;
       }
-      processingRef.current = false;
     };
 
-    processCommands();
+    void processCommands();
   }, [commands, autoStart, processCommand]);
 
   return (
@@ -268,6 +276,8 @@ export default function TerminalSimulator({
         ref={terminalRef}
         onScroll={handleScroll}
         className={`${height} overflow-y-auto p-5 ${promptColor} whitespace-pre-wrap break-words`}
+        role="log"
+        aria-live="polite"
       >
         {display.map((entry, index) => (
           <div key={index} className="my-1">
@@ -278,9 +288,15 @@ export default function TerminalSimulator({
                   className={`${!entry.done ? "animate-blink border-r-2 border-[#00ff00]" : ""} cursor-pointer break-all rounded px-1 hover:bg-[#333]`}
                   onClick={() => {
                     if (entry.done && typeof entry.content === "string") {
-                      navigator.clipboard.writeText(entry.content);
-                      toast.success("Copied to clipboard", {
-                        duration: 1000,
+                      navigator.clipboard.writeText(entry.content).then(() => {
+                        toast.success("Copied to clipboard", {
+                          duration: 1000,
+                        });
+                      }).catch((error) => {
+                        console.error("Failed to copy to clipboard:", error);
+                        toast.error("Failed to copy to clipboard", {
+                          duration: 1000,
+                        });
                       });
                     }
                   }}

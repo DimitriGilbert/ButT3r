@@ -1,14 +1,15 @@
 'use client';
-import { useForm } from 'react-hook-form';
+import { useForm, type FieldValues } from 'react-hook-form';
 import { Button } from '~/components/ui/button';
 import { Form } from '~/components/ui/form';
 import { FormFieldComponent } from './form-field';
 import { parseHelp } from '~/lib/help-parser';
 import { cn } from '~/lib/utils';
+import { type FormFieldType } from './form-field';
 
 interface CliFormProps {
   helpText: string;
-  onSubmit?: (data: any, cmd: string) => void;
+  onSubmit?: (data: FieldValues, cmd: string) => void;
   baseCmd?: string;
   columns?: number;
   maxHeight?: string | number;
@@ -17,20 +18,21 @@ interface CliFormProps {
 
 export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight, fieldClassName }: CliFormProps) {
   const fields = parseHelp(helpText);
-  const form = useForm({
+  const form = useForm<FieldValues>({
     defaultValues: fields.reduce((acc, field) => ({
       ...acc,
-      [field.name]: field.defaultValue || ''
+      [field.name]: field.defaultValue ?? ''
     }), {})
   });
-  const iOnSubmit = (data: any) => {
+
+  const iOnSubmit = (data: FieldValues) => {
     const cmdParts: string[] = [baseCmd ?? ''];
     
     // Add positional arguments first
     fields
       .filter(field => field.isPositional)
       .forEach(field => {
-        const value = data[field.name];
+        const value = data[field.name] as string | undefined;
         if (value) {
           cmdParts.push(value);
         }
@@ -40,7 +42,7 @@ export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight, f
     fields
       .filter(field => !field.isPositional)
       .forEach(field => {
-        const value = data[field.name];
+        const value = data[field.name] as string | string[] | boolean | undefined;
         if (value === undefined || value === null) return;
         
         if (field.type === 'boolean') {
@@ -57,7 +59,7 @@ export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight, f
           }
         } else if (field.type === 'select' || field.type === 'string') {
           if (value) {
-            cmdParts.push(`--${field.name} ${value}`);
+            cmdParts.push(`--${field.name} ${value as string}`);
           }
         }
       });
@@ -86,11 +88,10 @@ export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight, f
           overflowY: maxHeight ? 'auto' : undefined
         }}
       >
-          <Button type="submit">as command</Button>
         {sortedFields.map((field, index) => (
           <FormFieldComponent 
             key={`${field.name}-${index}`}
-            field={field} 
+            field={field as FormFieldType} 
             control={form.control} 
             className={fieldClassName}
             description={field.description}

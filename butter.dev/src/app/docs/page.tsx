@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Search, ChevronRight } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 import commandsData from "./commands.json";
 import examplesData from "./example.json";
 import { CliForm } from "~/components/cli-form";
@@ -163,9 +163,12 @@ export default function Docs() {
                                 baseCmd={cmd.command}
                                 onSubmit={(data, command) => {
                                   // console.log('Generated command:', command);
-                                  navigator.clipboard.writeText(command);
-                                  toast.success("Copied to clipboard", {
-                                    duration: 1000,
+                                  navigator.clipboard.writeText(command).then(() => {
+                                    toast.success("Copied to clipboard", {
+                                      duration: 1000,
+                                    });
+                                  }).catch(() => {
+                                    toast.error("Failed to copy to clipboard");
                                   });
                                 }}
                                 columns={1}

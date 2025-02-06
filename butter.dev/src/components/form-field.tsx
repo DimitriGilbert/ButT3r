@@ -1,4 +1,4 @@
-import { useFormContext } from 'react-hook-form';
+import { type Control, type FieldValues } from 'react-hook-form';
 import {
   FormControl,
   FormDescription,
@@ -10,29 +10,27 @@ import { Input } from '~/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Switch } from '~/components/ui/switch';
 
-// Add this interface at the top of the file
-interface FormFieldType {
+// Add 'export' to the interface declaration
+export interface FormFieldType {
   name: string;
   type: string;
   label?: string;
   choices?: string[];
   required?: boolean;
-  defaultValue?: any;
+  defaultValue?: string | boolean | string[];
   isPositional?: boolean;
   className?: string;
   description?: string;
 }
 
 export function FormFieldComponent({ field, control, className, description }: {
-  field: FormFieldType;  // Changed from FormField to FormFieldType
-  control: any;
+  field: FormFieldType;
+  control: Control<FieldValues>;
   className?: string;
   description?: string;
 }) {
-  let frmLabel = field.label || field.name;
-  if (field.type === 'array') {
-    frmLabel = frmLabel + ' (comma separated list)';
-  }
+  const frmLabel = field.label ?? field.name + (field.type === 'array' ? ' (comma separated list)' : '');
+  
   return (
     <FormField
       control={control}
@@ -43,12 +41,12 @@ export function FormFieldComponent({ field, control, className, description }: {
           {field.type === 'boolean' ? (
             <FormControl>
               <Switch
-                checked={formField.value}
+                checked={(formField.value as boolean) ?? false}
                 onCheckedChange={formField.onChange}
               />
             </FormControl>
           ) : field.type === 'select' ? (
-            <Select onValueChange={formField.onChange} defaultValue={formField.value}>
+            <Select onValueChange={formField.onChange} defaultValue={(formField.value as string) ?? ''}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue />
@@ -65,16 +63,17 @@ export function FormFieldComponent({ field, control, className, description }: {
           ) : field.type === 'array' ? (
             <Input
               {...formField}
+              value={Array.isArray(formField.value) ? formField.value.join(',') : ''}
               onChange={(e) => formField.onChange(e.target.value.split(','))}
             />
           ) : field.type === 'string' || field.isPositional ? (
             <Input
               {...formField}
-              value={formField.value || ''}
-              placeholder={field.label || field.name}
+              value={(formField.value as string) ?? ''}
+              placeholder={field.label ?? field.name}
             />
           ) : (
-            <Input {...formField} />
+            <Input {...formField} value={(formField.value as string) ?? ''} />
           )}
           <FormDescription className='px-2'>
             {field.required && 'Required, '}

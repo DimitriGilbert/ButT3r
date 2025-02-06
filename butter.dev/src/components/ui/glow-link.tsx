@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { cn } from "~/lib/utils";
 
 interface GlowLinkProps {

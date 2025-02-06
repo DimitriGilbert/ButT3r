@@ -2,9 +2,10 @@
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
 import { CliForm } from "~/components/cli-form";
+import { type FieldValues } from 'react-hook-form';
 
 interface ClickodromeProps {
-  onSubmit: (data: any, cmd: string) => void;
+  onSubmit: (data: FieldValues, cmd: string) => void;
 }
 
 export function Clickodrome({ onSubmit }: ClickodromeProps) {
