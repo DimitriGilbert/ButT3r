@@ -63,8 +63,7 @@ export function FormFieldComponent({ field, control, className, description }: {
           ) : field.type === 'array' ? (
             <Input
               {...formField}
-              value={Array.isArray(formField.value) ? formField.value.join(',') : ''}
-              onChange={(e) => formField.onChange(e.target.value.split(','))}
+              value={Array.isArray(formField.value) ? formField.value.join(',') : formField.value}
             />
           ) : field.type === 'string' || field.isPositional ? (
             <Input

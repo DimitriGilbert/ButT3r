@@ -1,13 +1,30 @@
 type FormField = {
   name: string;
   label: string;
-  type: "string" | "boolean" | "select" | "multi-select" | "array";
+  type: "string" | "boolean" | "select" | "array";
   required: boolean;
   defaultValue?: string | boolean | string[];
   choices?: string[];
   isPositional?: boolean;
   description?: string;
 };
+
+// Helper function to extract default value and handle array defaults
+function extractDefaultValue(line: string): string | string[] | undefined {
+  const defaultMatch = /\[default: '([^']+)'\]/.exec(line);
+  if (defaultMatch) {
+    const defaultValue = defaultMatch[1]?.trim() ?? "";
+    if (defaultValue.startsWith("(") && defaultValue.endsWith(")")) {
+      return defaultValue
+        .slice(1, -1)
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+    }
+    return defaultValue;
+  }
+  return undefined;
+}
 
 export function parseHelp(helpText: string): FormField[] {
   const fields: FormField[] = [];
@@ -32,21 +49,16 @@ export function parseHelp(helpText: string): FormField[] {
         .trim();
     }
 
-    // Add this condition at the very beginning of the loop
+    // Handle positional arguments
     if (/^\s*[a-zA-Z0-9_-]+\s*:\s*.+$/.exec(line) && !line.startsWith("--")) {
       const [namePart] = line.split(":");
       field.name = namePart?.trim() ?? "";
       field.type = "string";
       field.isPositional = true;
       field.required = true;
-
-      // Handle default value if present
-      const defaultMatch = /\[default: '([^']+)'\]/.exec(line);
-      if (defaultMatch) {
-        field.defaultValue = defaultMatch[1]?.trim() ?? "";
-      }
+      field.defaultValue = extractDefaultValue(line);
     }
-    // 1. Check for fields with both --option and <value> syntax first
+    // Check for fields with both --option and <value> syntax first
     else if (/--[\w-]+(\|--[\w-]+)?\s<[\w-]+>/.exec(line)) {
       const [namePart] = line.split(":");
       const names = /(-\w, )?--[\w-]+/.exec(namePart ?? '')?.[0].split(/,\s+/);
@@ -56,49 +68,29 @@ export function parseHelp(helpText: string): FormField[] {
 
       field.name = longName ?? "";
       field.type = line.includes("repeatable") ? "array" : "string";
-
-      const defaultMatch = /\[default: '([^']+)'\]/.exec(line);
-      if (defaultMatch) {
-        // Handle array values in parentheses
-        const defaultValue = defaultMatch[1]?.trim() ?? "";
-        if (defaultValue.startsWith("(") && defaultValue.endsWith(")")) {
-          field.defaultValue = defaultValue
-            .slice(1, -1) // Remove parentheses
-            .split(",") // Split by comma
-            .map((item) => item.trim()) // Trim whitespace
-            .filter((item) => item.length > 0); // Remove empty items
-        } else {
-          field.defaultValue = defaultValue;
-        }
-      }
+      field.defaultValue = extractDefaultValue(line);
     }
-    // 2. Check for boolean fields with explicit on/off by default
-    else if (
-      /--[\w-]+/.exec(line) &&
-      (line.includes("on by default (use --") ||
-        line.includes("off by default (use --"))
-    ) {
-      const flag = /--[\w-]+/.exec(line)?.[0];
-      field.name = flag?.replace("--", "") ?? "";
-      field.type = "boolean";
-      field.defaultValue = line.includes("on by default (use --");
-    }
-    // 3. Check for other boolean fields
+    // Handle boolean fields
     else if (/--[\w-]+(\|--no-[\w-]+)?/.exec(line)) {
       const flag = /--[\w-]+(\|--no-[\w-]+)?/.exec(line)?.[0];
       const mainFlag = flag?.split("|")[0]?.replace("--", "") ?? "";
 
       field.name = mainFlag;
       field.type = "boolean";
-      field.defaultValue = !line.includes("off by default");
+      if (line.includes("on by default") || !line.includes("off by default")) {
+        field.defaultValue = true;
+      } else {
+        field.defaultValue = false;
+      }
     }
-    // 4. Check for other fields
+    // Check for other fields
     else if (/--[\w-]+/.exec(line)) {
       const flag = /--[\w-]+/.exec(line)?.[0];
       field.name = flag?.replace("--", "") ?? "";
       field.type = "string";
+      field.defaultValue = extractDefaultValue(line);
     }
-    // 5. Check for positional arguments
+    // Check for positional arguments with choices
     else if (line.includes("<target>")) {
       const match = /: '([^']+)'\]/.exec(line);
       field.name = "target";
@@ -106,20 +98,7 @@ export function parseHelp(helpText: string): FormField[] {
       field.required = true;
       if (match) field.choices = match[1]?.split("' '") ?? [];
     }
-    // 6. Check for positional arguments without --
-    else if (/^[a-zA-Z0-9_-]+\s*:\s*.+$/.exec(line)) {
-      const [namePart] = line.split(":");
-      field.name = namePart?.trim() ?? "";
-      field.type = "string";
-      field.isPositional = true;
-
-      // Handle default value if present
-      const defaultMatch = /\[default: '([^']+)'\]/.exec(line);
-      if (defaultMatch) {
-        field.defaultValue = defaultMatch[1]?.trim() ?? "";
-      }
-    }
-    // Add this condition before other checks
+    // Handle name positional argument
     else if (/^\s*name\s*:\s*.+/.exec(line)) {
       field.name = "name";
       field.type = "string";

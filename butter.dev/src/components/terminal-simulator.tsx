@@ -43,6 +43,7 @@ interface TerminalSimulatorProps {
   redMenu?: React.ReactNode;
   title?: string | React.ReactNode;
   commandDelay?: number; // New prop for delay between commands
+  allowCopy?: boolean; // New prop to control copy functionality
 }
 
 export default function TerminalSimulator({
@@ -62,6 +63,7 @@ export default function TerminalSimulator({
   redMenu,
   title,
   commandDelay = 1000, // Default delay of 1000ms (1 second)
+  allowCopy = true, // Default allow copy
 }: TerminalSimulatorProps) {
   const [display, setDisplay] = useState<DisplayEntry[]>([
     { type: "output", content: startLine },
@@ -287,7 +289,7 @@ export default function TerminalSimulator({
                 <span
                   className={`${!entry.done ? "animate-blink border-r-2 border-[#00ff00]" : ""} cursor-pointer break-all rounded px-1 hover:bg-[#333]`}
                   onClick={() => {
-                    if (entry.done && typeof entry.content === "string") {
+                    if (allowCopy && entry.done && typeof entry.content === "string") {
                       navigator.clipboard.writeText(entry.content).then(() => {
                         toast.success("Copied to clipboard", {
                           duration: 1000,
