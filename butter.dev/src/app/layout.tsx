@@ -38,7 +38,7 @@ export default function RootLayout({
                     <NavigationMenuLink
                       className={`${navigationMenuTriggerStyle()} text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300`}
                     >
-                      BT3r
+                      ButT3r
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>

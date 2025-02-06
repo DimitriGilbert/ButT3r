@@ -236,7 +236,7 @@ export default function TerminalSimulator({
         }
       } catch (error) {
         console.error('Error processing commands:', error);
-        toast.error(`Error processing commands: ${error}`, { duration: 2000 }); // Display error to user
+        toast.error(`Error processing commands: ${error instanceof Error ? error.message : 'Unknown error'}`, { duration: 2000 }); // Display error to user
       } finally {
         processingRef.current = false;
       }
