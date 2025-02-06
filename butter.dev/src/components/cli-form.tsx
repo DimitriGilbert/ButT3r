@@ -87,9 +87,9 @@ export function CliForm({ helpText, onSubmit, baseCmd, columns = 1, maxHeight, f
         }}
       >
           <Button type="submit">as command</Button>
-        {sortedFields.map((field) => (
+        {sortedFields.map((field, index) => (
           <FormFieldComponent 
-            key={field.name} 
+            key={`${field.name}-${index}`}
             field={field} 
             control={form.control} 
             className={fieldClassName}

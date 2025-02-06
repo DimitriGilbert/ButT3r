@@ -1,0 +1,71 @@
+#!/bin/bash
+
+set -e  # Exit on error
+
+# Output file
+OUTPUT_FILE="butter.dev/src/app/docs/commands.json"
+
+# Initialize commands array
+commands=()
+
+get_command_list() {
+    local cmd=("$@")  # Capture all arguments as an array
+    
+    "${cmd[@]}" --help 2>&1 | grep "target:" | grep -o "one of '.*'" | sed "s/one of '//" | tr -d "']" | tr "' '" '\n'
+}
+
+# Function to build command structure
+build_commands() {
+  local base_cmd="$1"  # Base command (./butt3r)
+  shift
+  local cmds=("$@")  # Commands to process
+
+  for cmd in "${cmds[@]}"; do
+    echo "Processing command: $base_cmd $cmd" >&2
+    
+    # Execute command and get help - split the command properly
+    read -ra cmd_parts <<< "$cmd"
+    help=$($base_cmd "${cmd_parts[@]}" --help 2>&1 || true)
+
+    # Only process if help text is valid
+    if [[ "$help" != *"commande introuvable"* && "$help" != *"command not found"* ]]; then
+      # Store command info
+      commands+=("$(jq -n \
+        --arg cmd "$base_cmd $cmd" \
+        --arg desc "$(echo "$help" | head -n 1 | sed 's/^Usage:.* - //')" \
+        --arg help "$(echo "$help" | sed 's/"/\\"/g')" \
+        '{
+          command: $cmd,
+          description: $desc,
+          help: $help
+        }')")
+
+      # Check for subcommands
+      if subcmds=($(get_command_list $base_cmd "${cmd_parts[@]}")); then
+        if ((${#subcmds[@]} > 0)); then
+          build_commands "$base_cmd" "${subcmds[@]/#/$cmd }"
+        fi
+      fi
+    fi
+  done
+}
+
+# Get top-level commands
+if ! top_commands=($(get_command_list ./butt3r)); then
+    echo "Failed to get top-level commands" >&2
+    exit 1
+fi
+
+echo "Found commands: ${top_commands[*]}" >&2
+
+# Build command structure
+build_commands "./butt3r" "${top_commands[@]}"
+
+# Generate JSON output
+{
+  echo '['
+  printf '%s,\n' "${commands[@]}" | sed '$s/,$//'
+  echo ']'
+} >"$OUTPUT_FILE"
+
+echo "Commands JSON generated at $OUTPUT_FILE" >&2

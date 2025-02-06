@@ -286,7 +286,7 @@ export default function HomePage() {
                 </li>
                 <li className="text-gray-700 dark:text-gray-300">
                   Use{" "}
-                  <span className="font-mono text-purple-400">
+                  <span className="font-mono dark:text-purple-400 text-blue-900">
                     --ai "a description for the stuff you want to create"
                   </span>{" "}
                   when creating a new component, page or layout.{" "}

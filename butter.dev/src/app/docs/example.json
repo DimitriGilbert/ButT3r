@@ -1,0 +1,164 @@
+[
+  {
+    "command": "butt3r create",
+    "examples": [
+      "butt3r create my-project --db-provider mysql --shadcn-component button --install axios",
+      "butt3r create my-app --no-db --no-tailwind"
+    ]
+  },
+  {
+    "command": "butt3r component",
+    "examples": [
+      "butt3r component src/components/Button --props onClick:Function --emmet div>button",
+      "butt3r component src/components/Modal --template modal --ai 'Create a modal component with open/close functionality'"
+    ]
+  },
+  {
+    "command": "butt3r db",
+    "examples": [
+      "butt3r db add-table users --columns id:int,name:string",
+      "butt3r db export --file users.json"
+    ]
+  },
+  {
+    "command": "butt3r down",
+    "examples": [
+      "butt3r down --containerd podman --dev",
+      "butt3r down --all"
+    ]
+  },
+  {
+    "command": "butt3r layout",
+    "examples": [
+      "butt3r layout src/app/layouts/Base --root",
+      "butt3r layout src/app/layouts/Dashboard --client --emmet header>nav"
+    ]
+  },
+  {
+    "command": "butt3r page",
+    "examples": [
+      "butt3r page src/app/pages/Home --template page",
+      "butt3r page src/app/pages/About --props title:string --emmet h1>title"
+    ]
+  },
+  {
+    "command": "butt3r start",
+    "examples": [
+      "butt3r start --containerd podman --runner yarn",
+      "butt3r start --dev"
+    ]
+  },
+  {
+    "command": "butt3r stop",
+    "examples": [
+      "butt3r stop --containerd docker --dev",
+      "butt3r stop"
+    ]
+  },
+  {
+    "command": "butt3r up",
+    "examples": [
+      "butt3r up --containerd docker --runner npm --dev",
+      "butt3r up"
+    ]
+  },
+  {
+    "command": "butt3r ts-edit",
+    "examples": [
+      "butt3r ts-edit export-function --name getUser",
+      "butt3r ts-edit import --from axios"
+    ]
+  },
+  {
+    "command": "butt3r api-route",
+    "examples": [
+      "butt3r api-route users --methods GET POST DELETE",
+      "butt3r api-route login --methods POST --schema src/schemas/login"
+    ]
+  },
+  {
+    "command": "butt3r test",
+    "examples": [
+      "butt3r test unit src/components/Button",
+      "butt3r test e2e src/pages/Home --directory src/tests/e2e"
+    ]
+  },
+  {
+    "command": "butt3r trpc",
+    "examples": [
+      "butt3r trpc router --name user",
+      "butt3r trpc procedure --name create"
+    ]
+  },
+  {
+    "command": "butt3r type-schema",
+    "examples": [
+      "butt3r type-schema props src/types/User --props id:int,name:string",
+      "butt3r type-schema form src/schemas/Login --form email:string,password:string"
+    ]
+  },
+  {
+    "command": "butt3r db export",
+    "examples": [
+      "butt3r db export data.sql --format sql --table users",
+      "butt3r db export backup.json --format json --pretty"
+    ]
+  },
+  {
+    "command": "butt3r db import",
+    "examples": [
+      "butt3r db import data.sql --containerd docker",
+      "butt3r db import backup.json --force"
+    ]
+  },
+  {
+    "command": "butt3r db query",
+    "examples": [
+      "butt3r db query 'SELECT * FROM users' --output users.csv",
+      "butt3r db query 'SELECT COUNT(*) FROM posts' --format json"
+    ]
+  },
+  {
+    "command": "butt3r db add-table",
+    "examples": [
+      "butt3r db add-table users --column id:serial --column name:varchar",
+      "butt3r db add-table posts --column id:uuid --column content:text --dry-run"
+    ]
+  },
+  {
+    "command": "butt3r ts-edit export-function",
+    "examples": [
+      "butt3r ts-edit export-function getUser --props id:number --return-type User",
+      "butt3r ts-edit export-function createPost --props title:string,content:string --async"
+    ]
+  },
+  {
+    "command": "butt3r ts-edit export-type",
+    "examples": [
+      "butt3r ts-edit export-type User --property id:number --property name:string",
+      "butt3r ts-edit export-type Post --property id:string --property content:string --dry-run"
+    ]
+  },
+  {
+    "command": "butt3r ts-edit import",
+    "examples": [
+      "butt3r ts-edit import axios Axios",
+      "butt3r ts-edit import ./types User"
+    ]
+  },
+  {
+    "command": "butt3r trpc router",
+    "examples": [
+      "butt3r trpc router user --schema src/schemas/user",
+      "butt3r trpc router post --schema src/schemas/post"
+    ]
+  },
+  {
+    "command": "butt3r trpc procedure",
+    "examples": [
+      "butt3r trpc procedure user getUser query --schema src/schemas/user",
+      "butt3r trpc procedure post createPost mutation --loader useCreatePost"
+    ]
+  }
+]
+

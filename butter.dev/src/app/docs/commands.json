@@ -1,0 +1,142 @@
+[
+{
+  "command": "butt3r create",
+  "description": "my go to project creator:",
+  "help": "my go to project creator:\n\tname: project name\n\t--db-provider <db-provider>: db provider [default: ' postgres ']\n\t--db-orm <db-orm>: orm to use [default: ' drizzle ']\n\t-c, --shadcn-component <shadcn-component>: shadcn component to install, repeatable\n\t-i, --install <install>: package to install, repeatable\n\t--package-manager <package-manager>: package manager [default: ' bun ']\n\t-p, --app-ports <app-ports>: ports entry for the app, repeatable\n\t--app-env <app-env>: app env vars, repeatable\n\t--db-ports <db-ports>: db ports entry, repeatable\n\t--db-env <db-env>: db env vars, repeatable\n\t--db-user <db-user>: db user\n\t--db-name <db-name>: db name\n\t--app-port <app-port>: ports to use for the app\n\t--app-network <app-network>: network for the app\n\t--db|--no-db: project use a DB, on by default (use --no-db to turn it off)\n\t--app-router|--no-app-router: use app router, on by default (use --no-app-router to turn it off)\n\t--auth|--no-auth: use nextauth, on by default (use --no-auth to turn it off)\n\t--trpc|--no-trpc: use trpc, on by default (use --no-trpc to turn it off)\n\t--tailwind|--no-tailwind: use tailwind, on by default (use --no-tailwind to turn it off)\n\t--shadcn|--no-shadcn: project use shadcn, on by default (use --no-shadcn to turn it off)\n\t--mdx|--no-mdx: project use markdown content\n\t--mdx-remote|--no-mdx-remote: add next remote mdx and gray-matter, on by default (use --no-mdx-remote to turn it off)\n\t--docker|--no-docker: create a docker compose stack, on by default (use --no-docker to turn it off)\n\t--git|--no-git: init git, on by default (use --no-git to turn it off)\nUsage :\n\tbin/create <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--app-ports <value>] [--app-env <value>] [--db-ports <value>] [--db-env <value>] [--db-user <value>] [--db-name <value>] [--app-port <value>] [--app-network <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote] [--[no-]docker] [--[no-]git]"
+},
+{
+  "command": "butt3r component",
+  "description": "create/update a component:",
+  "help": "create/update a component:\n\tpath: path to the component\n\t--directory <directory>: subdirectory in src/components\n\t--component-name <component-name>: component name\n\t--props <props>: property definition (name:type), repeatable\n\t--import <import>: import statement (from:what), repeatable\n\t--emmet <emmet>: emmet pattern for the component, repeatable\n\t--template <template>: template to use (page|layout|form|table) [one of 'page' 'layout' 'form' 'table']\n\t--ai-emmet <ai-emmet>: description for the ai generated emmet string\n\t--ai-provider <ai-provider>: ai provider\n\t--ai-model <ai-model>: ai model\n\t--ai <ai>: get the ai to do something with the generated code\n\t--ai-example|--eg <ai-example>: example output to give to the AI, repeatable\n\t--ai-log <ai-log>: log file for the ai output\n\t--base-directory <base-directory>: src dir stuff [default: ' src/components ']\n\t--server|--client: is server component, on by default (use --client to turn it off)\n\t--dry-run|--no-dry-run: output to stdout\n\t--prettier|--no-prettier: run prettier before output, on by default (use --no-prettier to turn it off)\n\t--export-default|--no-export-default: export component as default\nUsage :\n\tbin/component <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--template <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--ai-log <value>] [--base-directory <value>] [--[no-]server] [--[no-]dry-run] [--[no-]prettier] [--[no-]export-default]"
+},
+{
+  "command": "butt3r db",
+  "description": "manage your butT3r db:",
+  "help": "manage your butT3r db:\n\ttarget: what to do [one of 'export' 'import' 'query' 'add-table' 'export']\nUsage :\n\tbin/db <target>"
+},
+{
+  "command": "butt3r db export",
+  "description": "export database to a file:",
+  "help": "export database to a file:\n\toutput: output file\n\t--format <format>: output format [default: ' sql '] [one of 'sql' 'json' 'yaml' 'csv' 'xml']\n\t--table <table>: table to export (all if not specified)\n\t--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']\n\t--pretty|--no-pretty: pretty print output (when possible)\nUsage :\n\tbin/_db/export <output> [--format <value>] [--table <value>] [--containerd <value>] [--[no-]pretty]"
+},
+{
+  "command": "butt3r db import",
+  "description": "import database from a file:",
+  "help": "import database from a file:\n\tinput: input file\n\t--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']\n\t--force|--no-force: force import (drop existing data)\nUsage :\n\tbin/_db/import <input> [--containerd <value>] [--[no-]force]"
+},
+{
+  "command": "butt3r db query",
+  "description": "run a query on the database:",
+  "help": "run a query on the database:\n\tquery: SQL query to execute\n\t--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']\n\t--output <output>: output file (prints to stdout if not specified)\n\t--format <format>: output format (when saving to file) [default: ' table '] [one of 'table' 'json' 'yaml' 'csv' 'xml']\n\t--pretty|--no-pretty: pretty print output (when possible)\nUsage :\n\tbin/_db/query <query> [--containerd <value>] [--output <value>] [--format <value>] [--[no-]pretty]"
+},
+{
+  "command": "butt3r db add-table",
+  "description": "add a database table to a schema file:",
+  "help": "add a database table to a schema file:\n\ttable-name: Name of the table to create\n\t-c, --column <column>: Column declaration (e.g., id serial primary key, user_id integer references users.id), repeatable\n\t-o, --output-file <output-file>: Name of the schema file in src/db [default: ' schema.ts ']\n\t-d|--dry-run|--no-dry-run: Simulate the script without modifying files\nUsage :\n\tbin/_db/add-table <table-name> [--column <value>] [--output-file <value>] [--[no-]dry-run]"
+},
+{
+  "command": "butt3r db export",
+  "description": "export database to a file:",
+  "help": "export database to a file:\n\toutput: output file\n\t--format <format>: output format [default: ' sql '] [one of 'sql' 'json' 'yaml' 'csv' 'xml']\n\t--table <table>: table to export (all if not specified)\n\t--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']\n\t--pretty|--no-pretty: pretty print output (when possible)\nUsage :\n\tbin/_db/export <output> [--format <value>] [--table <value>] [--containerd <value>] [--[no-]pretty]"
+},
+{
+  "command": "butt3r down",
+  "description": "terminate and clean the stack:",
+  "help": "terminate and clean the stack:\n\t--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']\n\t--dev|--no-dev: running in dev mode, on by default (use --no-dev to turn it off)\n\t--all|--no-all: remove everything (cache, dependencies, etc...)\nUsage :\n\tbin/down [--containerd <value>] [--[no-]dev] [--[no-]all]"
+},
+{
+  "command": "butt3r layout",
+  "description": "create/update a layout:",
+  "help": "create/update a layout:\n\tpath: path to the layout\n\t--directory <directory>: subdirectory in src/app\n\t--component-name <component-name>: component name\n\t--props <props>: property definition (name:type), repeatable\n\t--import <import>: import statement (from:what), repeatable\n\t--emmet <emmet>: emmet pattern for the component, repeatable\n\t--ai-emmet <ai-emmet>: description for the ai generated emmet string\n\t--ai-provider <ai-provider>: ai provider\n\t--ai-model <ai-model>: ai model\n\t--ai <ai>: get the ai to do something with the generated code\n\t--ai-example|--eg <ai-example>: example output to give to the AI, repeatable\n\t--ai-log <ai-log>: log file for the ai output\n\t--server|--no-server: is server component, on by default (use --no-server to turn it off)\n\t--client|--no-client: is client component\n\t--root|--no-root: is root layout\n\t--prettier|--no-prettier:  run prettier before output\n\t--dry-run|--no-dry-run: output to stdout\nUsage :\n\tbin/layout <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--ai-log <value>] [--[no-]server] [--[no-]client] [--[no-]root] [--[no-]prettier] [--[no-]dry-run]"
+},
+{
+  "command": "butt3r page",
+  "description": "create/update a page:",
+  "help": "create/update a page:\n\tpath: path to the page\n\t--directory <directory>: subdirectory in src/app\n\t--component-name <component-name>: component name\n\t--props <props>: property definition (name:type), repeatable\n\t--import <import>: import statement (from:what), repeatable\n\t--emmet <emmet>: emmet pattern for the component, repeatable\n\t--ai-emmet <ai-emmet>: description for the ai generated emmet string\n\t--ai-provider <ai-provider>: ai provider\n\t--ai-model <ai-model>: ai model\n\t--ai <ai>: get the ai to do something with the generated code\n\t--ai-example|--eg <ai-example>: example output to give to the AI, repeatable\n\t--ai-log <ai-log>: log file for the ai output\n\t--server|--no-server: is server component, on by default (use --no-server to turn it off)\n\t--client|--no-client: is client component\n\t--prettier|--no-prettier:  run prettier before output\n\t--dry-run|--no-dry-run: output to stdout\nUsage :\n\tbin/page <path> [--directory <value>] [--component-name <value>] [--props <value>] [--import <value>] [--emmet <value>] [--ai-emmet <value>] [--ai-provider <value>] [--ai-model <value>] [--ai <value>] [--ai-example <value>] [--ai-log <value>] [--[no-]server] [--[no-]client] [--[no-]prettier] [--[no-]dry-run]"
+},
+{
+  "command": "butt3r start",
+  "description": "start your stack:",
+  "help": "start your stack:\n\t--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']\n\t--runner <runner>: what js runtime is used [default: ' bun '] [one of 'bun' 'npm' 'yarn']\n\t--dev|--no-dev: start in dev mode\nUsage :\n\tbin/start [--containerd <value>] [--runner <value>] [--[no-]dev]"
+},
+{
+  "command": "butt3r stop",
+  "description": "stop the stack:",
+  "help": "stop the stack:\n\t--containerd <containerd>: container runtime\n\t--dev|--no-dev: running in dev\nUsage :\n\tbin/stop [--containerd <value>] [--[no-]dev]"
+},
+{
+  "command": "butt3r up",
+  "description": "initialize the stack for the first time:",
+  "help": "initialize the stack for the first time:\n\t--containerd <containerd>: what container are you using [default: ' docker '] [one of 'docker' 'podman']\n\t--runner <runner>: what js runtime is used [default: ' bun '] [one of 'bun' 'npm' 'yarn']\n\t--dev|--no-dev: initialize in dev mode\nUsage :\n\tbin/up [--containerd <value>] [--runner <value>] [--[no-]dev]"
+},
+{
+  "command": "butt3r ts-edit",
+  "description": "'edit' typescript file:",
+  "help": "'edit' typescript file:\n\ttarget: what to do [one of 'export-function' 'export-type' 'import' 'export-function']\nUsage :\n\tbin/ts-edit <target>"
+},
+{
+  "command": "butt3r ts-edit export-function",
+  "description": "export a function:",
+  "help": "export a function:\n\tname: function name\n\t--props <props>: function props (name:type), repeatable\n\t--return-type <return-type>: function return type [default: ' void ']\n\t--async|--no-async: is async function\n\t--dry-run|--no-dry-run: output to stdout\nUsage :\n\tbin/_ts-edit/export-function <name> [--props <value>] [--return-type <value>] [--[no-]async] [--[no-]dry-run]"
+},
+{
+  "command": "butt3r ts-edit export-type",
+  "description": "export a type:",
+  "help": "export a type:\n\tname: type name\n\t--property <property>: property definition (name:type), repeatable\n\t--dry-run|--no-dry-run: output to stdout\nUsage :\n\tbin/_ts-edit/export-type <name> [--property <value>] [--[no-]dry-run]"
+},
+{
+  "command": "butt3r ts-edit import",
+  "description": "add import statement:",
+  "help": "add import statement:\n\tfrom: module to import from\n\twhat: what to import\nUsage :\n\tbin/_ts-edit/import <from> <what>"
+},
+{
+  "command": "butt3r ts-edit export-function",
+  "description": "export a function:",
+  "help": "export a function:\n\tname: function name\n\t--props <props>: function props (name:type), repeatable\n\t--return-type <return-type>: function return type [default: ' void ']\n\t--async|--no-async: is async function\n\t--dry-run|--no-dry-run: output to stdout\nUsage :\n\tbin/_ts-edit/export-function <name> [--props <value>] [--return-type <value>] [--[no-]async] [--[no-]dry-run]"
+},
+{
+  "command": "butt3r api-route",
+  "description": "create a new API route:",
+  "help": "create a new API route:\n\tname: route name\n\t--methods <methods>: HTTP methods (GET,POST,PUT,DELETE), repeatable\n\t--directory <directory>: subdirectory in src/app/api\n\t--schema <schema>: input/output validation\nUsage :\n\tbin/api-route <name> [--methods <value>] [--directory <value>] [--schema <value>]"
+},
+{
+  "command": "butt3r create",
+  "description": "my go to project creator:",
+  "help": "my go to project creator:\n\tname: project name\n\t--db-provider <db-provider>: db provider [default: ' postgres ']\n\t--db-orm <db-orm>: orm to use [default: ' drizzle ']\n\t-c, --shadcn-component <shadcn-component>: shadcn component to install, repeatable\n\t-i, --install <install>: package to install, repeatable\n\t--package-manager <package-manager>: package manager [default: ' bun ']\n\t-p, --app-ports <app-ports>: ports entry for the app, repeatable\n\t--app-env <app-env>: app env vars, repeatable\n\t--db-ports <db-ports>: db ports entry, repeatable\n\t--db-env <db-env>: db env vars, repeatable\n\t--db-user <db-user>: db user\n\t--db-name <db-name>: db name\n\t--app-port <app-port>: ports to use for the app\n\t--app-network <app-network>: network for the app\n\t--db|--no-db: project use a DB, on by default (use --no-db to turn it off)\n\t--app-router|--no-app-router: use app router, on by default (use --no-app-router to turn it off)\n\t--auth|--no-auth: use nextauth, on by default (use --no-auth to turn it off)\n\t--trpc|--no-trpc: use trpc, on by default (use --no-trpc to turn it off)\n\t--tailwind|--no-tailwind: use tailwind, on by default (use --no-tailwind to turn it off)\n\t--shadcn|--no-shadcn: project use shadcn, on by default (use --no-shadcn to turn it off)\n\t--mdx|--no-mdx: project use markdown content\n\t--mdx-remote|--no-mdx-remote: add next remote mdx and gray-matter, on by default (use --no-mdx-remote to turn it off)\n\t--docker|--no-docker: create a docker compose stack, on by default (use --no-docker to turn it off)\n\t--git|--no-git: init git, on by default (use --no-git to turn it off)\nUsage :\n\tbin/create <name> [--db-provider <value>] [--db-orm <value>] [--shadcn-component <value>] [--install <value>] [--package-manager <value>] [--app-ports <value>] [--app-env <value>] [--db-ports <value>] [--db-env <value>] [--db-user <value>] [--db-name <value>] [--app-port <value>] [--app-network <value>] [--[no-]db] [--[no-]app-router] [--[no-]auth] [--[no-]trpc] [--[no-]tailwind] [--[no-]shadcn] [--[no-]mdx] [--[no-]mdx-remote] [--[no-]docker] [--[no-]git]"
+},
+{
+  "command": "butt3r test",
+  "description": "generate tests:",
+  "help": "generate tests:\n\ttype: type of test [one of 'unit' 'e2e']\n\ttarget: component/page to test\n\t--directory <directory>: test directory location\nUsage :\n\tbin/test <type> <target> [--directory <value>]"
+},
+{
+  "command": "butt3r trpc",
+  "description": "create tRPC functionality:",
+  "help": "create tRPC functionality:\n\ttarget: what to do [one of 'router' 'procedure' 'procedure' 'router']\nUsage :\n\tbin/trpc <target>"
+},
+{
+  "command": "butt3r trpc router",
+  "description": "create new tRPC router:",
+  "help": "create new tRPC router:\n\tname: router name\n\t--schema <schema>: input/output validation\nUsage :\n\tbin/_trpc/router <name> [--schema <value>]"
+},
+{
+  "command": "butt3r trpc procedure",
+  "description": "add procedure to router:",
+  "help": "add procedure to router:\n\trouter: target router\n\tname: procedure name\n\ttype: query|mutation|infinite [one of 'query' 'mutation' 'infinite']\n\t--schema <schema>: input/output validation\n\t--loader <loader>: generate loader hook\nUsage :\n\tbin/_trpc/procedure <router> <name> <type> [--schema <value>] [--loader <value>]"
+},
+{
+  "command": "butt3r trpc procedure",
+  "description": "add procedure to router:",
+  "help": "add procedure to router:\n\trouter: target router\n\tname: procedure name\n\ttype: query|mutation|infinite [one of 'query' 'mutation' 'infinite']\n\t--schema <schema>: input/output validation\n\t--loader <loader>: generate loader hook\nUsage :\n\tbin/_trpc/procedure <router> <name> <type> [--schema <value>] [--loader <value>]"
+},
+{
+  "command": "butt3r trpc router",
+  "description": "create new tRPC router:",
+  "help": "create new tRPC router:\n\tname: router name\n\t--schema <schema>: input/output validation\nUsage :\n\tbin/_trpc/router <name> [--schema <value>]"
+},
+{
+  "command": "butt3r type-schema",
+  "description": "generate type schema:",
+  "help": "generate type schema:\n\ttype: type of schema [one of 'props' 'form' 'api']\n\ttarget: target file\n\t--props <props>: property definitions, repeatable\n\t--form <form>: field definitions with validation, repeatable\n\t--api <api>: input/output fields, repeatable\nUsage :\n\tbin/type-schema <type> <target> [--props <value>] [--form <value>] [--api <value>]"
+}
+]
