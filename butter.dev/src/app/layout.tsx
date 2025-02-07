@@ -13,6 +13,7 @@ import {
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
 import Link from "next/link";
+import Script from "next/script";
 import { ThemeToggle } from "~/components/theme-provider";
 // import { CircuitBackground } from "~/components/circuit-background";
 
@@ -27,6 +28,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
+      <Script src="https://cdn.counter.dev/script.js" data-id="154c6878-7558-4eff-90f9-bd4904015df1" data-utcoffset="1" />
       <ThemeProvider className="bg-gradient-to-b from-[#57aed1] to-[#2e026d] dark:from-[#2e026d] dark:to-[#57aed1]">
         {/* <CircuitBackground /> */}
         <nav className="fixed left-0 right-0 top-0 bg-white/10 p-4 backdrop-blur-md">

@@ -16,7 +16,7 @@ import Link from "next/link";
 import { GlowLink } from "~/components/ui/glow-link";
 import Butt3r from "~/components/ui/butt3r";
 import { motion } from "motion/react";
-import { type FieldValues } from 'react-hook-form';
+import { type FieldValues } from "react-hook-form";
 
 export default function HomePage() {
   const [terminalCommands, setTerminalCommands] = useState<
@@ -113,9 +113,9 @@ export default function HomePage() {
                   Auto-immune diseases sux donkey ballz, dude !
                 </HoverCardContent>
               </HoverCard>
-              , I have lots of opinions and absolutly no insights ! So, I&lsquo;ve
-              done my best to steal others work&apos;s and shove it into this CLI
-              tool !
+              , I have lots of opinions and absolutly no insights ! So,
+              I&lsquo;ve done my best to steal others work&apos;s and shove it
+              into this CLI tool !
             </div>
             <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               It is written in bash (arguably the most amazing programming
@@ -141,6 +141,7 @@ export default function HomePage() {
                 href="https://github.com/DimitriGilbert/parseArger"
                 color="rgba(59, 130, 246, 0.8)"
                 className="text-blue-600 dark:text-blue-400"
+                target="_blank"
               >
                 parseArger
               </GlowLink>{" "}
@@ -161,8 +162,11 @@ export default function HomePage() {
                 </HoverCardTrigger>
                 <HoverCardContent className="bg-white dark:bg-gray-800">
                   It run{" "}
-                  <GlowLink href="https://create.t3.gg">create-t3-app</GlowLink>{" "}
-                  with a set of default you can override ! As well as install your dependencies !
+                  <GlowLink href="https://create.t3.gg" target="_blank">
+                    create-t3-app
+                  </GlowLink>{" "}
+                  with a set of default you can override ! As well as install
+                  your dependencies !
                 </HoverCardContent>
               </HoverCard>{" "}
               and{" "}
@@ -247,12 +251,14 @@ export default function HomePage() {
                   <Link
                     href="https://buttplug.io/"
                     className="text-blue-600 hover:underline dark:text-blue-400"
+                    target="_blank"
                   >
-                    ANYTHING !
+                    ANYTHING ! (let&apos;s say nsfw ^^)
                   </Link>
                 </HoverCardContent>
               </HoverCard>
-              , you&lsquo;ll be happy to learn that, <Butt3r /> also comes with AI !
+              , you&lsquo;ll be happy to learn that, <Butt3r /> also comes with
+              AI !
             </div>
             <div className="text-base text-gray-700 dark:text-gray-300 md:text-xl">
               Waaaiiiit, WUUUUUT ? <Butt3r /> can do AI ? ooooh yeah baby, and
@@ -287,8 +293,9 @@ export default function HomePage() {
                 </li>
                 <li className="text-gray-700 dark:text-gray-300">
                   Use{" "}
-                  <span className="font-mono dark:text-purple-400 text-blue-900">
-                    --ai &ldquo;a description for the stuff you want to create&ldquo;
+                  <span className="font-mono text-blue-900 dark:text-purple-400">
+                    --ai &ldquo;a description for the stuff you want to
+                    create&ldquo;
                   </span>{" "}
                   when creating a new component, page or layout.{" "}
                   <span className="text-gray-600 dark:text-gray-400">
