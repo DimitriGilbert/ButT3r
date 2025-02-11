@@ -118,7 +118,7 @@ export default function RootLayout({
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <Link
-                    href="https://github.com/your-repo"
+                    href="https://github.com/DimitriGilbert/ButT3r"
                     legacyBehavior
                     passHref
                   >

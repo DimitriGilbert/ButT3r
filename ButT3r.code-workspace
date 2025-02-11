@@ -5,9 +5,6 @@
 		},
 		{
 			"path": "../ai-gents"
-		},
-		{
-			"path": "../TerMinable"
 		}
 	],
 	"settings": {}
