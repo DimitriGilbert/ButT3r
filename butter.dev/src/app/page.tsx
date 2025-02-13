@@ -17,6 +17,8 @@ import { GlowLink } from "~/components/ui/glow-link";
 import Butt3r from "~/components/ui/butt3r";
 import { motion } from "motion/react";
 import { type FieldValues } from "react-hook-form";
+import { FaCopy } from "react-icons/fa";
+import { toast } from "sonner";
 
 export default function HomePage() {
   const [terminalCommands, setTerminalCommands] = useState<
@@ -25,6 +27,19 @@ export default function HomePage() {
 
   const handleSubmit = (data: FieldValues, cmd: string) => {
     setTerminalCommands((prev) => [...prev, { prompt: `${cmd}` }]);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard
+      .writeText(
+        "curl -s https://raw.githubusercontent.com/DimitriGilbert/ButT3r/main/utils/get_Butt3r -O && chmod +x get_Butt3r && ./get_Butt3r --install"
+      )
+      .then(() => {
+        toast.success("Copied to clipboard!");
+      })
+      .catch(() => {
+        toast.error("Failed to copy to clipboard!");
+      });
   };
 
   return (
@@ -72,6 +87,21 @@ export default function HomePage() {
               T3 Stack
             </motion.span>
           </OutgoingLink>
+        </section>
+        <section>
+          <pre className="rounded-lg border border-gray-700 bg-gray-900/50 p-4 backdrop-blur-md">
+            <code className="flex items-center gap-2 text-sm text-white">
+              curl -s
+              https://raw.githubusercontent.com/DimitriGilbert/ButT3r/main/utils/get_Butt3r
+              -O && chmod +x get_Butt3r && ./get_Butt3r --install
+            </code>
+            <button
+              onClick={handleCopy}
+              className="absolute -right-2 -top-2 rounded-full border border-gray-700 bg-gray-800/50 p-2 opacity-40 backdrop-blur-md transition-opacity hover:bg-gray-700/50 group-hover:opacity-100"
+            >
+              <FaCopy className="text-white" />
+            </button>
+          </pre>
         </section>
         <section className="grid w-full grid-cols-1 items-center gap-8 py-8 lg:grid lg:gap-x-2 xl:grid-cols-2 xl:gap-x-6">
           <div className="flex flex-col gap-4 rounded-lg bg-white/60 p-6 dark:bg-gray-800/90">
