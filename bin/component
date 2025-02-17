@@ -12,15 +12,15 @@ if [ -t 1 ]; then # Check if stdout is a terminal
 fi
 # @parseArger-declarations
 # @parseArger pos path "path to the component"
-# @parseArger opt directory "subdirectory in src/components"
-# @parseArger opt component-name "component name"
-# @parseArger opt props "property definition (name:type)" --repeat
-# @parseArger opt import "import statement (from:what)" --repeat
-# @parseArger opt emmet "emmet pattern for the component" --repeat
+# @parseArger opt directory "subdirectory in src/components" --short d
+# @parseArger opt component-name "component name" --short n
+# @parseArger opt props "property definition (name:type)" --short p --repeat
+# @parseArger opt import "import statement (from:what)" --short i --repeat
+# @parseArger opt emmet "emmet pattern for the component" --short e --repeat
 # @parseArger opt template "template to use (page|layout|form|table)" --one-of "page" --one-of "layout" --one-of "form" --one-of "table"
-# @parseArger opt ai-emmet "description for the ai generated emmet string"
-# @parseArger opt ai-provider "ai provider"
-# @parseArger opt ai-model "ai model"
+# @parseArger opt ai-emmet "description for the ai generated emmet string" --alias ai-e
+# @parseArger opt ai-provider "ai provider" --alias ai-p
+# @parseArger opt ai-model "ai model" --alias ai-m
 # @parseArger opt ai "get the ai to do something with the generated code"
 # @parseArger opt ai-example "example output to give to the AI" --repeat --alias eg
 # @parseArger opt ai-log "log file for the ai output"
@@ -96,15 +96,15 @@ print_help()
 		_helpHasBeenPrinted=0;
 		echo -e "create/update a component:"
 	echo -e "	path: path to the component"
-	echo -e "	--directory <directory>: subdirectory in src/components"
-	echo -e "	--component-name <component-name>: component name"
-	echo -e "	--props <props>: property definition (name:type), repeatable"
-	echo -e "	--import <import>: import statement (from:what), repeatable"
-	echo -e "	--emmet <emmet>: emmet pattern for the component, repeatable"
+	echo -e "	-d, --directory <directory>: subdirectory in src/components"
+	echo -e "	-n, --component-name <component-name>: component name"
+	echo -e "	-p, --props <props>: property definition (name:type), repeatable"
+	echo -e "	-i, --import <import>: import statement (from:what), repeatable"
+	echo -e "	-e, --emmet <emmet>: emmet pattern for the component, repeatable"
 	echo -e "	--template <template>: template to use (page|layout|form|table) [one of 'page' 'layout' 'form' 'table']"
-	echo -e "	--ai-emmet <ai-emmet>: description for the ai generated emmet string"
-	echo -e "	--ai-provider <ai-provider>: ai provider"
-	echo -e "	--ai-model <ai-model>: ai model"
+	echo -e "	--ai-emmet|--ai-e <ai-emmet>: description for the ai generated emmet string"
+	echo -e "	--ai-provider|--ai-p <ai-provider>: ai provider"
+	echo -e "	--ai-model|--ai-m <ai-model>: ai model"
 	echo -e "	--ai <ai>: get the ai to do something with the generated code"
 	echo -e "	--ai-example|--eg <ai-example>: example output to give to the AI, repeatable"
 	echo -e "	--ai-log <ai-log>: log file for the ai output"
@@ -161,7 +161,7 @@ parse_commandline()
 	do
 		_key="$1"
 		case "$_key" in
-			--directory)
+			-d|--directory)
 				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
 				_arg_directory="$2"
 				shift
@@ -169,8 +169,11 @@ parse_commandline()
 			--directory=*)
 				_arg_directory="${_key##--directory=}"
 				;;
+			-d*)
+				_arg_directory="${_key##-d}"
+				;;
 			
-			--component-name)
+			-n|--component-name)
 				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
 				_arg_component_name="$2"
 				shift
@@ -178,8 +181,11 @@ parse_commandline()
 			--component-name=*)
 				_arg_component_name="${_key##--component-name=}"
 				;;
+			-n*)
+				_arg_component_name="${_key##-n}"
+				;;
 			
-			--props)
+			-p|--props)
 				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
 				_arg_props+=("$2")
 				shift
@@ -187,8 +193,11 @@ parse_commandline()
 			--props=*)
 				_arg_props+=("${_key##--props=}")
 				;;
+			-p*)
+				_arg_props+=("${_key##-p}")
+				;;
 			
-			--import)
+			-i|--import)
 				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
 				_arg_import+=("$2")
 				shift
@@ -196,14 +205,20 @@ parse_commandline()
 			--import=*)
 				_arg_import+=("${_key##--import=}")
 				;;
+			-i*)
+				_arg_import+=("${_key##-i}")
+				;;
 			
-			--emmet)
+			-e|--emmet)
 				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
 				_arg_emmet+=("$2")
 				shift
 				;;
 			--emmet=*)
 				_arg_emmet+=("${_key##--emmet=}")
+				;;
+			-e*)
+				_arg_emmet+=("${_key##-e}")
 				;;
 			
 			--template)
@@ -217,7 +232,7 @@ parse_commandline()
 				if [[ "${#_one_of_arg_template[@]}" -gt 0 ]];then [[ "${_one_of_arg_template[*]}" =~ (^|[[:space:]])"$_arg_template"($|[[:space:]]) ]] || die "template must be one of: page layout form table";fi
 				;;
 			
-			--ai-emmet)
+			--ai-e|--ai-emmet)
 				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
 				_arg_ai_emmet="$2"
 				shift
@@ -225,8 +240,11 @@ parse_commandline()
 			--ai-emmet=*)
 				_arg_ai_emmet="${_key##--ai-emmet=}"
 				;;
+			--ai-e=*)
+				_arg_ai_emmet="${_key##--ai-e=}"
+				;;
 			
-			--ai-provider)
+			--ai-p|--ai-provider)
 				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
 				_arg_ai_provider="$2"
 				shift
@@ -234,14 +252,20 @@ parse_commandline()
 			--ai-provider=*)
 				_arg_ai_provider="${_key##--ai-provider=}"
 				;;
+			--ai-p=*)
+				_arg_ai_provider="${_key##--ai-p=}"
+				;;
 			
-			--ai-model)
+			--ai-m|--ai-model)
 				test $# -lt 2 && die "Missing value for the option: '$_key'" 1
 				_arg_ai_model="$2"
 				shift
 				;;
 			--ai-model=*)
 				_arg_ai_model="${_key##--ai-model=}"
+				;;
+			--ai-m=*)
+				_arg_ai_model="${_key##--ai-m=}"
 				;;
 			
 			--ai)
@@ -466,6 +490,7 @@ fi
 # Add imports
 for import in "${_arg_import[@]}"; do
 	IFS=':' read -r from what <<<"$import"
+	# log "Importing $what from $from" -1
 	content+="import { $what } from '$from';\n"
 done
 
@@ -495,9 +520,19 @@ if [ "$_arg_ai_emmet" != "" ]; then
 	fi
 fi
 
+if [ "${#_arg_emmet[@]}" -gt 0 ]; then
+	for emmet in "${_arg_emmet[@]}"; do
+		if [ "$_emmet" != "" ]; then
+			_emmet="($_emmet) | ($emmet)"
+		else
+			_emmet="$emmet"
+		fi
+	done
+fi
+
 # Create initial component content with the emmet pattern
 component_content=$(create_component "$component_name" "$_emmet" "$_arg_export_default" "${_arg_props[@]}")
-content="$component_content"
+content+="$component_content"
 
 # Optionally enhance with AI if requested
 if [ "$_arg_ai" != "" ]; then
